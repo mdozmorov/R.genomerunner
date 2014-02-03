@@ -1,19 +1,26 @@
+## ----loadLibraries, echo=TRUE, cache=FALSE-------------------------------
 source("utils.R")
-library(Hmisc) # For rcorr function
-library(gplots)
-library(Biobase)
-library(limma)
+suppressMessages(library(Hmisc)) # For rcorr function
+suppressMessages(library(gplots))
+suppressMessages(library(Biobase))
+suppressMessages(library(limma))
 
-# Read in matrix.txt
-dname<-"data//more15_vs_tfbsEncode//" # Which data subfolder to use, change to analyze different data
+
+## ----loadData, echo=c(-5, -6)--------------------------------------------
+# Define data subfolder to use, change to analyze different data
+dname<-"data//more15_vs_tfbsEncode//"
 mtx<-as.matrix(read.table(paste(dname, "matrix.txt", sep=""), sep="\t", header=T, row.names=1))
-# dim(na.omit(mtx)) # Just in case, check if NAs are present
-# mtx<-na.omit(mtx) # Remove NA rows
 mtx<-mtx.transform(mtx) # -log10 transform p-values
-# mtx<-mtx.adjust(mtx) # Optional: adjust for multiple testing
+# Optional: adjust columns for multiple testing. See utils.R for the function definition.
+# mtx<-mtx.adjust(mtx) 
 
-# Remove non-significant rows/columns from the matrix
+
+## ----preprocessData, echo=TRUE, cache=TRUE, dependson='loadData'---------
 dim(mtx) # Check original dimensions
-cutoff<-2 # raw p-value significance cutoff is 0.01. Use 1.3 to have 0.05 significance cutoff
-dim(mtx[apply(mtx, 1, function(x){sum(abs(x)>cutoff)})>0, apply(mtx, 2, function(x){sum(abs(x)>cutoff)})>0]) # What remails if remove rows/cols with nothing significant
-mtx<-mtx[apply(mtx, 1, function(x){sum(abs(x)>cutoff)})>0, apply(mtx, 2, function(x){sum(abs(x)>cutoff)})>0] # Do it
+cutoff<-2 # raw p-value significance cutoff is 0.01
+# What remains if we remove rows/cols with nothing significant
+dim(mtx[apply(mtx, 1, function(x){sum(abs(x)>cutoff)})>0, 
+        apply(mtx, 2, function(x){sum(abs(x)>cutoff)})>0])
+# Trim the matrix
+mtx<-mtx[apply(mtx, 1, function(x){sum(abs(x)>cutoff)})>0, 
+         apply(mtx, 2, function(x){sum(abs(x)>cutoff)})>0]

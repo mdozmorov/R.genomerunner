@@ -1,0 +1,655 @@
+Jobname:	yru5qw9yrc9wj8p3y26snnjm5ilkbrh3
+Background:	gwascatalog.bed
+Time:	2014-02-01 04:25:45
+Organism:	hg19
+
+###LOG###
+2014-01-31 22:27:44,983 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:27:45,001 ERROR 16 out of 16 O2V5HT~F.BED SNPs are not a part of the background. P-value are unreliable. Please, include all SNPs in the background and re-run analysis.
+2014-01-31 22:27:45,003 ERROR 15 out of 15 PLF201~O.BED SNPs are not a part of the background. P-value are unreliable. Please, include all SNPs in the background and re-run analysis.
+2014-01-31 22:27:52,042 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:27:52,043 INFO Getting overlap stats on background and STAT3
+2014-01-31 22:27:58,206 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:27:58,208 INFO Getting overlap stats on background and TBP
+2014-01-31 22:28:09,780 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:28:09,782 INFO Getting overlap stats on background and POLR2A
+2014-01-31 22:28:15,431 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:28:15,432 INFO Getting overlap stats on background and POU2F2
+2014-01-31 22:28:20,191 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:28:20,193 INFO Getting overlap stats on background and BCL3
+2014-01-31 22:28:25,836 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:28:25,838 INFO Getting overlap stats on background and NR3C1
+2014-01-31 22:28:30,103 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:28:30,105 INFO Getting overlap stats on background and EZH2
+2014-01-31 22:28:34,657 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:28:34,659 INFO Getting overlap stats on background and CBX3
+2014-01-31 22:28:38,414 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:28:38,416 INFO Getting overlap stats on background and ZKSCAN1
+2014-01-31 22:28:42,082 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:28:42,085 INFO Getting overlap stats on background and SP4
+2014-01-31 22:28:46,155 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:28:46,156 INFO Getting overlap stats on background and ZBTB33
+2014-01-31 22:28:50,149 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:28:50,151 INFO Getting overlap stats on background and SAP30
+2014-01-31 22:28:55,743 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:28:55,745 INFO Getting overlap stats on background and SIN3AK20
+2014-01-31 22:28:59,927 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:28:59,929 INFO Getting overlap stats on background and NFATC1
+2014-01-31 22:29:03,354 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:29:03,356 INFO Getting overlap stats on background and HDAC6
+2014-01-31 22:29:07,236 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:29:07,238 INFO Getting overlap stats on background and MEF2C
+2014-01-31 22:29:11,424 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:29:11,426 INFO Getting overlap stats on background and JUNB
+2014-01-31 22:29:16,820 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:29:16,822 INFO Getting overlap stats on background and CHD2
+2014-01-31 22:29:20,639 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:29:20,640 INFO Getting overlap stats on background and CTBP2
+2014-01-31 22:29:24,221 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:29:24,223 INFO Getting overlap stats on background and HDAC8
+2014-01-31 22:29:28,195 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:29:28,197 INFO Getting overlap stats on background and BCLAF1
+2014-01-31 22:29:33,009 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:29:33,011 INFO Getting overlap stats on background and RFX5
+2014-01-31 22:29:36,921 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:29:36,923 INFO Getting overlap stats on background and NANOG
+2014-01-31 22:29:41,378 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:29:41,380 INFO Getting overlap stats on background and RBBP5
+2014-01-31 22:29:45,518 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:29:45,520 INFO Getting overlap stats on background and HMGN3
+2014-01-31 22:29:49,952 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:29:49,954 INFO Getting overlap stats on background and NR2F2
+2014-01-31 22:29:53,455 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:29:53,457 INFO Getting overlap stats on background and SMARCC2
+2014-01-31 22:30:00,342 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:30:00,344 INFO Getting overlap stats on background and REST
+2014-01-31 22:30:03,926 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:30:03,928 INFO Getting overlap stats on background and SREBP1
+2014-01-31 22:30:13,088 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:30:13,090 INFO Getting overlap stats on background and MYC
+2014-01-31 22:30:16,753 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:30:16,755 INFO Getting overlap stats on background and PPARGC1A
+2014-01-31 22:30:20,329 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:30:20,331 INFO Getting overlap stats on background and NR2C2
+2014-01-31 22:30:25,218 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:30:25,220 INFO Getting overlap stats on background and USF2
+2014-01-31 22:30:35,641 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:30:35,643 INFO Getting overlap stats on background and RAD21
+2014-01-31 22:30:40,086 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:30:40,088 INFO Getting overlap stats on background and GTF2F1
+2014-01-31 22:30:43,770 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:30:43,772 INFO Getting overlap stats on background and SUZ12
+2014-01-31 22:30:47,880 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:30:47,882 INFO Getting overlap stats on background and MTA3
+2014-01-31 22:30:53,117 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:30:53,119 INFO Getting overlap stats on background and BATF
+2014-01-31 22:30:57,674 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:30:57,676 INFO Getting overlap stats on background and RXRA
+2014-01-31 22:31:04,410 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:31:04,412 INFO Getting overlap stats on background and SMC3
+2014-01-31 22:31:07,961 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:31:07,962 INFO Getting overlap stats on background and HSF1
+2014-01-31 22:31:13,732 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:31:13,734 INFO Getting overlap stats on background and NFIC
+2014-01-31 22:31:17,903 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:31:17,905 INFO Getting overlap stats on background and CEBPD
+2014-01-31 22:31:21,881 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:31:21,883 INFO Getting overlap stats on background and ZNF217
+2014-01-31 22:31:25,305 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:31:25,307 INFO Getting overlap stats on background and ZNF274
+2014-01-31 22:31:28,867 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:31:28,869 INFO Getting overlap stats on background and STAT2
+2014-01-31 22:31:32,368 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:31:32,370 INFO Getting overlap stats on background and RPC155
+2014-01-31 22:31:35,847 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:31:35,848 INFO Getting overlap stats on background and ZZZ3
+2014-01-31 22:31:39,741 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:31:39,743 INFO Getting overlap stats on background and SMARCB1
+2014-01-31 22:31:43,874 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:31:43,876 INFO Getting overlap stats on background and KDM5B
+2014-01-31 22:31:47,600 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:31:47,602 INFO Getting overlap stats on background and FAM48A
+2014-01-31 22:31:54,255 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:31:54,256 INFO Getting overlap stats on background and JUN
+2014-01-31 22:32:00,846 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:32:00,848 INFO Getting overlap stats on background and RCOR1
+2014-01-31 22:32:05,529 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:32:05,531 INFO Getting overlap stats on background and MEF2A
+2014-01-31 22:32:10,236 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:32:10,238 INFO Getting overlap stats on background and HNF4G
+2014-01-31 22:32:14,535 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:32:14,537 INFO Getting overlap stats on background and CHD1
+2014-01-31 22:32:17,942 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:32:17,944 INFO Getting overlap stats on background and RDBP
+2014-01-31 22:32:21,467 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:32:21,469 INFO Getting overlap stats on background and BDP1
+2014-01-31 22:32:25,296 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:32:25,298 INFO Getting overlap stats on background and NFE2
+2014-01-31 22:32:28,637 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:32:28,639 INFO Getting overlap stats on background and POLR3G
+2014-01-31 22:32:34,661 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:32:34,663 INFO Getting overlap stats on background and BHLHE40
+2014-01-31 22:32:39,044 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:32:39,046 INFO Getting overlap stats on background and PHF8
+2014-01-31 22:32:46,696 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:32:46,697 INFO Getting overlap stats on background and RUNX3
+2014-01-31 22:32:50,704 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:32:50,706 INFO Getting overlap stats on background and NFYA
+2014-01-31 22:32:55,865 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:32:55,868 INFO Getting overlap stats on background and PML
+2014-01-31 22:33:02,566 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:33:02,568 INFO Getting overlap stats on background and EBF1
+2014-01-31 22:33:06,384 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:33:06,386 INFO Getting overlap stats on background and SIRT6
+2014-01-31 22:33:11,591 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:33:11,593 INFO Getting overlap stats on background and ZNF263
+2014-01-31 22:33:18,917 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:33:18,918 INFO Getting overlap stats on background and SPI1
+2014-01-31 22:33:23,473 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:33:23,475 INFO Getting overlap stats on background and CCNT2
+2014-01-31 22:33:31,105 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:33:31,107 INFO Getting overlap stats on background and GATA2
+2014-01-31 22:33:35,300 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:33:35,302 INFO Getting overlap stats on background and CTCFL
+2014-01-31 22:33:39,265 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:33:39,267 INFO Getting overlap stats on background and TAF7
+2014-01-31 22:33:43,868 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:33:43,870 INFO Getting overlap stats on background and IRF1
+2014-01-31 22:33:47,261 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:33:47,263 INFO Getting overlap stats on background and BRF2
+2014-01-31 22:33:55,716 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:33:55,718 INFO Getting overlap stats on background and MAX
+2014-01-31 22:34:00,179 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:34:00,184 INFO Getting overlap stats on background and SRF
+2014-01-31 22:34:04,451 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:34:04,453 INFO Getting overlap stats on background and TCF3
+2014-01-31 22:34:09,427 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:34:09,429 INFO Getting overlap stats on background and E2F6
+2014-01-31 22:34:22,008 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:34:22,010 INFO Getting overlap stats on background and CTCF
+2014-01-31 22:34:26,283 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:34:26,285 INFO Getting overlap stats on background and HDAC1
+2014-01-31 22:34:30,586 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:34:30,588 INFO Getting overlap stats on background and STAT5A
+2014-01-31 22:34:36,891 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:34:36,893 INFO Getting overlap stats on background and TCF7L2
+2014-01-31 22:34:41,186 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:34:41,190 INFO Getting overlap stats on background and IKZF1
+2014-01-31 22:34:47,227 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:34:47,229 INFO Getting overlap stats on background and FOSL2
+2014-01-31 22:34:50,777 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:34:50,779 INFO Getting overlap stats on background and GTF2B
+2014-01-31 22:34:55,489 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:34:55,491 INFO Getting overlap stats on background and ATF3
+2014-01-31 22:35:00,234 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:35:00,236 INFO Getting overlap stats on background and TFAP2C
+2014-01-31 22:35:04,172 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:35:04,174 INFO Getting overlap stats on background and BRCA1
+2014-01-31 22:35:07,640 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:35:07,642 INFO Getting overlap stats on background and GRp20
+2014-01-31 22:35:12,085 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:35:12,087 INFO Getting overlap stats on background and FOXM1
+2014-01-31 22:35:18,536 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:35:18,538 INFO Getting overlap stats on background and MAFF
+2014-01-31 22:35:22,042 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:35:22,044 INFO Getting overlap stats on background and IRF3
+2014-01-31 22:35:26,739 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:35:26,741 INFO Getting overlap stats on background and SETDB1
+2014-01-31 22:35:30,628 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:35:30,630 INFO Getting overlap stats on background and SP2
+2014-01-31 22:35:34,908 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:35:34,910 INFO Getting overlap stats on background and IRF4
+2014-01-31 22:35:39,575 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:35:39,577 INFO Getting overlap stats on background and TBL1XR1
+2014-01-31 22:35:43,700 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:35:43,702 INFO Getting overlap stats on background and PBX3
+2014-01-31 22:35:49,814 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:35:49,816 INFO Getting overlap stats on background and MAZ
+2014-01-31 22:35:54,946 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:35:54,948 INFO Getting overlap stats on background and GABPA
+2014-01-31 22:35:59,469 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:35:59,471 INFO Getting overlap stats on background and GATA1
+2014-01-31 22:36:03,647 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:36:03,649 INFO Getting overlap stats on background and BACH1
+2014-01-31 22:36:09,621 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:36:09,623 INFO Getting overlap stats on background and FOXA2
+2014-01-31 22:36:14,445 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:36:14,447 INFO Getting overlap stats on background and ARID3A
+2014-01-31 22:36:25,371 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:36:25,372 INFO Getting overlap stats on background and FOS
+2014-01-31 22:36:33,995 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:36:33,997 INFO Getting overlap stats on background and MAFK
+2014-01-31 22:36:38,155 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:36:38,157 INFO Getting overlap stats on background and TRIM28
+2014-01-31 22:36:45,030 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:36:45,032 INFO Getting overlap stats on background and TEAD4
+2014-01-31 22:36:50,222 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:36:50,224 INFO Getting overlap stats on background and FOXP2
+2014-01-31 22:36:53,935 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:36:53,937 INFO Getting overlap stats on background and ESRRA
+2014-01-31 22:36:57,782 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:36:57,784 INFO Getting overlap stats on background and SMARCC1
+2014-01-31 22:37:02,641 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:37:02,643 INFO Getting overlap stats on background and SIN3A
+2014-01-31 22:37:14,696 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:37:14,699 INFO Getting overlap stats on background and CEBPB
+2014-01-31 22:37:20,824 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:37:20,826 INFO Getting overlap stats on background and TAF1
+2014-01-31 22:37:24,823 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:37:24,825 INFO Getting overlap stats on background and PRDM1
+2014-01-31 22:37:29,401 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:37:29,403 INFO Getting overlap stats on background and MYBL2
+2014-01-31 22:37:34,033 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:37:34,035 INFO Getting overlap stats on background and E2F4
+2014-01-31 22:37:43,359 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:37:43,361 INFO Getting overlap stats on background and JUND
+2014-01-31 22:37:47,291 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:37:47,293 INFO Getting overlap stats on background and KDM5A
+2014-01-31 22:37:52,401 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:37:52,403 INFO Getting overlap stats on background and KAP1
+2014-01-31 22:37:56,307 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:37:56,309 INFO Getting overlap stats on background and NRF1
+2014-01-31 22:38:01,431 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:38:01,433 INFO Getting overlap stats on background and BCL11A
+2014-01-31 22:38:05,095 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:38:05,097 INFO Getting overlap stats on background and POU5F1
+2014-01-31 22:38:08,774 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:38:08,776 INFO Getting overlap stats on background and ZEB1
+2014-01-31 22:38:12,408 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:38:12,410 INFO Getting overlap stats on background and THAP1
+2014-01-31 22:38:17,382 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:38:17,384 INFO Getting overlap stats on background and ATF2
+2014-01-31 22:38:23,126 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:38:23,128 INFO Getting overlap stats on background and RELA
+2014-01-31 22:38:26,957 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:38:26,959 INFO Getting overlap stats on background and ELK4
+2014-01-31 22:38:30,796 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:38:30,798 INFO Getting overlap stats on background and SIX5
+2014-01-31 22:38:35,003 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:38:35,005 INFO Getting overlap stats on background and UBTF
+2014-01-31 22:38:41,104 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:38:41,106 INFO Getting overlap stats on background and ZNF143
+2014-01-31 22:38:44,491 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:38:44,493 INFO Getting overlap stats on background and BRF1
+2014-01-31 22:38:50,704 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:38:50,706 INFO Getting overlap stats on background and TCF12
+2014-01-31 22:38:55,235 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:38:55,237 INFO Getting overlap stats on background and FOSL1
+2014-01-31 22:38:59,103 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:38:59,105 INFO Getting overlap stats on background and MBD4
+2014-01-31 22:39:10,809 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:39:10,811 INFO Getting overlap stats on background and EP300
+2014-01-31 22:39:14,747 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:39:14,749 INFO Getting overlap stats on background and GTF3C2
+2014-01-31 22:39:18,583 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:39:18,584 INFO Getting overlap stats on background and ELK1
+2014-01-31 22:39:25,366 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:39:25,368 INFO Getting overlap stats on background and GATA3
+2014-01-31 22:39:29,647 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:39:29,649 INFO Getting overlap stats on background and ETS1
+2014-01-31 22:39:33,912 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:39:33,914 INFO Getting overlap stats on background and WRNIP1
+2014-01-31 22:39:40,026 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:39:40,028 INFO Getting overlap stats on background and SP1
+2014-01-31 22:39:43,697 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:39:43,700 INFO Getting overlap stats on background and SMARCA4
+2014-01-31 22:39:48,623 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:39:48,625 INFO Getting overlap stats on background and ESR1
+2014-01-31 22:39:53,041 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:39:53,043 INFO Getting overlap stats on background and E2F1
+2014-01-31 22:39:57,526 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:39:57,528 INFO Getting overlap stats on background and NFYB
+2014-01-31 22:40:03,039 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:40:03,041 INFO Getting overlap stats on background and MXI1
+2014-01-31 22:40:09,108 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:40:09,110 INFO Getting overlap stats on background and ELF1
+2014-01-31 22:40:13,413 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:40:13,414 INFO Getting overlap stats on background and CREB1
+2014-01-31 22:40:20,280 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:40:20,281 INFO Getting overlap stats on background and USF1
+2014-01-31 22:40:24,535 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:40:24,537 INFO Getting overlap stats on background and ATF1
+2014-01-31 22:40:31,743 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:40:31,745 INFO Getting overlap stats on background and YY1
+2014-01-31 22:40:36,536 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:40:36,538 INFO Getting overlap stats on background and HNF4A
+2014-01-31 22:40:41,390 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:40:41,392 INFO Getting overlap stats on background and TAL1
+2014-01-31 22:40:46,851 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:40:46,853 INFO Getting overlap stats on background and PAX5
+2014-01-31 22:40:52,845 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:40:52,847 INFO Getting overlap stats on background and EGR1
+2014-01-31 22:40:58,069 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:40:58,071 INFO Getting overlap stats on background and ZBTB7A
+2014-01-31 22:41:06,911 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:41:06,913 INFO Getting overlap stats on background and FOXA1
+2014-01-31 22:41:11,461 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:41:11,463 INFO Getting overlap stats on background and TFAP2A
+2014-01-31 22:41:17,134 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:41:17,135 INFO Getting overlap stats on background and HDAC2
+2014-01-31 22:41:21,829 ERROR ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/O2V5HT~F.BED
+ERROR: file format not recognized for file:  /home/mikhail/test1_db/run_files_dir/uploads/yru5qw9yrc9wj8p3y26snnjm5ilkbrh3/fois/PLF201~O.BED
+
+2014-01-31 22:41:21,831 INFO Getting overlap stats on background and STAT1

@@ -1,6 +1,42 @@
+
+## ----setup, echo=F, include=FALSE, cache=F-------------------------------
+library(knitr) 
+opts_chunk$set(cache.path='cache/', fig.path='img/', cache=T, tidy=T, fig.keep='high', echo=F, dpi=300)
+options(replace.assign=TRUE, width=65)
+
+
+## ----loadLibraries, echo=TRUE, cache=FALSE-------------------------------
+source("utils.R")
+suppressMessages(library(Hmisc)) # For rcorr function
+suppressMessages(library(gplots))
+suppressMessages(library(Biobase))
+suppressMessages(library(limma))
+
+
+## ----loadData, echo=c(-5, -6)--------------------------------------------
+# Define data subfolder to use, change to analyze different data
+dname<-"data//more15_vs_tfbsEncode//"
+mtx<-as.matrix(read.table(paste(dname, "matrix.txt", sep=""), sep="\t", header=T, row.names=1))
+mtx<-mtx.transform(mtx) # -log10 transform p-values
+# Optional: adjust columns for multiple testing. See utils.R for the function definition.
+# mtx<-mtx.adjust(mtx) 
+
+
+## ----preprocessData, echo=TRUE, cache=TRUE, dependson='loadData'---------
+dim(mtx) # Check original dimensions
+cutoff<-2 # raw p-value significance cutoff is 0.01
+# What remains if we remove rows/cols with nothing significant
+dim(mtx[apply(mtx, 1, function(x){sum(abs(x)>cutoff)})>0, 
+        apply(mtx, 2, function(x){sum(abs(x)>cutoff)})>0])
+# Trim the matrix
+mtx<-mtx[apply(mtx, 1, function(x){sum(abs(x)>cutoff)})>0, 
+         apply(mtx, 2, function(x){sum(abs(x)>cutoff)})>0]
+
+
 ## ----preprocessCorrel, echo=TRUE, dependson='preprocessData'-------------
 # rcorr returns a list, [[1]] - correl coeffs, [[3]] - p-values. Type - pearson/spearman
 mtx.cor<-rcorr(as.matrix(mtx), type="spearman")
+
 
 ## ----epigenomicVisualization, echo=c(-1, -2), fig.cap='Epigenomic similarity heatmap'----
 par(oma=c(5,0,0,5)) # Adjust margins
@@ -12,20 +48,6 @@ dist.method<-"euclidean"
 hclust.method<-"ward"
 h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", col=color,distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=0.5, cexCol=0.5)
 
-# Exploratory: Cllustering combinaations. Use to find bvisually best combinations of dist and hclust methods
-dist.methods<-c("euclidean",  "manhattan", "minkowski", "canberra","maximum") # "binary",
-hclust.methods<-c("ward", "single", "complete", "average", "mcquitty", "median", "centroid")
-dev.off() # Clear graphic window
-unlink(paste(dname, "cluster_combinations.pdf", sep=""))
-pdf(paste(dname, "cluster_combinations.pdf", sep=""))
-# par(oma=c(5,0,0,5)) #Make right and bottom margins larger
-for (d in dist.methods) {
-  for (h in hclust.methods){
-    # Correlations
-    h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=d)}, hclustfun=function(x){hclust(x, method=h)}, cexRow=0.5, cexCol=0.5, main=paste("Dist : ",d,"; Hclust : ",h))
-  }
-}
-dev.off()
 
 ## ----defineClusters, echo=-1, results='hide', fig=TRUE-------------------
 par(oma=c(5,0,0,5), cex=0.7)
@@ -38,6 +60,7 @@ for (i in 1:length(c$lower)){
   write.table(paste(i, t(labels(c$lower[[i]])), sep="\t"), paste(dname, "clustering.txt", sep=""), sep="\t", col.names=F, row.names=F, append=T)
 }
 
+
 ## ----defineGroups, echo=TRUE, dependson='defineClusters'-----------------
 eset.labels<-character() # Empty vector to hold cluster labels
 eset.groups<-numeric() # Empty vector to hold cluster groups
@@ -48,6 +71,7 @@ for (i in 1:length(c$lower)) { # Go through each cluster
     eset.groups<-append(eset.groups, rep(i, length(labels(c$lower[[i]]))))
   }
 }
+
 
 ## ----limmaOnClusters, echo=TRUE, warning=FALSE, results='hide', dependson='defineGroups'----
 # Make eset out of eset.labels
@@ -83,6 +107,7 @@ for(i in colnames(design)){
   }
 }
 
+
 ## ----maxminCorr, echo=TRUE, eval=TRUE, results='hide', dependson='preprocessCorrel'----
 mtx.cor1<-mtx.cor[[1]]
 # We don't need to consider perfect correlations, zero them out
@@ -98,8 +123,9 @@ for (i in 1:ncol(mtx.cor1)) write.table(paste(colnames(mtx.cor1)[i],"correlates 
                                               "at corr. coeff.",formatC(mtx.cor1[i,which(mtx.cor1[i,] == min(mtx.cor1[i,]))]),sep="|"),
                                         paste(dname, "maxmin_correlations.txt", sep=""), append=T, sep="\t", col.names=F, row.names=F) 
 
+
 ## ----enrichmentCutoffs, echo=TRUE, eval=TRUE, results='hide', fig.show='hold', dependson='preprocessCorrel'----
-# Define minimum number of times a row/col should have values above the cutoffs
+ # Define minimum number of times a row/col should have values above the cutoffs
 numofsig<-1
 dim(mtx) # Original dimensions
 # Check summary and set p-value and variability cutoffs as 3rd quantiles of their distributions
@@ -136,79 +162,3 @@ color<-colorRampPalette(c("blue", "yellow"))
 h<-heatmap.2(as.matrix(mtx.gf), distfun=function(x){dist(x,method=dist.method)}, hclustfun=function(x){hclust(x,method=hclust.method)}, dendrogram="none", breaks=my.breaks,  col=color, lwid=c(1.5,3), lhei=c(1.5,4), key=T,  symkey=T, keysize=0.01, density.info="none", trace="none",  cexCol=1.0, cexRow=0.8)
 
 
-
-
-
-# Exploratory p-value distribution for each column
-par(oma=c(0, 0, 0, 0) , mar=c(15, 6, 4, 2)+0.1) #Make right and bottom margins larger
-boxplot(mtx[, order(apply(mtx, 2, max), decreasing=T)], cex.axis=0.8, las=2, ylab="-log10(p-value)\nNegative - underrepresentation", boxlwd=2, whisklwd=2, staplelwd=2)
-title(xlab="p-value distribution", line=5)
-abline(h=2,col="red",lwd=2) ; abline(h=-2, col="blue",lwd=2) # Significance cutoff
-
-# Exploratory: Variability/SD (change) of the columns
-mtx.var<-as.matrix(apply(mtx, 2, sd)) 
-barplot(t(mtx.var[order(mtx.var, decreasing=T)]), names.arg=rownames(mtx.var)[order(mtx.var, decreasing=T)], cex.names=0.8, las=2, ylab="Standard deviation of the -log10(p-value)")
-hist(t(mtx.var), n=50, cex=0.8) # Variability distribution
-quantile(mtx.var)
-cutoff<-quantile(mtx.var)[4] # 75% percentile
-length(rownames(mtx.var)[mtx.var>cutoff]) # How many features have top 75% variability
-
-# Exploratory: Check if variability correlate with sample size
-gwassize<-read.table("data//gwassize.txt", sep="\t",header=T) # Features and the number of SNPs
-setdiff(rownames(mtx.var), colnames(gwassize)) # Check how features in two matrixes overlap
-size.var<-merge(t(gwassize), mtx.var, by="row.names") # Merge
-rownames(size.var)<-size.var[,1] # Reassign row names
-size.var<-size.var[,-1] # Remove first column with row names, after reassignment
-colnames(size.var)<-c("snp","var") # Proper column names
-# size.var<-size.var[size.var[,'var'] > 1,] # Optional: cut low variability snps, hope for better regression
-attach(size.var)
-plot(snp, var, pch=15, col="blue", ylim=c(0,13), xlab="gwas size", ylab="Standard deviation of the -log10(p-value)") # scatterplot one vs. the other
-text(snp, var, labels=rownames(size.var), pos=3,cex=0.8) # Add text labels
-res<-lm(var~snp) # Linear regression
-abline(res, col="red", lwd=3) # Linear regression
-lines(lowess(snp,var), col="blue") # lowes regression
-rcorr(snp,var) # Pearsons corr, and p-value
-detach(size.var)
-
-# Exploratory: Check variability across GFs
-gf.var<-as.matrix(apply(mtx,1,sd))
-rownames(gf.var)<-rownames(mtx)
-barplot(t(gf.var), cex.names=0.8, las=2)
-hist(t(gf.var),n=50) # lots of GFs with var ~0.5
-
-# Exploratory: P-value clustering
-dist.method<-"euclidean"  # "euclidean", "maximum", "manhattan", "canberra", "binary" or "minkowski"
-hclust.method<-"single" # "ward", "single", "complete", "average", "mcquitty", "median" or "centroid"
-tmp<-as.matrix(-log10(mtx.cor[[3]])) # -log10 Matrix of p-values 
-tmp.max<-max(tmp[!is.na(tmp) & !is.infinite(tmp)]) # Maximum non-NA and non-Inf value
-diag(tmp)<-tmp.max + 2*.Machine[['double.xmin']] # Set NA values to just above max
-tmp[is.infinite(tmp)]<-tmp.max + .Machine[['double.xmin']] # Set inf values to max, but less diagonal
-par(mar=c(10,6,6,5),oma=c(2,2,2,2)) #Make right and bottom margins larger
-color<-colorRampPalette(c("blue","yellow"))
-h<-heatmap.2(tmp,trace="none",col=color,distfun=function(x){dist(x,method=dist.method)}, hclustfun=function(x){hclust(x,method=hclust.method)}, density.info="none",cexCol=0.8,cexRow=0.8) # ,cellnote=formatC(tmp, format="e", digits=2), notecol='darkgreen')
-
-# Experimental: Clustering by sum of sizes. Outer will create one-dimensional array of sums, unlist will take it out of lizs, matrix will reformat as matrix
-gwassize.2<-matrix(unlist(outer(1:length(gwassize),1:length(gwassize),FUN=function(i,j) gwassize[i]+gwassize[j])),nrow=length(gwassize),ncol=length(gwassize))
-rownames(gwassize.2)<-colnames(gwassize.2)<-names(gwassize) # Reassign names
-h<-heatmap.2(gwassize.2,trace="none",col=colorRampPalette(c("blue","white","red")),distfun=function(x){dist(x,method=dist.method)}, hclustfun=function(x){hclust(x,method=hclust.method)}, density.info="none",cexCol=0.8,cexRow=0.8 ,cellnote=formatC(tmp, format="e", digits=2), notecol='darkgreen')
-write.table(mtx.cor[[3]][names(gwassize)[h$rowInd],names(gwassize)[h$colInd]],"clipboard-128",sep="\t") # Write p-values on the orded of clustering
-write.table(gwassize[h$colInd],"clipboard",sep="\t") # And sizes
-# Merge p-values and sizes
-gwassize.3<-merge(as.matrix(t(gwassize)),mtx.cor[[3]],by="row.names") # Append gwassize
-gwassize.3<-(merge(as.matrix(t(gwassize)),t(gwassize.3),by="row.names",all.y=T)) # transpose and append again
-write.table(gwassize.3,"clipboard-128",sep="\t")
-
-# Experimental: Comparing clusters
-dev.off(); dev.new()
-hc<-hclust(dist(as.matrix(mtx.cor[[1]]), method="euclidean"),method="average")
-plot(hc, hang = -1)
-
-cor(cophenetic(h$rowDendrogram),cophenetic(hc))
-compareHclust <- function(hc1,hc2) {
-  c1 <- as.matrix(cophenetic(hc1))
-  c2 <- as.matrix(cophenetic(hc2))
-  stopifnot(all(sort(rownames(c1))==sort(rownames(c2))))
-  c2 <- c2[rownames(c1),rownames(c1)]
-  list(r2=cor(as.dist(c1),as.dist(c2)),
-       distance=diag(cor(c1,c2)))
-}
