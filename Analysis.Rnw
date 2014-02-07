@@ -47,26 +47,30 @@ suppressMessages(library(Biobase))
 suppressMessages(library(limma))
 @
 
-The enrichment analysis results are outputted in the \texttt{matrix.txt} file, stored as the enrichment p-values with a "-" sign added to denote depletion. We transform the raw p-values using -log10 transformation, and keep the "-" sign for the case of depletion.
-<<loadData, echo=c(-5, -6)>>=
-# Define data subfolder to use, change to analyze different data
-dname<-"data//more15_vs_tfbsEncode//"
-mtx<-as.matrix(read.table(paste(dname, "matrix.txt", sep=""), sep="\t", header=T, row.names=1))
+The enrichment analysis results are outputted in the \texttt{matrix.txt} file, stored as the enrichment p-values with a "-" sign added to denote depletion. We combine the results of different analyses into one matrix and transform the raw p-values using -log10 transformation, and keep the "-" sign for the case of depletion.
+<<loadData, echo=TRUE>>=
+# Define output and data subfolders to use, change to analyze different data
+rname<-"data//results//" # Output folder
+# List of GenomeRunner Web results data folders
+dname<-c("data//more15_vs_tfbsEncode//", "data//more15_vs_Other//")
+mtx<-do.call("rbind", lapply(dname, function(fn) as.matrix(read.table(paste(fn, "matrix.txt", sep=""), sep="\t", header=T, row.names=1))))
 mtx<-mtx.transform(mtx) # -log10 transform p-values
 # Optional: adjust columns for multiple testing. See utils.R for the function definition.
-# mtx<-mtx.adjust(mtx) 
+mtx<-mtx.adjust(mtx) 
 @
 
-Our matrix now contains the transformed p-values, negative in case of depletion. Rows are the TFBSs names, columns are the names of disease- or trait-associated SNP sets. We filter remove the row if a TFBS does not show enrichment in any of the SNP sets. The \texttt{cutoff<-2} on -log10-transformed scale corresponds to the 0.01 p-value cutoff. If a SNP set shown no enrichments in any of the TFBS, we remove the column as well. Check the final dimensions before actually trim the matrix.
+Our matrix now contains the transformed p-values, negative in case of depletion. Rows are the TFBSs names, columns are the names of disease- or trait-associated SNP sets. We filter remove the row if a TFBS does not show enrichment in any of the SNP sets. If a SNP set shown no enrichments in any of the TFBS, we remove the column as well. Check the final dimensions before actually trim the matrix.
 <<preprocessData, echo=TRUE, cache=TRUE, dependson='loadData'>>=
 dim(mtx) # Check original dimensions
-cutoff<-2 # raw p-value significance cutoff is 0.01
+# Define minimum number of times a row/col should have values above the cutoffs
+numofsig<-1
+cutoff<- -log10(0.01) # p-value significance cutoff is 0.01
 # What remains if we remove rows/cols with nothing significant
-dim(mtx[apply(mtx, 1, function(x){sum(abs(x)>cutoff)})>0, 
-        apply(mtx, 2, function(x){sum(abs(x)>cutoff)})>0])
+dim(mtx[apply(mtx, 1, function(x) sum(abs(x)>cutoff))>=numofsig, 
+        apply(mtx, 2, function(x) sum(abs(x)>cutoff))>=numofsig])
 # Trim the matrix
-mtx<-mtx[apply(mtx, 1, function(x){sum(abs(x)>cutoff)})>0, 
-         apply(mtx, 2, function(x){sum(abs(x)>cutoff)})>0]
+mtx<-mtx[apply(mtx, 1, function(x) sum(abs(x)>cutoff))>=numofsig, 
+         apply(mtx, 2, function(x) sum(abs(x)>cutoff))>=numofsig]
 @
 
 \section*{Visualizing epigenomic similarity results}
@@ -74,13 +78,15 @@ Epigenomic similarity analysis groups SNP sets by similarity of their enrichemt 
 <<preprocessCorrel, echo=TRUE, dependson='preprocessData'>>=
 # rcorr returns a list, [[1]] - correl coeffs, [[3]] - p-values. Type - pearson/spearman
 mtx.cor<-rcorr(as.matrix(mtx), type="spearman")
+# Optionally, try kendall correlation
+# mtx.cor[[1]]<-cor(as.matrix(mtx), method="kendall")
 @
 We visualzie the matrix returned by  $rcorr$ as a clustered heatmap (Figure \ref{fig:epigenomicVisualization}). Tweak distance and clustering parameters, or use a code snippet from \texttt{01\_heatmap\_corr.R} script for automated testing of combinations of them. 
 <<epigenomicVisualization, echo=c(-1, -2), fig.cap='Epigenomic similarity heatmap'>>=
 par(oma=c(5,0,0,5)) # Adjust margins
 color<-colorRampPalette(c("blue","yellow")) # Define color gradient
 # Adjust clustering parameters.
-# Distance: "euclidean", "maximum","manhattan", "canberra", "binary" or "minkowski".
+# Distance: "euclidean", "maximum","manhattan" or "minkowski". Do not use "canberra" or "binary"
 # Clustering: "ward", "single", "complete", "average", "mcquitty", "median" or "centroid"
 dist.method<-"euclidean"  
 hclust.method<-"ward"
@@ -88,27 +94,36 @@ h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", col=col
 @
 
 \section*{Epigenomic differences among the clusters}
-The heatmap object contains information about the order of clustering. We visualize it as a dendrogram, cut into separate clusters defined by the cut height, and output the cluster ordering in a file. 
+The heatmap object contains information about the clustering. We visualize it as a dendrogram, cut into separate clusters defined by the cut height (defined empirically), and output the cluster ordering in a file. We also check the number of members in each cluster, and set the minimum number of members  for a cluster to be considered for differential enrichment.
 <<defineClusters, echo=-1, results='hide', fig=TRUE>>=
-par(oma=c(5,0,0,5), cex=0.7)
-plot(h$colDendrogram) # Plot the dendrogram only
+par(oma=c(1, 0, 0, 0), mar=c(20, 4.1, 4.1,2.1), cex=0.5)
+# Plot the dendrogram only, limit y axis. attr(h$colDendrogram, "height") has the maximum height of the dendrogram.
+plot(h$colDendrogram, ylim=c(0, 80)) 
 # Cut the dentrogram into separate clusters. Tweak the height
-c<-cut(h$colDendrogram,h=2.35) 
-c # Check the number of clusters, and the number of members
+abline(h=8) # Visually evaluate the height where to cut
+c<-cut(h$colDendrogram, h=8) 
+# Check the number of clusters, and the number of members.
+for (i in 1:length(c$lower)){
+  cat(paste("Cluster", formatC(i, width=2, flag="0"), sep=""), "has", formatC(attr(c$lower[[i]], "members"), width=3), "members", "\n")
+}
+# Output the results into a file
 unlink(paste(dname, "clustering.txt", sep=""))
 for (i in 1:length(c$lower)){ 
-  write.table(paste(i, t(labels(c$lower[[i]])), sep="\t"), paste(dname, "clustering.txt", sep=""), sep="\t", col.names=F, row.names=F, append=T)
+  write.table(paste(i, t(labels(c$lower[[i]])), sep="\t"), paste(rname, "clustering.txt", sep=""), sep="\t", col.names=F, row.names=F, append=T)
 }
-@
-Remember, our p-values are -log10-transformed. We will test whether these transformed p-values are different between the clusters using the Bioconductor $limma$ package.
 
-First, we define the cluster groups and labels. Clusters that contain less than 3 elements are not considered, as we cannot test statistically significant differences with them.
+@
+Our p-values are -log10-transformed. We will test whether these transformed p-values are different between the clusters using the Bioconductor $limma$ package.
+
+First, we define the cluster groups and labels. Clusters that contain less than a minimum number of elements are not considered, as we cannot test statistically significant differences with them.
 <<defineGroups, echo=TRUE, dependson='defineClusters'>>=
 eset.labels<-character() # Empty vector to hold cluster labels
 eset.groups<-numeric() # Empty vector to hold cluster groups
+# Set the minimum number of members to be considered for differential analysis
+minmembers<-6
 for (i in 1:length(c$lower)) { # Go through each cluster
-  # If the number of members is more than 2
-  if (attr(c$lower[[i]], "members") > 2) { 
+  # If the number of members is more than a minimum number of members
+  if (attr(c$lower[[i]], "members") > minmembers) { 
     eset.labels<-append(eset.labels, labels(c$lower[[i]]))
     eset.groups<-append(eset.groups, rep(i, length(labels(c$lower[[i]]))))
   }

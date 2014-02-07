@@ -1,23 +1,25 @@
 ## ----preprocessCorrel, echo=TRUE, dependson='preprocessData'-------------
 # rcorr returns a list, [[1]] - correl coeffs, [[3]] - p-values. Type - pearson/spearman
 mtx.cor<-rcorr(as.matrix(mtx), type="spearman")
+# Optionally, try kendall correlation
+# mtx.cor[[1]]<-cor(as.matrix(mtx), method="kendall")
 
 ## ----epigenomicVisualization, echo=c(-1, -2), fig.cap='Epigenomic similarity heatmap'----
 par(oma=c(5,0,0,5)) # Adjust margins
 color<-colorRampPalette(c("blue","yellow")) # Define color gradient
 # Adjust clustering parameters.
-# Distance: "euclidean", "maximum","manhattan", "canberra", "binary" or "minkowski".
+# Distance: "euclidean", "maximum","manhattan" or "minkowski". Do not use "canberra" or "binary"
 # Clustering: "ward", "single", "complete", "average", "mcquitty", "median" or "centroid"
 dist.method<-"euclidean"  
 hclust.method<-"ward"
 h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", col=color,distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=0.5, cexCol=0.5)
 
 # Exploratory: Cllustering combinaations. Use to find bvisually best combinations of dist and hclust methods
-dist.methods<-c("euclidean",  "manhattan", "minkowski", "canberra","maximum") # "binary",
-hclust.methods<-c("ward", "single", "complete", "average", "mcquitty", "median", "centroid")
+dist.methods<-c("euclidean",  "manhattan", "minkowski", "maximum") # "binary", "canberra",
+hclust.methods<-"ward" # c("ward", "single", "complete", "average", "mcquitty", "median", "centroid")
 dev.off() # Clear graphic window
-unlink(paste(dname, "cluster_combinations.pdf", sep=""))
-pdf(paste(dname, "cluster_combinations.pdf", sep=""))
+unlink(paste(rname, "cluster_combinations.pdf", sep=""))
+pdf(paste(rname, "cluster_combinations.pdf", sep=""))
 # par(oma=c(5,0,0,5)) #Make right and bottom margins larger
 for (d in dist.methods) {
   for (h in hclust.methods){
@@ -28,22 +30,30 @@ for (d in dist.methods) {
 dev.off()
 
 ## ----defineClusters, echo=-1, results='hide', fig=TRUE-------------------
-par(oma=c(5,0,0,5), cex=0.7)
-plot(h$colDendrogram) # Plot the dendrogram only
+par(oma=c(1, 0, 0, 0), mar=c(20, 4.1, 4.1,2.1), cex=0.5)
+# Plot the dendrogram only, limit y axis. attr(h$colDendrogram, "height") has the maximum height of the dendrogram.
+plot(h$colDendrogram, ylim=c(0, 80)) 
 # Cut the dentrogram into separate clusters. Tweak the height
-c<-cut(h$colDendrogram,h=2.35) 
-c # Check the number of clusters, and the number of members
+abline(h=6) # Visually evaluate the height where to cut
+c<-cut(h$colDendrogram, h=6) 
+# Check the number of clusters, and the number of members.
+for (i in 1:length(c$lower)){
+  cat(paste("Cluster", formatC(i, width=2, flag="0"), sep=""), "has", formatC(attr(c$lower[[i]], "members"), width=3), "members", "\n")
+}
+# Output the results into a file
 unlink(paste(dname, "clustering.txt", sep=""))
 for (i in 1:length(c$lower)){ 
-  write.table(paste(i, t(labels(c$lower[[i]])), sep="\t"), paste(dname, "clustering.txt", sep=""), sep="\t", col.names=F, row.names=F, append=T)
+  write.table(paste(i, t(labels(c$lower[[i]])), sep="\t"), paste(rname, "clustering.txt", sep=""), sep="\t", col.names=F, row.names=F, append=T)
 }
 
 ## ----defineGroups, echo=TRUE, dependson='defineClusters'-----------------
 eset.labels<-character() # Empty vector to hold cluster labels
 eset.groups<-numeric() # Empty vector to hold cluster groups
+# Set the minimum number of members to be considered for differential analysis
+minmembers<-9
 for (i in 1:length(c$lower)) { # Go through each cluster
-  # If the number of members is more than 2
-  if (attr(c$lower[[i]], "members") > 2) { 
+  # If the number of members is more than a minimum number of members
+  if (attr(c$lower[[i]], "members") > minmembers) { 
     eset.labels<-append(eset.labels, labels(c$lower[[i]]))
     eset.groups<-append(eset.groups, rep(i, length(labels(c$lower[[i]]))))
   }
@@ -57,28 +67,33 @@ design<-model.matrix(~ 0+factor(eset.groups))
 colnames(design)<-paste("c", unique(eset.groups), sep="")
 # Create a square matrix of counts of DEGs
 degs.matrix<-matrix(0, length(c$lower), length(c$lower))
-# Name rows and cols by cluster name
-colnames(degs.matrix)<-paste("c",seq(1,length(c$lower))); rownames(degs.matrix)<-paste("c",seq(1,length(c$lower))) 
-cutoff.pval<-0.05 # p-value cutoff. Tweak
-cutoff.lfc<-log(2) # log2 fold change cutoff. Tweak
+colnames(degs.matrix)<-paste("c", seq(1,length(c$lower)), sep="")
+rownames(degs.matrix)<-paste("c", seq(1, length(c$lower)), sep="") 
+# Tweak p-value and log2 fold change cutoffs
+cutoff.pval<-0.05
+cutoff.lfc<-log2(2)
+unlink(paste(rname, "degs.txt", sep=""))
 for(i in colnames(design)){ 
   for(j in colnames(design)){
-    # Contrasts between two clusters
-    contrast.matrix<-makeContrasts(contrasts=paste(i, j, sep="-"), levels=design)
-    fit <- lmFit(eset, design) 
-    fit2 <- contrasts.fit(fit, contrast.matrix)
-    fit2 <- eBayes(fit2)
-    degs<-topTable(fit2, number=dim(exprs(eset))[[1]], adjust.method="BH", p.value=cutoff.pval, lfc=cutoff.lfc)
-    print(paste(i, "vs.", j, ", number of degs:", dim(degs)[[1]]))
-    # Keep the number of DEGs in the matrix
-    degs.matrix[as.numeric(sub("c","",i)), as.numeric(sub("c","",j))]<-dim(degs)[[1]]
-    if(dim(degs)[[1]]>0) {
-      # Average values in clusters i and j
-      i.av<-rowMeans(matrix(exprs(eset)[rownames(degs),eset.groups == as.numeric(sub("c","",i))], nrow=dim(degs)[[1]]))
-      j.av<-rowMeans(matrix(exprs(eset)[rownames(degs),eset.groups == as.numeric(sub("c","",j))], nrow=dim(degs)[[1]]))
-      i.vs.j<-rep(paste(i,"vs.",j), dim(degs)[[1]])
-      # Put it all together in a file
-      write.table(cbind(degs, i.vs.j, i.av , j.av), paste(dname, "degs.txt", sep=""), sep="\t", col.names=NA, append=T)
+    # Test only unique pairs of clusters
+    if (as.numeric(sub("c", "", i)) < as.numeric(sub("c", "", j))) {
+      # Contrasts between two clusters
+      contrast.matrix<-makeContrasts(contrasts=paste(i, j, sep="-"), levels=design)
+      fit <- lmFit(eset, design) 
+      fit2 <- contrasts.fit(fit, contrast.matrix)
+      fit2 <- eBayes(fit2)
+      degs<-topTable(fit2, number=dim(exprs(eset))[[1]], adjust.method="BH", p.value=cutoff.pval, lfc=cutoff.lfc)
+      if(dim(degs)[[1]]>0) {
+        print(paste(i, "vs.", j, ", number of degs:", dim(degs)[[1]]))
+        # Keep the number of DEGs in the matrix
+        degs.matrix[as.numeric(sub("c", "", i)), as.numeric(sub("c", "", j))]<-dim(degs)[[1]]
+        # Average values in clusters i and j
+        i.av<-rowMeans(matrix(exprs(eset)[rownames(degs), eset.groups == as.numeric(sub("c", "", i))], nrow=dim(degs)[[1]]))
+        j.av<-rowMeans(matrix(exprs(eset)[rownames(degs), eset.groups == as.numeric(sub("c", "", j))], nrow=dim(degs)[[1]]))
+        i.vs.j<-rep(paste(i,"vs.",j), dim(degs)[[1]])
+        # Put it all together in a file, keeping columns with average transformed p-value being significant in at least one condition
+        write.table(cbind(degs, i.vs.j, i.av, j.av)[abs(i.av) > -log10(cutoff.pval) || abs(j.av)> -log10(cutoff.pval),], paste(rname, "degs.txt", sep=""), sep="\t", col.names=NA, append=T)
+      }
     }
   }
 }
@@ -89,16 +104,17 @@ mtx.cor1<-mtx.cor[[1]]
 diag(mtx.cor1)<-0
 # Print top correlated parameters on screen
 for (i in head(unique(mtx.cor1[order(mtx.cor1,decreasing=T)]))) {print(which(mtx.cor1 == i, arr.ind=T))}
-unlink(paste(dname, "maxmin_correlations.txt", sep=""))
+unlink(paste(rname, "maxmin_correlations.txt", sep=""))
 for (i in 1:ncol(mtx.cor1)) write.table(paste(colnames(mtx.cor1)[i],"correlates with",
                                               colnames(mtx.cor1)[which(mtx.cor1[i,] == max(mtx.cor1[i,]))], 
                                               "at corr. coeff.",formatC(mtx.cor1[i,which(mtx.cor1[i,] == max(mtx.cor1[i,]))]),
                                               "anticorrelates with",
                                               colnames(mtx.cor1)[which(mtx.cor1[i,] == min(mtx.cor1[i,]))],
                                               "at corr. coeff.",formatC(mtx.cor1[i,which(mtx.cor1[i,] == min(mtx.cor1[i,]))]),sep="|"),
-                                        paste(dname, "maxmin_correlations.txt", sep=""), append=T, sep="\t", col.names=F, row.names=F) 
+                                        paste(rname, "maxmin_correlations.txt", sep=""), append=T, sep="\t", col.names=F, row.names=F) 
 
 ## ----enrichmentCutoffs, echo=TRUE, eval=TRUE, results='hide', fig.show='hold', dependson='preprocessCorrel'----
+par(oma=c(1, 0, 0, 0), mar=c(5.1, 4.1, 4.1,2.1), cex=1)
 # Define minimum number of times a row/col should have values above the cutoffs
 numofsig<-1
 dim(mtx) # Original dimensions
@@ -106,16 +122,15 @@ dim(mtx) # Original dimensions
 summary(as.vector(abs(mtx))); cutoff.p<-summary(as.vector(abs(mtx)))[[5]]
 summary(as.vector(apply(abs(mtx),1,sd))); cutoff.sd<-summary(as.vector(apply(abs(mtx),1,sd)))[[5]]
 # Check visual distributions and set p-value and variability cutoffs manually
-hist(as.vector(mtx), breaks=20, main="Distribution of -log10-transformed p-values", xlab="-log10-transformed p-values")
-hist(c(as.vector(apply(mtx,1,sd)), as.vector(apply(mtx,2,sd))), breaks=20, main="Distribution of SD across rows and columns", xlab="SD")
-cutoff.p<-4; cutoff.sd<-0.5
-
+hist(as.vector(mtx), breaks=50, main="Distribution of -log10-transformed p-values", xlab="-log10-transformed p-values")
+hist(c(as.vector(apply(mtx,1,sd)), as.vector(apply(mtx,2,sd))), breaks=50, main="Distribution of SD across rows and columns", xlab="SD")
+cutoff.p<- -log10(10); cutoff.sd<-8
 
 ## ----trimCutoffs, echo=TRUE, results='hide', dependson='enrichmentCutoffs'----
 mtx.gf<-mtx
 # Remove rows/cols that do not show significant p-values and variability less than numofsig times
 mtx.gf<-mtx.gf[apply(mtx.gf, 1, function(row){sum(abs(row)>cutoff.p)>=numofsig}), 
-               apply(mtx.gf, 2, function(col){sum(abs(col)>cutoff)>=numofsig})]
+               apply(mtx.gf, 2, function(col){sum(abs(col)>cutoff.p)>=numofsig})]
 mtx.gf<-mtx.gf[apply(mtx.gf, 1, sd)>cutoff.sd,
                apply(mtx.gf, 2, sd)>cutoff.sd]
 dim(mtx.gf) # Dimensions after trimming
