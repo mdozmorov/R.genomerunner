@@ -1,11 +1,11 @@
-## ----preprocessCorrel, echo=TRUE, dependson='preprocessData'-------------
+## ----preprocessCorrel, echo=c(-4, -5), dependson='preprocessData'--------
 # rcorr returns a list, [[1]] - correl coeffs, [[3]] - p-values. Type - pearson/spearman
 mtx.cor<-rcorr(as.matrix(mtx), type="spearman")
 # Optionally, try kendall correlation
 # mtx.cor[[1]]<-cor(as.matrix(mtx), method="kendall")
 
-## ----epigenomicVisualization, echo=c(-1, -2), fig.cap='Epigenomic similarity heatmap'----
-par(oma=c(5,0,0,5)) # Adjust margins
+## ----epigenomicVisualization, echo=c(-1:-6), fig.cap='Epigenomic similarity heatmap', fig.show='hold', fig.height=6.5----
+par(oma=c(5,0,0,5), mar=c(10, 4.1, 4.1, 5)) # Adjust margins
 color<-colorRampPalette(c("blue","yellow")) # Define color gradient
 # Adjust clustering parameters.
 # Distance: "euclidean", "maximum","manhattan" or "minkowski". Do not use "canberra" or "binary"
@@ -29,19 +29,19 @@ for (d in dist.methods) {
 }
 dev.off()
 
-## ----defineClusters, echo=-1, results='hide', fig=TRUE-------------------
+## ----defineClusters, echo=c(-1:-3), results='markup', fig=TRUE-----------
 par(oma=c(1, 0, 0, 0), mar=c(20, 4.1, 4.1,2.1), cex=0.5)
 # Plot the dendrogram only, limit y axis. attr(h$colDendrogram, "height") has the maximum height of the dendrogram.
-plot(h$colDendrogram, ylim=c(0, 80)) 
+plot(h$colDendrogram, ylim=c(0, 15)) 
 # Cut the dentrogram into separate clusters. Tweak the height
-abline(h=6) # Visually evaluate the height where to cut
-c<-cut(h$colDendrogram, h=6) 
+abline(h=4) # Visually evaluate the height where to cut
+c<-cut(h$colDendrogram, h=4) 
 # Check the number of clusters, and the number of members.
 for (i in 1:length(c$lower)){
   cat(paste("Cluster", formatC(i, width=2, flag="0"), sep=""), "has", formatC(attr(c$lower[[i]], "members"), width=3), "members", "\n")
 }
 # Output the results into a file
-unlink(paste(dname, "clustering.txt", sep=""))
+unlink(paste(rname, "clustering.txt", sep=""))
 for (i in 1:length(c$lower)){ 
   write.table(paste(i, t(labels(c$lower[[i]])), sep="\t"), paste(rname, "clustering.txt", sep=""), sep="\t", col.names=F, row.names=F, append=T)
 }
@@ -49,7 +49,7 @@ for (i in 1:length(c$lower)){
 ## ----defineGroups, echo=TRUE, dependson='defineClusters'-----------------
 eset.labels<-character() # Empty vector to hold cluster labels
 eset.groups<-numeric() # Empty vector to hold cluster groups
-# Set the minimum number of members to be considered for differential analysis
+# Set the minimum number of members to be considered for the differential analysis
 minmembers<-9
 for (i in 1:length(c$lower)) { # Go through each cluster
   # If the number of members is more than a minimum number of members
@@ -60,7 +60,6 @@ for (i in 1:length(c$lower)) { # Go through each cluster
 }
 
 ## ----limmaOnClusters, echo=TRUE, warning=FALSE, results='hide', dependson='defineGroups'----
-# Make eset out of eset.labels
 eset<-new("ExpressionSet", exprs=as.matrix(mtx[, eset.labels]))
 # Make model matrix
 design<-model.matrix(~ 0+factor(eset.groups)) 
@@ -98,7 +97,7 @@ for(i in colnames(design)){
   }
 }
 
-## ----maxminCorr, echo=TRUE, eval=TRUE, results='hide', dependson='preprocessCorrel'----
+## ----maxminCorr, echo=c(-6), eval=TRUE, results='hide', dependson='preprocessCorrel'----
 mtx.cor1<-mtx.cor[[1]]
 # We don't need to consider perfect correlations, zero them out
 diag(mtx.cor1)<-0
@@ -110,10 +109,10 @@ for (i in 1:ncol(mtx.cor1)) write.table(paste(colnames(mtx.cor1)[i],"correlates 
                                               "at corr. coeff.",formatC(mtx.cor1[i,which(mtx.cor1[i,] == max(mtx.cor1[i,]))]),
                                               "anticorrelates with",
                                               colnames(mtx.cor1)[which(mtx.cor1[i,] == min(mtx.cor1[i,]))],
-                                              "at corr. coeff.",formatC(mtx.cor1[i,which(mtx.cor1[i,] == min(mtx.cor1[i,]))]),sep="|"),
-                                        paste(rname, "maxmin_correlations.txt", sep=""), append=T, sep="\t", col.names=F, row.names=F) 
+                                              "at corr. coeff.",formatC(mtx.cor1[i,which(mtx.cor1[i,] == min(mtx.cor1[i,]))]),sep=","),
+                                        paste(rname, "maxmin_correlations.csv", sep=""), append=T, sep=",", col.names=F, row.names=F) 
 
-## ----enrichmentCutoffs, echo=TRUE, eval=TRUE, results='hide', fig.show='hold', dependson='preprocessCorrel'----
+## ----enrichmentCutoffs, echo=c(-1), eval=TRUE, results='hide', fig.show='asis', dependson='preprocessCorrel'----
 par(oma=c(1, 0, 0, 0), mar=c(5.1, 4.1, 4.1,2.1), cex=1)
 # Define minimum number of times a row/col should have values above the cutoffs
 numofsig<-1
@@ -124,7 +123,7 @@ summary(as.vector(apply(abs(mtx),1,sd))); cutoff.sd<-summary(as.vector(apply(abs
 # Check visual distributions and set p-value and variability cutoffs manually
 hist(as.vector(mtx), breaks=50, main="Distribution of -log10-transformed p-values", xlab="-log10-transformed p-values")
 hist(c(as.vector(apply(mtx,1,sd)), as.vector(apply(mtx,2,sd))), breaks=50, main="Distribution of SD across rows and columns", xlab="SD")
-cutoff.p<- -log10(10); cutoff.sd<-8
+cutoff.p<- -log10(0.05); cutoff.sd<-0.8
 
 ## ----trimCutoffs, echo=TRUE, results='hide', dependson='enrichmentCutoffs'----
 mtx.gf<-mtx
@@ -135,21 +134,19 @@ mtx.gf<-mtx.gf[apply(mtx.gf, 1, sd)>cutoff.sd,
                apply(mtx.gf, 2, sd)>cutoff.sd]
 dim(mtx.gf) # Dimensions after trimming
 
-
-## ----enrichmentVisualization, echo=c(-8, -9, -10, -11, -12, -14), results='hide', warning=FALSE, fig=TRUE, fig.cap='Heatmap of the enrichment results', fig.show='asis', dependson='trimCutoffs', dependson='enrichmentCutoffs'----
+## ----enrichmentVisualization, echo=c(-1:-4, -7:-11, -13, -14), results='hide', warning=FALSE, fig=TRUE, fig.cap='Heatmap of the enrichment results', fig.show='asis', dependson='trimCutoffs', dependson='enrichmentCutoffs'----
 # Adjust clustering parameters.
 # Distance: "euclidean", "maximum","manhattan", "canberra", "binary" or "minkowski".
 # Clustering: "ward", "single", "complete", "average", "mcquitty", "median" or "centroid"
 dist.method<-"maximum"
 hclust.method<-"ward"
-granularity=7
+# granularity=7
 # my.breaks<-c(seq(min(mtx.gf), -cutoff.p, length.out=granularity), seq(cutoff.p, max(mtx.gf), length.out=granularity)) 
 # my.breaks<-c(seq(min(mtx.gf), -2, length.out=granularity), seq(2, max(mtx.gf), length.out=granularity))
 my.breaks<-c(seq(min(mtx.gf), max(mtx.gf)))
-par(oma=c(10,0,0,3))
+par(oma=c(10, 0, 0, 0), mar=c(5.1, 4.1, 4.1,2.1), cex=0.5)
 color<-colorRampPalette(c("blue", "yellow"))
 h<-heatmap.2(as.matrix(mtx.gf), distfun=function(x){dist(x,method=dist.method)}, hclustfun=function(x){hclust(x,method=hclust.method)}, dendrogram="none", breaks=my.breaks,  col=color, lwid=c(1.5,3), lhei=c(1.5,4), key=T,  symkey=T, keysize=0.01, density.info="none", trace="none",  cexCol=1.0, cexRow=0.8)
-
 
 
 
