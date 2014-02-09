@@ -1,9 +1,9 @@
 Scripts and examples of visualization and analysis of the enrichment and epigenomic similarity results
 ========================================================
 
-Scripts for processing of the enrichment analysis matrixes produced by [GenomeRunner Web](http://www.genomerunner.org) of [GenomeRunner](http://sourceforge.net/projects/genomerunner/). The scripts are developed and best used with [RStudio](http://www.rstudio.com/)
+Scripts for processing the enrichment analysis matrixes produced by [GenomeRunner Web](http://www.genomerunner.org) or [GenomeRunner](http://sourceforge.net/projects/genomerunner/). The scripts are developed in and best used with [RStudio](http://www.rstudio.com/)
 
-* `Analysis.Rnw and Analysis.pdf` - Main tutorial for the enrichment and epigenomic similarity analysis and visualization in R.
+* `Analysis.Rnw and Analysis.pdf` - Main tutorial for the enrichment and epigenomic similarity analyses and visualization in R.
 
 * `00_data_load.R` - Prepare the environment and load the data.
 
