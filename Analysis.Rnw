@@ -111,11 +111,11 @@ h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", col=col
 The heatmap object contains information about the clustering. We visualize it as a dendrogram, cut into separate clusters defined by the cut height (defined empirically), and output the cluster ordering in a file. We also check the number of members in each cluster, and set the minimum number of members  for a cluster to be considered for differential enrichment.
 
 <<defineClusters, echo=c(-1:-3), results='markup', fig=TRUE>>=
-par(oma=c(1, 0, 0, 0), mar=c(20, 4.1, 4.1,2.1), cex=0.5)
+par(oma=c(0, 0, 0, 0), mar=c(5.1, 4.1, 4.1,25.1), cex=0.5)
 # Plot the dendrogram only, limit y axis. attr(h$colDendrogram, "height") has the maximum height of the dendrogram.
-plot(h$colDendrogram, ylim=c(0, 15)) 
+plot(h$colDendrogram, horiz=T) 
 # Cut the dentrogram into separate clusters. Tweak the height
-abline(h=4) # Visually evaluate the height where to cut
+abline(v=4) # Visually evaluate the height where to cut
 c<-cut(h$colDendrogram, h=4) 
 # Check the number of clusters, and the number of members.
 for (i in 1:length(c$lower)){
@@ -223,7 +223,7 @@ dim(mtx) # Original dimensions
 summary(as.vector(abs(mtx))); cutoff.p<-summary(as.vector(abs(mtx)))[[5]]
 summary(as.vector(apply(abs(mtx),1,sd))); cutoff.sd<-summary(as.vector(apply(abs(mtx),1,sd)))[[5]]
 # Check visual distributions and set p-value and variability cutoffs manually
-hist(as.vector(mtx), breaks=50, main="Distribution of -log10-transformed p-values", xlab="-log10-transformed p-values")
+hist(as.vector(mtx), breaks=50, main="Distribution of absolute -log10-transformed p-values", xlab="absolute -log10-transformed p-values")
 hist(c(as.vector(apply(mtx,1,sd)), as.vector(apply(mtx,2,sd))), breaks=50, main="Distribution of SD across rows and columns", xlab="SD")
 cutoff.p<- -log10(0.05); cutoff.sd<-0.8
 @
