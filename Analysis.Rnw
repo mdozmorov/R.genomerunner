@@ -228,13 +228,15 @@ hist(c(as.vector(apply(mtx,1,sd)), as.vector(apply(mtx,2,sd))), breaks=50, main=
 cutoff.p<- -log10(0.05); cutoff.sd<-0.8
 @
 
-We trim both rows and columns.
+We trim both rows and columns. We either take top 10 epigenomic elements most differentially enriched across the sets of SNPs, or trim by the p-value cutoff.
 
 <<trimCutoffs, echo=TRUE, results='hide', dependson='enrichmentCutoffs'>>=
-mtx.gf<-mtx
-# Remove rows/cols that do not show significant p-values and variability less than numofsig times
-mtx.gf<-mtx.gf[apply(mtx.gf, 1, function(row){sum(abs(row)>cutoff.p)>=numofsig}), 
-               apply(mtx.gf, 2, function(col){sum(abs(col)>cutoff.p)>=numofsig})]
+# Take top 10 most variably enriched elements
+mtx.gf<-mtx[order(apply(mtx, 1, sd), decreasing=T)[1:10],]
+# Or, remove rows/cols that do not show significant p-values less than numofsig times
+# mtx.gf<-mtx[apply(mtx, 1, function(row){sum(abs(row)>cutoff.p)>=numofsig}), 
+#             apply(mtx, 2, function(col){sum(abs(col)>cutoff.p)>=numofsig})]
+# Remove sets of SNPs that do not show variability across the remaining rows
 mtx.gf<-mtx.gf[apply(mtx.gf, 1, sd)>cutoff.sd,
                apply(mtx.gf, 2, sd)>cutoff.sd]
 dim(mtx.gf) # Dimensions after trimming
