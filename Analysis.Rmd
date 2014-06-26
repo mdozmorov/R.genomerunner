@@ -18,27 +18,15 @@ for (d in dirs) {
 trackDb.hg19 <- read.table("data/trackDb.hg19", sep="\t", header=F, row.names=1)
 ```
 
-SLE-IC SNP sets analysis, `r if (analysisType == "data.gfs") {"custom"} else {"ENCODE"}` genome annotation data
-========================================================
- 
 ```{r loadLibraries, warning=FALSE, message=FALSE}
 library(gridExtra)
+source("utils.R")
+```
 
-# Adjust raw p-values for mutliple testing
-mtx.adjust <- function(x, method="fdr") {
-  tmp <- x; # Keep signs in the original version
-  tmp.adj <- apply(abs(x), 2, p.adjust, method=method) 
-  for (i in 1:nrow(x)){
-    for (j in 1:ncol(x)){
-      if (tmp[i, j] < 0) tmp.adj[i, j] <- -1*tmp.adj[i, j]
-    }
-  }
-  return(tmp.adj)
-}
-
+```{r utils}
 # Filters non-significant rows from a matrix
 mtx.filter <- function(x, pval=0.01){
-  idx <- as.logical(abs(rowMeans(x)) < pval)
+  idx <- apply(x, 1, function(i) {sum(abs(i) < pval) >= 1})
   tmp <- as.matrix(x[idx, ])
   colnames(tmp) <- colnames(x)
   rownames(tmp) <- rownames(x)[idx]
@@ -50,12 +38,59 @@ mtx.filter <- function(x, pval=0.01){
   tmp2 <- as.matrix(tmp[idxDeplet, ])
   colnames(tmp2) <- colnames(tmp)
   rownames(tmp2) <- rownames(tmp)[idxDeplet]
-  if (nrow(tmp1) > 1) tmp1 <- tmp1[order(tmp1[, 1], decreasing=F), ]
-  if (nrow(tmp2) > 1) tmp2 <- tmp2[order(tmp2[, 1], decreasing=T), ]
+  if (nrow(tmp1) > 1) tmp1 <- tmp1[order(rowMeans(tmp1), decreasing=F), ]
+  if (nrow(tmp2) > 1) tmp2 <- tmp2[order(rowMeans(tmp2), decreasing=T), ]
   return(list(as.matrix(tmp1), as.matrix(tmp2)))
 }
+
+# Shows top 10 enriched and depleted associations as tables
+showTable <- function(mtx) {
+  mtx <- mtx.adjust.raw(mtx, "fdr") # Adjust for multiple testing
+  mtx <- mtx.filter(mtx, 0.01) # Get two sepatate lists, enchched and depleted
+  numEnrich <- nrow(mtx[[1]]) # Total number of significantly enriched
+  numDeplet <- nrow(mtx[[2]]) # and depleted associations
+  if (numEnrich > 0) {
+    print(paste("The total number of significantly ENRICHED associations is:", numEnrich,  "Top 10, or less, are shown"))
+    if (numEnrich > 10) numEnrich <- 10
+    mtx.enrich <- merge(data.frame(Enrich.pval=format(as.matrix(mtx[[1]][1:numEnrich, ]), digits=3, scientific=T), row.names=rownames(as.matrix(mtx[[1]][1:numEnrich, ]))), trackDb.hg19, by="row.names")
+    print(mtx.enrich)
+    print("---------------------------------------------------------------")
+    #    grid.table(mtx.enrich, gp=gpar(fontsize=6))
+  }
+  if (numDeplet > 0) {
+    print(paste("The total number of significantly DEPLETED associations is:", numDeplet, "Top 10, or less, are shown"))
+    if (numDeplet > 10) numDeplet <- 10
+    mtx.deplet <- merge(data.frame(Enrich.pval=format(as.matrix(mtx[[2]][1:numDeplet, ]), digits=3, scientific=T), row.names=rownames(as.matrix(mtx[[2]][1:numDeplet, ]))), trackDb.hg19, by="row.names")
+    print(mtx.deplet)
+    print("---------------------------------------------------------------")
+    #grid.table(mtx)
+  }
+}
+
+# Shows top 10 most differentially enriched between the two conditions
+showBarplot <- function(mtx) {
+  mtx <- mtx.adjust.raw(mtx, "fdr") # Adjust for multiple testing
+  mtx <- mtx.transform(mtx) # Convert to log10
+  mtx <- mtx[order(mtx[, 1] - mtx[, 2]), ] # Reorder rows by largest differences
+  print(paste("Top 20 up in condition 1"))
+  mtx.enrich <- merge(mtx[(nrow(mtx)-20):nrow(mtx), ], trackDb.hg19, by="row.names")
+  rownames(mtx.enrich) <- mtx.enrich[, 1]; mtx.enrich <- mtx.enrich[, -1]
+  print(mtx.enrich)
+  print("---------------------------------------------------------------")
+  print(paste("Top 20 up in condition 2"))
+  mtx.deplet <- merge(mtx[1:20, ], trackDb.hg19, by="row.names")
+  rownames(mtx.deplet) <- mtx.deplet[, 1]; mtx.deplet <- mtx.deplet[, -1]
+  print(mtx.deplet)
+  print("---------------------------------------------------------------")
+  barplot1(mtx.enrich[, 1:2], 15, 15, 150)
+  barplot1(mtx.deplet[, 1:2], 15, 15, 300)
+}
+
 ```
 
+SLE-IC SNP sets analysis, `r if (analysisType == "data.gfs") {"custom"} else {"ENCODE"}` genome annotation data
+========================================================
+ 
 
 Double lines (===) mark the names of the regions being analyzed. 
 
@@ -76,27 +111,15 @@ for (d in 2) {
   print(paste("SNP set analyzed:", dirs[d]))
   print("===============================================================")
   mtx <- (read.table(paste(dirs[d], "matrix.txt", sep="/"), sep="\t", row.names=1, header=T))
-  mtx <- mtx.adjust(mtx, "fdr") # Adjust for multiple testing
-  mtx <- mtx.filter(mtx, 0.01) # Get two sepatate lists, enchched and depleted
-  numEnrich <- nrow(mtx[[1]]) # Total number of significantly enriched
-  numDeplet <- nrow(mtx[[2]]) # and depleted associations
-  if (numEnrich > 0) {
-    print(paste("The total number of significantly ENRICHED associations is:", numEnrich,  "Top 10, or less, are shown"))
-    if (numEnrich > 10) numEnrich <- 10
-    mtx.enrich <- merge(data.frame(Enrich.pval=format(as.matrix(mtx[[1]][1:numEnrich, ]), digits=3, scientific=T), row.names=rownames(as.matrix(mtx[[1]][1:numEnrich, ]))), trackDb.hg19, by="row.names")
-    print(mtx.enrich)
-    print("---------------------------------------------------------------")
-    #    grid.table(mtx.enrich, gp=gpar(fontsize=6))
-  }
-  if (numDeplet > 0) {
-    print(paste("The total number of significantly DEPLETED associations is:", numDeplet, "Top 10, or less, are shown"))
-    if (numDeplet > 10) numDeplet <- 10
-    mtx.deplet <- merge(data.frame(Enrich.pval=format(as.matrix(mtx[[1]][1:numDeplet, ]), digits=3, scientific=T), row.names=rownames(as.matrix(mtx[[1]][1:numDeplet, ]))), trackDb.hg19, by="row.names")
-    print(mtx.deplet)
-    print("---------------------------------------------------------------")
-    #grid.table(mtx)
-  }
+  showTable(mtx)
 }
 ```
 
+```{r TAB1vsTAB2}
+mtx <- merge(read.table(paste(dirs[1], "matrix.txt", sep="/"), sep="\t", row.names=1, header=T),
+             read.table(paste(dirs[3], "matrix.txt", sep="/"), sep="\t", row.names=1, header=T),
+             by="row.names")
+rownames(mtx) <- mtx[, 1]; mtx <- mtx[, -1]               
+showBarplot(mtx)
+```
 
