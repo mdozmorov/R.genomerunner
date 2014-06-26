@@ -9,12 +9,18 @@ set.seed(1)
 
 ```{r loadData}
 analysisType <- "data.enc"
-dirs <- list.dirs(analysisType, full.names=T, recursive=F) # Paths the SNP sets analyses
+# analysisType <- "data.gfs"
+dirs <- list.dirs("data", full.names=T, recursive=F) # Paths the SNP sets analyses
+dirs.TAB1 <- dirs[grep("TAB1-", dirs)]
+dirs.TAB2 <- dirs[grep("TAB2-", dirs)]
+dirs.TAB12 <- dirs[grep("TAB12-", dirs)]
+
 analyses <- list() # Empty list to hold analyses paths 
 for (d in dirs) {
   analyses <- c(analyses, list(list.dirs(d, full.names=T, recursive=F)))
 }
 
+dirs.TAB1 <- list.dirs("data/", full.names=T, recursive=F)
 trackDb.hg19 <- read.table("data/trackDb.hg19", sep="\t", header=F, row.names=1)
 ```
 
@@ -50,17 +56,18 @@ showTable <- function(mtx) {
   numEnrich <- nrow(mtx[[1]]) # Total number of significantly enriched
   numDeplet <- nrow(mtx[[2]]) # and depleted associations
   if (numEnrich > 0) {
-    print(paste("The total number of significantly ENRICHED associations is:", numEnrich,  "Top 10, or less, are shown"))
+    print(paste("The total number of significantly ENRICHED associations is:", numEnrich))
     if (numEnrich > 10) numEnrich <- 10
-    mtx.enrich <- merge(data.frame(Enrich.pval=format(as.matrix(mtx[[1]][1:numEnrich, ]), digits=3, scientific=T), row.names=rownames(as.matrix(mtx[[1]][1:numEnrich, ]))), trackDb.hg19, by="row.names")
+    mtx.enrich <- merge(data.frame(Enrich.pval=format(as.matrix(mtx[[1]][1:numEnrich, ]), digits=3, scientific=T),
+                                   row.names=rownames(as.matrix(mtx[[1]]))[1:numEnrich]), trackDb.hg19, by="row.names", all.x=T)
     print(mtx.enrich)
     print("---------------------------------------------------------------")
     #    grid.table(mtx.enrich, gp=gpar(fontsize=6))
   }
   if (numDeplet > 0) {
-    print(paste("The total number of significantly DEPLETED associations is:", numDeplet, "Top 10, or less, are shown"))
+    print(paste("The total number of significantly DEPLETED associations is:", numDeplet))
     if (numDeplet > 10) numDeplet <- 10
-    mtx.deplet <- merge(data.frame(Enrich.pval=format(as.matrix(mtx[[2]][1:numDeplet, ]), digits=3, scientific=T), row.names=rownames(as.matrix(mtx[[2]][1:numDeplet, ]))), trackDb.hg19, by="row.names")
+    mtx.deplet <- merge(data.frame(Enrich.pval=format(as.matrix(mtx[[2]][1:numDeplet, ]), digits=3, scientific=T), row.names=rownames(as.matrix(mtx[[2]]))[1:numDeplet]), trackDb.hg19, by="row.names", all.x=T)
     print(mtx.deplet)
     print("---------------------------------------------------------------")
     #grid.table(mtx)
@@ -88,34 +95,36 @@ showBarplot <- function(mtx) {
 
 ```
 
-SLE-IC SNP sets analysis, `r if (analysisType == "data.gfs") {"custom"} else {"ENCODE"}` genome annotation data
+Blau syndrome SNP sets analysis, `r if (analysisType == "data.gfs") {"custom"} else {"ENCODE"}` genome annotation data
 ========================================================
- 
 
-Double lines (===) mark the names of the regions being analyzed. 
+Analysis of individual sets
+----------------------------
+We analyze 3 sets of SNPs associated with NOD2 pathway in EA and AA populations:
+1) `TAB1-AA` - SNPs associated with TAB1 region in AA population
+2) `TAB2-EA` - SNPs associated with TAB2 region in EA population
+3) `TAB12-combined` - SNPs associated with Blau syndrome in both populations
 
-Pluses (+++) mark the names of categories of genomic features, used for the enrichment analysis
+The analysis of individual sets is organized as follows:
+1) Each set is tested for enrichmed co-localization in 4498 genome annotation (epigenomic) marks from the Encode project. Top 10 most significant enriched/depleted associations are shown. Look for `1Encode` postfix in the headers.
+2) Each set is tested vs. 267 other genome annotation marks. Look for `2other` postfix
+3) Each set is further tested for enrichment in custom sets of genomic features. Look for the description of their postfixes in the [FAQ](https://mdozmorov.github.io/grdocs/misc/Faq.html)
 
-Cell type-specific sets of epigenomic elements from the ENCODE project were used.
-
-For each analysis, only the significant enrichment results (p < 0.01) are shown. If an analysis does not have any significant results, it is not displayed at all. The analyses are separated by single lines (---).
+P-values are corrected for multiple testing using FDR. For each analysis, only the significant enrichment results (p < 0.01) are shown. If an analysis does not have any significant results, it is not displayed at all. The analyses are separated by single lines (---).
 
 Negative p-value indicates depletion.
 
-
-
-
 ```{r showData}
-for (d in 2) {
+for (d in dirs.TAB1) {
   print("===============================================================")
-  print(paste("SNP set analyzed:", dirs[d]))
+  print(paste("SNP set analyzed:", d))
   print("===============================================================")
-  mtx <- (read.table(paste(dirs[d], "matrix.txt", sep="/"), sep="\t", row.names=1, header=T))
+  mtx <- (read.table(paste(d, "matrix.txt", sep="/"), sep="\t", row.names=1, header=T))
   showTable(mtx)
 }
 ```
 
-```{r TAB1vsTAB2}
+#```{r TAB1vsTAB2}
 mtx <- merge(read.table(paste(dirs[1], "matrix.txt", sep="/"), sep="\t", row.names=1, header=T),
              read.table(paste(dirs[3], "matrix.txt", sep="/"), sep="\t", row.names=1, header=T),
              by="row.names")

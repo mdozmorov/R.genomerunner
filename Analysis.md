@@ -7,101 +7,175 @@
 
 
 
-SLE-IC SNP sets analysis, ENCODE genome annotation data
+Blau syndrome SNP sets analysis, ENCODE genome annotation data
 ========================================================
- 
-
-Double lines (===) mark the names of the regions being analyzed. 
-
-Pluses (+++) mark the names of categories of genomic features, used for the enrichment analysis
-
-Cell type-specific sets of epigenomic elements from the ENCODE project were used.
+P-values are corrected for multiple testing using FDR. 
 
 For each analysis, only the significant enrichment results (p < 0.01) are shown. If an analysis does not have any significant results, it is not displayed at all. The analyses are separated by single lines (---).
 
 Negative p-value indicates depletion.
 
 
-
-
-
 ```
 ## [1] "==============================================================="
-## [1] "SNP set analyzed: data.enc/TAB12-combined-ENC"
+## [1] "SNP set analyzed: data//TAB1-AA-1Encode"
 ## [1] "==============================================================="
-## [1] "The total number of significantly ENRICHED associations is: 223 Top 10, or less, are shown"
-##                                     Row.names Enrich.pval                                                                     V2
-## 1        wgEncodeBroadHistoneA549H2azEtoh02Pk   2.78e-148 A549 EtOH 0.02% H2A.Z Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## 2             wgEncodeBroadHistoneDnd41H2azPk   3.87e-174           Dnd41 H2A.Z Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## 3      wgEncodeBroadHistoneHepg2H3k27me3StdPk   2.00e-207        HepG2 H3K27me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## 4       wgEncodeBroadHistoneHsmmH3k27me3StdPk   3.47e-183         HSMM H3K27me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## 5      wgEncodeBroadHistoneHuvecH3k27me3StdPk   2.25e-303        HUVEC H3K27me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## 6              wgEncodeBroadHistoneK562RestPk   9.28e-156             K562 REST Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## 7           wgEncodeBroadHistoneNhaH3k09me3Pk   2.86e-133          NH-A H3K9me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## 8         wgEncodeBroadHistoneOsteoH3k27me3Pk   1.32e-298  Osteoblasts H3K27me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## 9  wgEncodeGisChiaPetMcf7EraaInteractionsRep1   1.70e-211       MCF-7 ERalpha a ChIA-PET Interactions Rep 1 from ENCODE/GIS-Ruan
-## 10     wgEncodeHaibGenotypeMyometrRegionsRep1   6.54e-157              Myometr Copy number variants Replicate 1 from ENCODE/HAIB
+## [1] "The total number of significantly ENRICHED associations is: 369"
+## [1] "Top 10, or less, are shown"
+##                                              Row.names Enrich.pval                                                                     V2
+## 1              wgEncodeBroadHistoneH1hescH3k27me3StdPk   2.48e-165      H1-hESC H3K27me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 2               wgEncodeBroadHistoneH1hescH3k4me1StdPk   1.32e-114       H1-hESC H3K4me1 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 3               wgEncodeBroadHistoneH1hescSap3039731Pk   1.31e-135 H1-hESC SAP30 (39731) Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 4                wgEncodeBroadHistoneHsmmH3k27me3StdPk   1.85e-145         HSMM H3K27me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 5                 wgEncodeBroadHistoneNhaH3k27me3StdPk   4.24e-143         NH-A H3K27me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 6                  wgEncodeBroadHistoneNhdfadCtcfStdPk   1.64e-167          NHDF-Ad CTCF Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 7    wgEncodeSunyAlbanyGeneStGm12878Igf2bp1RbpAssocRna   4.95e-153                                                                   <NA>
+## 8  wgEncodeSunyAlbanyGeneStGm12878Igf2bp1RbpAssocRnaV2   4.95e-153 GM12878 IGF2BP1 RBP Associated RNA by RIP-chip GeneST from ENCODE/SUNY
+## 9         wgEncodeSunyAlbanyGeneStK562Celf1RbpAssocRna   2.92e-128                                                                   <NA>
+## 10      wgEncodeSunyAlbanyGeneStK562Celf1RbpAssocRnaV2   2.92e-128      K562 CELF1 RBP Associated RNA by RIP-chip GeneST from ENCODE/SUNY
 ## [1] "---------------------------------------------------------------"
-## [1] "The total number of significantly DEPLETED associations is: 389 Top 10, or less, are shown"
-##                                             Row.names Enrich.pval                                                                       V2
-## 1             wgEncodeBroadHistoneNhdfadH3k36me3StdPk  -1.91e-163        NHDF-Ad H3K36me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## 2       wgEncodeCshlLongRnaSeqA549CytosolPapJunctions  -6.50e-176            A549 cytosol polyA+ RNA-seq Junctions Pooled from ENCODE/CSHL
-## 3         wgEncodeCshlLongRnaSeqHuvecCellPapJunctions  -1.88e-202        HUVEC whole cell polyA+ RNA-seq Junctions Pooled from ENCODE/CSHL
-## 4       wgEncodeCshlLongRnaSeqK562NucleusPapJunctions  -2.76e-214            K562 nucleus polyA+ RNA-seq Junctions Pooled from ENCODE/CSHL
-## 5          wgEncodeGisChiaPetMcf7Pol2InteractionsRep2  -2.25e-303              MCF-7 Pol2 ChIA-PET Interactions Rep 2 from ENCODE/GIS-Ruan
-## 6           wgEncodeGisChiaPetNb4Pol2InteractionsRep1  -1.50e-206                NB4 Pol2 ChIA-PET Interactions Rep 1 from ENCODE/GIS-Ruan
-## 7         wgEncodeGisRnaPetNhekNucleusPapClustersRep1  -1.95e-163    NHEK nucleus polyA+ clone-free RNA PET Clusters Rep 1 from ENCODE/GIS
-## 8 wgEncodeSunyAlbanyGeneStHelas3RipinputRbpAssocRnaV2  -2.61e-267 HeLa-S3 RIP-Input RBP Associated RNA by RIP-chip GeneST from ENCODE/SUNY
+## [1] "The total number of significantly DEPLETED associations is: 132"
+## [1] "Top 10, or less, are shown"
+##                                              Row.names Enrich.pval                                                                       V2
+## 1               wgEncodeBroadHistoneK562Ezh239875StdPk   -9.47e-57       K562 EZH2 (39875) Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 2                 wgEncodeBroadHistoneK562H3k9me1StdPk   -1.09e-77            K562 H3K9me1 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 3                wgEncodeBroadHistoneK562H4k20me1StdPk   -1.74e-57           K562 H4K20me1 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 4                       wgEncodeBroadHistoneK562NcorPk   -4.50e-53               K562 NCoR Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 5                    wgEncodeBroadHistoneK562P300StdPk   -8.70e-59               K562 P300 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 6                       wgEncodeBroadHistoneK562PcafPk   -8.70e-59               K562 PCAF Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 7           wgEncodeGisChiaPetMcf7CtcfInteractionsRep2  -9.06e-172              MCF-7 CTCF ChIA-PET Interactions Rep 2 from ENCODE/GIS-Ruan
+## 8           wgEncodeGisChiaPetMcf7Pol2InteractionsRep2   -2.42e-78              MCF-7 Pol2 ChIA-PET Interactions Rep 2 from ENCODE/GIS-Ruan
+## 9    wgEncodeSunyAlbanyGeneStHelas3RipinputRbpAssocRna  -3.87e-102                                                                     <NA>
+## 10 wgEncodeSunyAlbanyGeneStHelas3RipinputRbpAssocRnaV2  -3.87e-102 HeLa-S3 RIP-Input RBP Associated RNA by RIP-chip GeneST from ENCODE/SUNY
 ## [1] "---------------------------------------------------------------"
+## [1] "==============================================================="
+## [1] "SNP set analyzed: data//TAB1-AA-2other"
+## [1] "==============================================================="
+## [1] "The total number of significantly ENRICHED associations is: 42"
+## [1] "Top 10, or less, are shown"
+##        Row.names Enrich.pval                                                                                    V2
+## 1        affyU95    8.67e-16                              Alignments of Affymetrix Consensus/Exemplars from HG-U95
+## 2       ccdsGene    1.12e-24                                                                         Consensus CDS
+## 3      dgvMerged    9.82e-15     Database of Genomic Variants: Structural Variant Regions (CNV, Inversion, In/del)
+## 4  dgvSupporting    9.82e-15 Database of Genomic Variants: Supporting Structural Variants (CNV, Inversion, In/del)
+## 5     fishClones    1.06e-25                                           Clones Placed on Cytogenetic Map Using FISH
+## 6            gad    4.44e-20                         Genetic Association Studies of Complex Diseases and Disorders
+## 7     jaxQtlAsIs    7.53e-89                                               MGI Mouse QTLs Coarsely Mapped to Human
+## 8         rgdQtl    1.67e-23                                               Human Quantitative Trait Locus from RGD
+## 9   simpleRepeat    1.93e-14                                                          Simple Tandem Repeats by TRF
+## 10  ucscGenePfam    4.81e-18                                                            Pfam Domains in UCSC Genes
+## [1] "---------------------------------------------------------------"
+## [1] "The total number of significantly DEPLETED associations is: 10"
+## [1] "Top 10, or less, are shown"
+##               Row.names Enrich.pval                                                                       V2
+## 1           all_bacends   -5.51e-26                                                                     <NA>
+## 2  altSeqLiftOverPslP10   -2.34e-05                           GRCh37 Alternate Sequence Lift Over Alignments
+## 3   altSeqLiftOverPslP9   -2.34e-05                                                                     <NA>
+## 4      altSeqPatchesP10   -3.58e-05                                     Patches to GRCh37 Reference Sequence
+## 5           laminB1Lads   -4.14e-04                         NKI LADs (Lamina Associated Domains, Tig3 cells)
+## 6      lrgTranscriptAli   -3.10e-03               Locus Reference Genomic (LRG) Fixed Transcript Annotations
+## 7          orfeomeGenes   -2.93e-18                                                                     <NA>
+## 8           orfeomeMrna   -2.93e-18                                        ORFeome Collaboration Gene Clones
+## 9              pubsBlat   -2.21e-35                        Sequences in Articles: PubmedCentral and Elsevier
+## 10          pubsBlatPsl   -3.49e-23 Individual Sequence Matches of One Selected Article from Sequences Track
+## [1] "---------------------------------------------------------------"
+## [1] "==============================================================="
+## [1] "SNP set analyzed: data//TAB1-AA-altSplicing"
+## [1] "==============================================================="
+## [1] "The total number of significantly ENRICHED associations is: 1"
+## [1] "Top 10, or less, are shown"
+##       Row.names Enrich.pval   V2
+## 1 strangeSplice    2.94e-06 <NA>
+## [1] "---------------------------------------------------------------"
+## [1] "==============================================================="
+## [1] "SNP set analyzed: data//TAB1-AA-coriellCNVs"
+## [1] "==============================================================="
+## [1] "The total number of significantly ENRICHED associations is: 1"
+## [1] "Top 10, or less, are shown"
+##                    Row.names Enrich.pval   V2
+## 1 Chorionic_villus_cell_line   3.32e-130 <NA>
+## [1] "---------------------------------------------------------------"
+## [1] "The total number of significantly DEPLETED associations is: 2"
+## [1] "Top 10, or less, are shown"
+##      Row.names Enrich.pval   V2
+## 1 B_Lymphocyte   -2.43e-25 <NA>
+## 2   Fibroblast   -2.07e-83 <NA>
+## [1] "---------------------------------------------------------------"
+## [1] "==============================================================="
+## [1] "SNP set analyzed: data//TAB1-AA-gapLocations"
+## [1] "==============================================================="
+## [1] "==============================================================="
+## [1] "SNP set analyzed: data//TAB1-AA-genomicVariants"
+## [1] "==============================================================="
+## [1] "The total number of significantly ENRICHED associations is: 1"
+## [1] "Top 10, or less, are shown"
+##   Row.names Enrich.pval   V2
+## 1      Loss    9.45e-31 <NA>
+## [1] "---------------------------------------------------------------"
+## [1] "The total number of significantly DEPLETED associations is: 4"
+## [1] "Top 10, or less, are shown"
+##     Row.names Enrich.pval   V2
+## 1    Deletion   -1.39e-04 <NA>
+## 2 Duplication   -2.72e-04 <NA>
+## 3        Gain   -1.13e-25 <NA>
+## 4   Inversion   -5.26e-12 <NA>
+## [1] "---------------------------------------------------------------"
+## [1] "==============================================================="
+## [1] "SNP set analyzed: data//TAB1-AA-H3K4me3"
+## [1] "==============================================================="
+## [1] "The total number of significantly ENRICHED associations is: 15"
+## [1] "Top 10, or less, are shown"
+##                               Row.names Enrich.pval   V2
+## 1        H3K4me3_Brain_Anterior_Caudate    7.79e-13 <NA>
+## 2         H3K4me3_Brain_Cingulate_Gyrus    2.65e-07 <NA>
+## 3      H3K4me3_Brain_Hippocampus_Middle    1.38e-09 <NA>
+## 4  H3K4me3_Brain_Inferior_Temporal_Lobe    1.06e-12 <NA>
+## 5        H3K4me3_Brain_Mid_Frontal_Lobe    9.33e-08 <NA>
+## 6        H3K4me3_Brain_Substantia_Nigra    3.63e-08 <NA>
+## 7             H3K4me3_CD3_Primary_Cells    1.64e-17 <NA>
+## 8            H3K4me3_CD34_Primary_Cells    1.88e-06 <NA>
+## 9       H3K4me3_CD8_Naive_Primary_Cells    2.83e-05 <NA>
+## 10              H3K4me3_Skeletal_Muscle    2.20e-20 <NA>
+## [1] "---------------------------------------------------------------"
+## [1] "==============================================================="
+## [1] "SNP set analyzed: data//TAB1-AA-histoneMarks"
+## [1] "==============================================================="
+## [1] "The total number of significantly ENRICHED associations is: 1"
+## [1] "Top 10, or less, are shown"
+##     Row.names Enrich.pval   V2
+## 1 11_Weak_Txn    1.42e-03 <NA>
+## [1] "---------------------------------------------------------------"
+## [1] "The total number of significantly DEPLETED associations is: 2"
+## [1] "Top 10, or less, are shown"
+##          Row.names Enrich.pval   V2
+## 1 13_Heterochromlo   -4.37e-05 <NA>
+## 2 9_Txn_Transition   -6.37e-03 <NA>
+## [1] "---------------------------------------------------------------"
+## [1] "==============================================================="
+## [1] "SNP set analyzed: data//TAB1-AA-ncRnas"
+## [1] "==============================================================="
+## [1] "==============================================================="
+## [1] "SNP set analyzed: data//TAB1-AA-repeats"
+## [1] "==============================================================="
+## [1] "The total number of significantly ENRICHED associations is: 1"
+## [1] "Top 10, or less, are shown"
+##   Row.names Enrich.pval   V2
+## 1      SINE    5.76e-14 <NA>
+## [1] "---------------------------------------------------------------"
+## [1] "==============================================================="
+## [1] "SNP set analyzed: data//TAB1-AA-tfbsConserved"
+## [1] "==============================================================="
 ```
 
-
 ```
-## [1] "Top 20 up in condition 1"
-##                                                     TAB1.AA TAB2.EA                                                                           V2
-## wgEncodeBroadHistoneH1hescH3k27me3StdPk             164.606  -15.01            H1-hESC H3K27me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeBroadHistoneHelas3Pol2bStdPk                 32.606 -225.71                HeLa-S3 Pol2 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeCshlLongRnaSeqA549CytosolPapJunctions         4.204 -212.22                A549 cytosol polyA+ RNA-seq Junctions Pooled from ENCODE/CSHL
-## wgEncodeCshlLongRnaSeqBjCellPamJunctions              7.099 -208.00               BJ whole cell polyA- RNA-seq Junctions Pooled from ENCODE/CSHL
-## wgEncodeCshlLongRnaSeqHepg2CytosolPamJunctions        8.559 -171.33               HepG2 cytosol polyA- RNA-seq Junctions Pooled from ENCODE/CSHL
-## wgEncodeCshlLongRnaSeqHuvecCellPapJunctions           5.136 -240.89            HUVEC whole cell polyA+ RNA-seq Junctions Pooled from ENCODE/CSHL
-## wgEncodeCshlLongRnaSeqK562NucleusPapJunctions         4.959 -252.24                K562 nucleus polyA+ RNA-seq Junctions Pooled from ENCODE/CSHL
-## wgEncodeCshlLongRnaSeqNhekNucleusPamJunctions         5.147 -182.25                NHEK nucleus polyA- RNA-seq Junctions Pooled from ENCODE/CSHL
-## wgEncodeCshlLongRnaSeqNhlfCellPapJunctions            5.698 -199.32             NHLF whole cell polyA+ RNA-seq Junctions Pooled from ENCODE/CSHL
-## wgEncodeGisChiaPetMcf7Pol2InteractionsRep2          -77.615 -302.65                  MCF-7 Pol2 ChIA-PET Interactions Rep 2 from ENCODE/GIS-Ruan
-## wgEncodeGisRnaPetA549CellPapClusters                  7.304 -192.85    A549 whole cell polyA+ clone-free RNA PET Clusters Pooled from ENCODE/GIS
-## wgEncodeGisRnaPetA549CytosolPapClusters               7.507 -194.35       A549 cytosol polyA+ clone-free RNA PET Clusters Pooled from ENCODE/GIS
-## wgEncodeGisRnaPetA549NucleusPapClusters               8.352 -174.75       A549 nucleus polyA+ clone-free RNA PET Clusters Pooled from ENCODE/GIS
-## wgEncodeGisRnaPetHepg2CytosolPapClustersRep1          5.129 -208.01      HepG2 cytosol polyA+ clone-based RNA PET Clusters Rep 1 from ENCODE/GIS
-## wgEncodeGisRnaPetHepg2NucleusPapClustersRep1          0.000 -191.10      HepG2 nucleus polyA+ clone-based RNA PET Clusters Rep 1 from ENCODE/GIS
-## wgEncodeGisRnaPetNhekNucleusPapClustersRep1           0.000 -214.25        NHEK nucleus polyA+ clone-free RNA PET Clusters Rep 1 from ENCODE/GIS
-## wgEncodeGisRnaPetSknshCellPapClusters                 7.107 -172.29 SK-N-SH whole cell polyA+ clone-free RNA PET Clusters Pooled from ENCODE/GIS
-## wgEncodeSunyAlbanyGeneStH1hescRipinputRbpAssocRnaV2   7.100 -207.30     H1-hESC RIP-Input RBP Associated RNA by RIP-chip GeneST from ENCODE/SUNY
-## [1] "---------------------------------------------------------------"
-## [1] "Top 20 up in condition 2"
-##                                              TAB1.AA TAB2.EA                                                                      V2
-## wgEncodeBroadHistoneA549H2azEtoh02Pk         -2.3934  206.92  A549 EtOH 0.02% H2A.Z Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeBroadHistoneDnd41H2azPk              -3.3346  245.11            Dnd41 H2A.Z Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeBroadHistoneHepg2H3k27me3StdPk        0.0000  271.33         HepG2 H3K27me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeBroadHistoneHsmmH3k9me3StdPk        -11.0139  177.45           HSMM H3K9me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeBroadHistoneK562Cbpsc369Pk          -42.4797  158.40      K562 CBP (sc-369) Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeBroadHistoneK562Cbx3sc101004Pk      -33.8696  194.22  K562 CBX3 (SC-101004) Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeBroadHistoneK562Ezh239875StdPk      -56.0238  112.20      K562 EZH2 (39875) Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeBroadHistoneK562H3k27me3StdPk        -7.7078  199.42          K562 H3K27me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeBroadHistoneK562H3k9me3StdPk        -28.2037  207.55           K562 H3K9me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeBroadHistoneK562NcorPk              -52.3472  145.51              K562 NCoR Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeBroadHistoneK562P300StdPk           -58.0606  112.12              K562 P300 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeBroadHistoneK562RestPk              -22.1835  271.91              K562 REST Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeBroadHistoneK562Setdb1Pk            -41.4554  138.23            K562 SETDB1 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeBroadHistoneMonocd14ro1746H2azPk     -0.7618  166.40  Monocytes CD14+ H2A.Z Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeBroadHistoneNhaEzh239875Pk          -19.4592  158.37      NH-A EZH2 (39875) Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeBroadHistoneNhaH3k09me3Pk           -10.3243  192.79           NH-A H3K9me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeBroadHistoneOsteoP300kat3bPk        -30.3856  205.94 Osteoblasts P300 KAT3B Histone Mods by ChIP-seq Peaks from ENCODE/Broad
-## wgEncodeGisChiaPetMcf7CtcfInteractionsRep2 -171.0430   13.28             MCF-7 CTCF ChIA-PET Interactions Rep 2 from ENCODE/GIS-Ruan
-## wgEncodeGisChiaPetMcf7EraaInteractionsRep1  -17.5848  302.65        MCF-7 ERalpha a ChIA-PET Interactions Rep 1 from ENCODE/GIS-Ruan
-## wgEncodeGisChiaPetMcf7EraaInteractionsRep2  -35.0549  190.40        MCF-7 ERalpha a ChIA-PET Interactions Rep 2 from ENCODE/GIS-Ruan
-## [1] "---------------------------------------------------------------"
+## Error: no lines available in input
 ```
 
-<img src="img/TAB1vsTAB21.png" title="plot of chunk TAB1vsTAB2" alt="plot of chunk TAB1vsTAB2" width="700" /><img src="img/TAB1vsTAB22.png" title="plot of chunk TAB1vsTAB2" alt="plot of chunk TAB1vsTAB2" width="700" />
+#```{r TAB1vsTAB2}
+mtx <- merge(read.table(paste(dirs[1], "matrix.txt", sep="/"), sep="\t", row.names=1, header=T),
+             read.table(paste(dirs[3], "matrix.txt", sep="/"), sep="\t", row.names=1, header=T),
+             by="row.names")
+rownames(mtx) <- mtx[, 1]; mtx <- mtx[, -1]               
+showBarplot(mtx)
+```
 
