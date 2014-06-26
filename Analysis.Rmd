@@ -1,0 +1,102 @@
+
+```{r setup, echo=FALSE, include=FALSE, cache=FALSE}
+# Set up the environment
+library(knitr) 
+opts_chunk$set(cache.path='cache/', fig.path='img/', cache=F, tidy=T, fig.keep='high', dpi=300, out.width=700, echo=F, autodep=T)
+options(replace.assign=TRUE, width=200)
+set.seed(1)
+```
+
+```{r loadData}
+analysisType <- "data.enc"
+dirs <- list.dirs(analysisType, full.names=T, recursive=F) # Paths the SNP sets analyses
+analyses <- list() # Empty list to hold analyses paths 
+for (d in dirs) {
+  analyses <- c(analyses, list(list.dirs(d, full.names=T, recursive=F)))
+}
+
+trackDb.hg19 <- read.table("data/trackDb.hg19", sep="\t", header=F, row.names=1)
+```
+
+SLE-IC SNP sets analysis, `r if (analysisType == "data.gfs") {"custom"} else {"ENCODE"}` genome annotation data
+========================================================
+ 
+```{r loadLibraries, warning=FALSE, message=FALSE}
+library(gridExtra)
+
+# Adjust raw p-values for mutliple testing
+mtx.adjust <- function(x, method="fdr") {
+  tmp <- x; # Keep signs in the original version
+  tmp.adj <- apply(abs(x), 2, p.adjust, method=method) 
+  for (i in 1:nrow(x)){
+    for (j in 1:ncol(x)){
+      if (tmp[i, j] < 0) tmp.adj[i, j] <- -1*tmp.adj[i, j]
+    }
+  }
+  return(tmp.adj)
+}
+
+# Filters non-significant rows from a matrix
+mtx.filter <- function(x, pval=0.01){
+  idx <- as.logical(abs(rowMeans(x)) < pval)
+  tmp <- as.matrix(x[idx, ])
+  colnames(tmp) <- colnames(x)
+  rownames(tmp) <- rownames(x)[idx]
+  idxEnrich <- as.logical(rowMeans(tmp) > 0)
+  tmp1 <- as.matrix(tmp[idxEnrich, ])
+  colnames(tmp1) <- colnames(tmp)
+  rownames(tmp1) <- rownames(tmp)[idxEnrich]
+  idxDeplet <- as.logical(rowMeans(tmp) <= 0)
+  tmp2 <- as.matrix(tmp[idxDeplet, ])
+  colnames(tmp2) <- colnames(tmp)
+  rownames(tmp2) <- rownames(tmp)[idxDeplet]
+  if (nrow(tmp1) > 1) tmp1 <- tmp1[order(tmp1[, 1], decreasing=F), ]
+  if (nrow(tmp2) > 1) tmp2 <- tmp2[order(tmp2[, 1], decreasing=T), ]
+  return(list(as.matrix(tmp1), as.matrix(tmp2)))
+}
+```
+
+
+Double lines (===) mark the names of the regions being analyzed. 
+
+Pluses (+++) mark the names of categories of genomic features, used for the enrichment analysis
+
+Cell type-specific sets of epigenomic elements from the ENCODE project were used.
+
+For each analysis, only the significant enrichment results (p < 0.01) are shown. If an analysis does not have any significant results, it is not displayed at all. The analyses are separated by single lines (---).
+
+Negative p-value indicates depletion.
+
+
+
+
+```{r showData}
+for (d in 2) {
+  print("===============================================================")
+  print(paste("SNP set analyzed:", dirs[d]))
+  print("===============================================================")
+  mtx <- (read.table(paste(dirs[d], "matrix.txt", sep="/"), sep="\t", row.names=1, header=T))
+  mtx <- mtx.adjust(mtx, "fdr") # Adjust for multiple testing
+  mtx <- mtx.filter(mtx, 0.01) # Get two sepatate lists, enchched and depleted
+  numEnrich <- nrow(mtx[[1]]) # Total number of significantly enriched
+  numDeplet <- nrow(mtx[[2]]) # and depleted associations
+  if (numEnrich > 0) {
+    print(paste("The total number of significantly ENRICHED associations is:", numEnrich,  "Top 10, or less, are shown"))
+    if (numEnrich > 10) numEnrich <- 10
+    mtx.enrich <- merge(data.frame(Enrich.pval=format(as.matrix(mtx[[1]][1:numEnrich, ]), digits=3, scientific=T), row.names=rownames(as.matrix(mtx[[1]][1:numEnrich, ]))), trackDb.hg19, by="row.names")
+    print(mtx.enrich)
+    print("---------------------------------------------------------------")
+    #    grid.table(mtx.enrich, gp=gpar(fontsize=6))
+  }
+  if (numDeplet > 0) {
+    print(paste("The total number of significantly DEPLETED associations is:", numDeplet, "Top 10, or less, are shown"))
+    if (numDeplet > 10) numDeplet <- 10
+    mtx.deplet <- merge(data.frame(Enrich.pval=format(as.matrix(mtx[[1]][1:numDeplet, ]), digits=3, scientific=T), row.names=rownames(as.matrix(mtx[[1]][1:numDeplet, ]))), trackDb.hg19, by="row.names")
+    print(mtx.deplet)
+    print("---------------------------------------------------------------")
+    #grid.table(mtx)
+  }
+}
+```
+
+

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>SLE-IC SNP sets analysis, ENCODE genome annotation data</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h1>SLE-IC SNP sets analysis, ENCODE genome annotation data</h1>
+
+<p>Double lines (===) mark the names of the regions being analyzed. </p>
+
+<p>Pluses (+++) mark the names of categories of genomic features, used for the enrichment analysis</p>
+
+<p>Cell type-specific sets of epigenomic elements from the ENCODE project were used.</p>
+
+<p>For each analysis, only the significant enrichment results (p &lt; 0.01) are shown. If an analysis does not have any significant results, it is not displayed at all. The analyses are separated by single lines (&mdash;).</p>
+
+<p>Negative p-value indicates depletion.</p>
+
+<pre><code>## [1] &quot;===============================================================&quot;
+## [1] &quot;SNP set analyzed: data.enc/TAB12-combined-ENC&quot;
+## [1] &quot;===============================================================&quot;
+## [1] &quot;The total number of significantly ENRICHED associations is: 223 Top 10, or less, are shown&quot;
+##                                     Row.names Enrich.pval                                                                     V2
+## 1        wgEncodeBroadHistoneA549H2azEtoh02Pk   2.78e-148 A549 EtOH 0.02% H2A.Z Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 2             wgEncodeBroadHistoneDnd41H2azPk   3.87e-174           Dnd41 H2A.Z Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 3      wgEncodeBroadHistoneHepg2H3k27me3StdPk   2.00e-207        HepG2 H3K27me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 4       wgEncodeBroadHistoneHsmmH3k27me3StdPk   3.47e-183         HSMM H3K27me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 5      wgEncodeBroadHistoneHuvecH3k27me3StdPk   2.25e-303        HUVEC H3K27me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 6              wgEncodeBroadHistoneK562RestPk   9.28e-156             K562 REST Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 7           wgEncodeBroadHistoneNhaH3k09me3Pk   2.86e-133          NH-A H3K9me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 8         wgEncodeBroadHistoneOsteoH3k27me3Pk   1.32e-298  Osteoblasts H3K27me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 9  wgEncodeGisChiaPetMcf7EraaInteractionsRep1   1.70e-211       MCF-7 ERalpha a ChIA-PET Interactions Rep 1 from ENCODE/GIS-Ruan
+## 10     wgEncodeHaibGenotypeMyometrRegionsRep1   6.54e-157              Myometr Copy number variants Replicate 1 from ENCODE/HAIB
+## [1] &quot;---------------------------------------------------------------&quot;
+## [1] &quot;The total number of significantly DEPLETED associations is: 389 Top 10, or less, are shown&quot;
+##                                     Row.names Enrich.pval                                                                     V2
+## 1        wgEncodeBroadHistoneA549H2azEtoh02Pk   2.78e-148 A549 EtOH 0.02% H2A.Z Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 2             wgEncodeBroadHistoneDnd41H2azPk   3.87e-174           Dnd41 H2A.Z Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 3      wgEncodeBroadHistoneHepg2H3k27me3StdPk   2.00e-207        HepG2 H3K27me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 4       wgEncodeBroadHistoneHsmmH3k27me3StdPk   3.47e-183         HSMM H3K27me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 5      wgEncodeBroadHistoneHuvecH3k27me3StdPk   2.25e-303        HUVEC H3K27me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 6              wgEncodeBroadHistoneK562RestPk   9.28e-156             K562 REST Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 7           wgEncodeBroadHistoneNhaH3k09me3Pk   2.86e-133          NH-A H3K9me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 8         wgEncodeBroadHistoneOsteoH3k27me3Pk   1.32e-298  Osteoblasts H3K27me3 Histone Mods by ChIP-seq Peaks from ENCODE/Broad
+## 9  wgEncodeGisChiaPetMcf7EraaInteractionsRep1   1.70e-211       MCF-7 ERalpha a ChIA-PET Interactions Rep 1 from ENCODE/GIS-Ruan
+## 10     wgEncodeHaibGenotypeMyometrRegionsRep1   6.54e-157              Myometr Copy number variants Replicate 1 from ENCODE/HAIB
+## [1] &quot;---------------------------------------------------------------&quot;
+</code></pre>
+
+</body>
+
+</html>
+
