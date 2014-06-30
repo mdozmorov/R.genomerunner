@@ -8,19 +8,11 @@ set.seed(1)
 ```
 
 ```{r loadData}
-analysisType <- "data.enc"
-# analysisType <- "data.gfs"
 dirs <- list.dirs("data", full.names=T, recursive=F) # Paths the SNP sets analyses
 dirs.TAB1 <- dirs[grep("TAB1-", dirs)]
 dirs.TAB2 <- dirs[grep("TAB2-", dirs)]
 dirs.TAB12 <- dirs[grep("TAB12-", dirs)]
 
-analyses <- list() # Empty list to hold analyses paths 
-for (d in dirs) {
-  analyses <- c(analyses, list(list.dirs(d, full.names=T, recursive=F)))
-}
-
-dirs.TAB1 <- list.dirs("data/", full.names=T, recursive=F)
 trackDb.hg19 <- read.table("data/trackDb.hg19", sep="\t", header=F, row.names=1)
 ```
 
@@ -29,106 +21,61 @@ library(gridExtra)
 source("utils.R")
 ```
 
-```{r utils}
-# Filters non-significant rows from a matrix
-mtx.filter <- function(x, pval=0.01){
-  idx <- apply(x, 1, function(i) {sum(abs(i) < pval) >= 1})
-  tmp <- as.matrix(x[idx, ])
-  colnames(tmp) <- colnames(x)
-  rownames(tmp) <- rownames(x)[idx]
-  idxEnrich <- as.logical(rowMeans(tmp) > 0)
-  tmp1 <- as.matrix(tmp[idxEnrich, ])
-  colnames(tmp1) <- colnames(tmp)
-  rownames(tmp1) <- rownames(tmp)[idxEnrich]
-  idxDeplet <- as.logical(rowMeans(tmp) <= 0)
-  tmp2 <- as.matrix(tmp[idxDeplet, ])
-  colnames(tmp2) <- colnames(tmp)
-  rownames(tmp2) <- rownames(tmp)[idxDeplet]
-  if (nrow(tmp1) > 1) tmp1 <- tmp1[order(rowMeans(tmp1), decreasing=F), ]
-  if (nrow(tmp2) > 1) tmp2 <- tmp2[order(rowMeans(tmp2), decreasing=T), ]
-  return(list(as.matrix(tmp1), as.matrix(tmp2)))
-}
-
-# Shows top 10 enriched and depleted associations as tables
-showTable <- function(mtx) {
-  mtx <- mtx.adjust.raw(mtx, "fdr") # Adjust for multiple testing
-  mtx <- mtx.filter(mtx, 0.01) # Get two sepatate lists, enchched and depleted
-  numEnrich <- nrow(mtx[[1]]) # Total number of significantly enriched
-  numDeplet <- nrow(mtx[[2]]) # and depleted associations
-  if (numEnrich > 0) {
-    print(paste("The total number of significantly ENRICHED associations is:", numEnrich))
-    if (numEnrich > 10) numEnrich <- 10
-    mtx.enrich <- merge(data.frame(Enrich.pval=format(as.matrix(mtx[[1]][1:numEnrich, ]), digits=3, scientific=T),
-                                   row.names=rownames(as.matrix(mtx[[1]]))[1:numEnrich]), trackDb.hg19, by="row.names", all.x=T)
-    print(mtx.enrich)
-    print("---------------------------------------------------------------")
-    #    grid.table(mtx.enrich, gp=gpar(fontsize=6))
-  }
-  if (numDeplet > 0) {
-    print(paste("The total number of significantly DEPLETED associations is:", numDeplet))
-    if (numDeplet > 10) numDeplet <- 10
-    mtx.deplet <- merge(data.frame(Enrich.pval=format(as.matrix(mtx[[2]][1:numDeplet, ]), digits=3, scientific=T), row.names=rownames(as.matrix(mtx[[2]]))[1:numDeplet]), trackDb.hg19, by="row.names", all.x=T)
-    print(mtx.deplet)
-    print("---------------------------------------------------------------")
-    #grid.table(mtx)
-  }
-}
-
-# Shows top 10 most differentially enriched between the two conditions
-showBarplot <- function(mtx) {
-  mtx <- mtx.adjust.raw(mtx, "fdr") # Adjust for multiple testing
-  mtx <- mtx.transform(mtx) # Convert to log10
-  mtx <- mtx[order(mtx[, 1] - mtx[, 2]), ] # Reorder rows by largest differences
-  print(paste("Top 20 up in condition 1"))
-  mtx.enrich <- merge(mtx[(nrow(mtx)-20):nrow(mtx), ], trackDb.hg19, by="row.names")
-  rownames(mtx.enrich) <- mtx.enrich[, 1]; mtx.enrich <- mtx.enrich[, -1]
-  print(mtx.enrich)
-  print("---------------------------------------------------------------")
-  print(paste("Top 20 up in condition 2"))
-  mtx.deplet <- merge(mtx[1:20, ], trackDb.hg19, by="row.names")
-  rownames(mtx.deplet) <- mtx.deplet[, 1]; mtx.deplet <- mtx.deplet[, -1]
-  print(mtx.deplet)
-  print("---------------------------------------------------------------")
-  barplot1(mtx.enrich[, 1:2], 15, 15, 150)
-  barplot1(mtx.deplet[, 1:2], 15, 15, 300)
-}
-
-```
-
-Blau syndrome SNP sets analysis, `r if (analysisType == "data.gfs") {"custom"} else {"ENCODE"}` genome annotation data
+Blau syndrome SNP sets analysis
 ========================================================
 
 Analysis of individual sets
 ----------------------------
 We analyze 3 sets of SNPs associated with NOD2 pathway in EA and AA populations:
-1) `TAB1-AA` - SNPs associated with TAB1 region in AA population
+1) `TAB1-AA` - SNPs associated with TAB1 region in AA population.
 2) `TAB2-EA` - SNPs associated with TAB2 region in EA population
 3) `TAB12-combined` - SNPs associated with Blau syndrome in both populations
 
-The analysis of individual sets is organized as follows:
+The analysis is organized as follows:
 1) Each set is tested for enrichmed co-localization in 4498 genome annotation (epigenomic) marks from the Encode project. Top 10 most significant enriched/depleted associations are shown. Look for `1Encode` postfix in the headers.
 2) Each set is tested vs. 267 other genome annotation marks. Look for `2other` postfix
-3) Each set is further tested for enrichment in custom sets of genomic features. Look for the description of their postfixes in the [FAQ](https://mdozmorov.github.io/grdocs/misc/Faq.html)
+3) Each set is further tested for enrichment in custom categories of genomic features. Look for the description of their postfixes in the [FAQ](https://mdozmorov.github.io/grdocs/misc/Faq.html)
 
-P-values are corrected for multiple testing using FDR. For each analysis, only the significant enrichment results (p < 0.01) are shown. If an analysis does not have any significant results, it is not displayed at all. The analyses are separated by single lines (---).
+P-values are corrected for multiple testing using FDR. For each analysis, only the significant enrichment results (p < 0.01) are shown. Negative p-value indicates depletion. Tables show top 10 or less enriched/depleted associations, barplots visualize the same results. If an analysis does not have any significant results, it is not displayed at all.
 
-Negative p-value indicates depletion.
+TAB12-combined analysis
+===========================
+This is the most interesting analysis because it contrasts the two conditions. Look at the differences between AA and EA populations.
 
-```{r showData}
-for (d in dirs.TAB1) {
-  print("===============================================================")
-  print(paste("SNP set analyzed:", d))
-  print("===============================================================")
-  mtx <- (read.table(paste(d, "matrix.txt", sep="/"), sep="\t", row.names=1, header=T))
+```{r TAB12}
+for (i in (1:length(dirs.TAB1))) {
+  mtx <- merge(read.table(paste(dirs.TAB1[i], "matrix.txt", sep="/"), sep="\t", row.names=1, header=T),
+               read.table(paste(dirs.TAB2[i], "matrix.txt", sep="/"), sep="\t", row.names=1, header=T), by="row.names")
+  rownames(mtx) <- mtx[, 1]; mtx <- mtx[, -1]
+  print("---------------------------------------------------------------")
+  print(paste(sub("data/TAB12-combined-", "", dirs.TAB1[i]), "analysis"))
+  print("---------------------------------------------------------------")
   showTable(mtx)
 }
 ```
 
-#```{r TAB1vsTAB2}
-mtx <- merge(read.table(paste(dirs[1], "matrix.txt", sep="/"), sep="\t", row.names=1, header=T),
-             read.table(paste(dirs[3], "matrix.txt", sep="/"), sep="\t", row.names=1, header=T),
-             by="row.names")
-rownames(mtx) <- mtx[, 1]; mtx <- mtx[, -1]               
-showBarplot(mtx)
+TAB1-AA analysis
+================
+
+```{r TAB1}
+for (i in (1:length(dirs.TAB1))){
+  mtx <- read.table(paste(dirs.TAB1[i], "matrix.txt", sep="/"), sep="\t", row.names=1, header=T)
+  print("---------------------------------------------------------------")
+  print(paste(sub("data/TAB1-AA-", "", dirs.TAB1[i]), "analysis"))
+  print("---------------------------------------------------------------")
+  showTable(mtx)
+}
 ```
 
+TAB1-EA analysis
+================
+
+```{r TAB2}
+for (i in (1:length(dirs.TAB2))){
+  mtx <- read.table(paste(dirs.TAB1[i], "matrix.txt", sep="/"), sep="\t", row.names=1, header=T)
+  print("---------------------------------------------------------------")
+  print(paste(sub("data/TAB2-EA-", "", dirs.TAB1[i]), "analysis"))
+  print("---------------------------------------------------------------")
+  showTable(mtx)
+}
+```
