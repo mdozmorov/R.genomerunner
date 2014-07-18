@@ -11,8 +11,8 @@ color<-colorRampPalette(c("blue","yellow")) # Define color gradient
 # Distance: "euclidean", "maximum","manhattan" or "minkowski". Do not use "canberra" or "binary"
 # Clustering: "ward", "single", "complete", "average", "mcquitty", "median" or "centroid"
 dist.method<-"euclidean"  
-hclust.method<-"ward"
-h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", col=color,distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=0.5, cexCol=0.5)
+hclust.method<-"ward.D2"
+h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", col=color,distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=0.7, cexCol=0.7)
 
 # Exploratory: Cllustering combinaations. Use to find bvisually best combinations of dist and hclust methods
 dist.methods<-c("euclidean",  "manhattan", "minkowski", "maximum") # "binary", "canberra",

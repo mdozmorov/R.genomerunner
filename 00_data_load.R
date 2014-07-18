@@ -10,7 +10,10 @@ suppressMessages(library(limma))
 # Define output and data subfolders to use, change to analyze different data
 rname<-"data//results//" # Output folder
 # One or more GenomeRunner Web results data folders.
-dname<-"data//more15_vs_tfbsEncode//"
+dname <- "data//gwasCatalog_vs_ENCODE/"
+dname <- "data//gwasCatalog_vs_ENCODE_precalc/"
+dname <- "data//tumorportal_vs_ENCODE/"
+dname <- "data//ICGC_vs_tfbsEncode/"
 mtx<-do.call("rbind", lapply(dname, function(fn) as.matrix(read.table(paste(fn, "matrix.txt", sep=""), sep="\t", header=T, row.names=1))))
 # Optional: filter unused genomic features
 # mtx<-mtx[grep("snp", rownames(mtx), ignore.case=T, invert=T), ]
