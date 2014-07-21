@@ -1,0 +1,11 @@
+*.Rproj
+.Rhistory
+.RData
+.Rproj.user
+*.html
+*.tex
+cache/*
+img/*
+*.gz
+*.log
+*.sty
