@@ -5,18 +5,22 @@ mtx.cor<-rcorr(as.matrix(mtx), type="spearman")
 # mtx.cor[[1]]<-cor(as.matrix(mtx), method="kendall")
 
 ## ----epigenomicVisualization, echo=c(-1:-6), fig.cap='Epigenomic similarity heatmap', fig.show='hold', fig.height=6.5----
-par(oma=c(5,0,0,5), mar=c(10, 4.1, 4.1, 5)) # Adjust margins
+dev.off()
+pdf(paste(rname, "mtx_clustered.pdf", sep=""))
+par(oma=c(9,0,0,9), mar=c(12, 4.1, 4.1, 7)) # Adjust margins
 color<-colorRampPalette(c("blue","yellow")) # Define color gradient
 # Adjust clustering parameters.
 # Distance: "euclidean", "maximum","manhattan" or "minkowski". Do not use "canberra" or "binary"
 # Clustering: "ward", "single", "complete", "average", "mcquitty", "median" or "centroid"
 dist.method<-"euclidean"  
 hclust.method<-"ward.D2"
-h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", col=color,distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=0.7, cexCol=0.7)
+h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", col=color,distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=1, cexCol=1)
+write.table(h$carpet, paste(rname, "mtx_clustered.txt", sep="/"), sep="\t", col.names=NA)
+dev.off()
 
-# Exploratory: Cllustering combinaations. Use to find bvisually best combinations of dist and hclust methods
+# Exploratory: Clustering combinaations. Use to find visually best combinations of dist and hclust methods
 dist.methods<-c("euclidean",  "manhattan", "minkowski", "maximum") # "binary", "canberra",
-hclust.methods<-"ward" # c("ward", "single", "complete", "average", "mcquitty", "median", "centroid")
+hclust.methods<-"ward.D2" # c("ward", "single", "complete", "average", "mcquitty", "median", "centroid")
 dev.off() # Clear graphic window
 unlink(paste(rname, "cluster_combinations.pdf", sep=""))
 pdf(paste(rname, "cluster_combinations.pdf", sep=""))
@@ -24,15 +28,15 @@ pdf(paste(rname, "cluster_combinations.pdf", sep=""))
 for (d in dist.methods) {
   for (h in hclust.methods){
     # Correlations
-    h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=d)}, hclustfun=function(x){hclust(x, method=h)}, cexRow=0.5, cexCol=0.5, main=paste("Dist : ",d,"; Hclust : ",h))
+    h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=d)}, hclustfun=function(x){hclust(x, method=h)}, cexRow=1, cexCol=1, main=paste("Dist : ",d,"; Hclust : ",h))
   }
 }
 dev.off()
 
 ## ----defineClusters, echo=c(-1:-3), results='markup', fig=TRUE-----------
-par(oma=c(1, 0, 0, 0), mar=c(20, 4.1, 4.1,2.1), cex=0.5)
+par(oma=c(1, 0, 0, 0), mar=c(12, 4.1, 4.1,2.1), cex=1)
 # Plot the dendrogram only, limit y axis. attr(h$colDendrogram, "height") has the maximum height of the dendrogram.
-plot(h$colDendrogram, ylim=c(0, 15)) 
+plot(h$colDendrogram) #, ylim=c(0, 15)) 
 # Cut the dentrogram into separate clusters. Tweak the height
 abline(h=4) # Visually evaluate the height where to cut
 c<-cut(h$colDendrogram, h=4) 
