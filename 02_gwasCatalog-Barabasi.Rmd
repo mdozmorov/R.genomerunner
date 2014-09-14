@@ -4,6 +4,15 @@ author: "Mikhail Dozmorov"
 date: "August 5, 2014"
 output: html_document
 ---
+```{r setup}
+# Set up the environment
+library(knitr) 
+opts_chunk$set(cache.path='cache/', fig.path='img/', cache=T, tidy=T, fig.keep='high', echo=T, dpi=300, out.width=700)
+options(replace.assign=TRUE, width=120)
+set.seed(1)
+```
+
+
 ```{r, echo=FALSE}
 source("utils.R")
 suppressMessages(library(Hmisc)) # For rcorr function
