@@ -82,6 +82,7 @@ my.breaks <- seq(min(mtx.cor[[1]][mtx.cor[[1]]!=min(mtx.cor[[1]])]),
                  max(mtx.cor[[1]][mtx.cor[[1]]!=max(mtx.cor[[1]])]),
                  length.out=(2*granularity + 1))
 h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=0.7, cexCol=0.7, breaks=my.breaks)
+write.table(melt(mtx.cor[[1]][h$rowInd, h$colInd]), "results/tumorportal.cor.txt", sep="\t", quote=F, row.names=F, col.names=F)
 ```
 
 The top 10 pairs of tumor-associated SNPs are most similar with each other.
@@ -145,19 +146,21 @@ for (i in 1:length(c$lower)) { # Go through each cluster
 ```
 
 ```{r limmaOnClusters, echo=FALSE, warning=FALSE}
+mtx.ordered <- mtx[grep("Tfbs", rownames(mtx)), h$colInd] # Use the enrichment matrix ordered by clustering order
 for (i in 1:length(c$lower)) { # Cycle through each cluster combinations
   for (j in 1:length(c$lower)) {
     if (i < j) { # Avoid testing the same pairs, e.g., do not repeat 1vs2 2vs1 tests
       # Collect a list of p-values for differences in -log10 p-values distributions between the groups (differences p-values)
-      d <- apply(mtx, 1, function(x) {t.test(x[eset.groups == i], x[eset.groups == j])$p.value})
+      d <- apply(mtx.ordered, 1, function(x) {t.test(x[eset.groups == i], x[eset.groups == j])$p.value})
     }
   }
 }
 
-degs <- d[d < 0.05] # Keep only significant differences
+d <- p.adjust(d, method="fdr") # Adjust for multiple testing
+degs <- d[d < 0.1] # Keep only significant differences
 degs <-as.matrix(degs[order(degs)]) # Order them by significance
 # Get average -log10 p-values in each group for the regulatory elements differentially associated with each group (association p-values)
-degs.pvals.log <- cbind(rowMeans(mtx[rownames(degs), eset.groups == 1]), rowMeans(mtx[rownames(degs), eset.groups == 2]))
+degs.pvals.log <- cbind(rowMeans(mtx.ordered[rownames(degs), eset.groups == 1]), rowMeans(mtx.ordered[rownames(degs), eset.groups == 2]))
 # Convert them into regular scale, and add a "-" sign for depleted associations
 degs.pvals <- matrix(0, nrow = nrow(degs.pvals.log), ncol=ncol(degs.pvals.log))
 for (i in 1:nrow(degs.pvals.log)) {
@@ -168,11 +171,11 @@ for (i in 1:nrow(degs.pvals.log)) {
 }
 
 degs <- cbind(degs, degs.pvals) # Bind the differences p-values with the converted averaged association p-values
-degs <- degs[order(degs.pvals.log[, 1] - degs.pvals.log[, 2], decreasing=T), ] # Order them by the ratio of the differences
+#degs <- degs[order(degs.pvals.log[, 1] - degs.pvals.log[, 2], decreasing=T), ] # Order them by the ratio of the differences
 degs <- degs[abs(degs[, 2]) < 0.05 | abs(degs[, 3]) < 0.05, ] # Keep rows that have at least one significant association p-value
-degs.table <- merge(degs, trackDb.hg19, by="row.names") # Merge with the descriptions
+degs.table <- merge(degs, trackDb.hg19, by="row.names", sort=FALSE) # Merge with the descriptions
 colnames(degs.table) <- c("Table name", "p-value", "Enrichment 1", "Enrichment 2", "Description")
-pander(degs.table[, c(5, 3, 4, 2)])
+pander(degs.table[1:20, c(5, 3, 4, 2)])
 ```
 
 **Text mining question 2:** Are the names of the transcription factors, TIM28, GATA3 and TCF12, associated stronger with the tumors in the first cluster based on the literature strength? Are they associated (statistically significantly) weaker with the second cluster? Are the transcription factors themselves related based on the literature? *Expected answer:* Yes, the literature associations should confirm the relationships.
