@@ -11,7 +11,7 @@ suppressMessages(library(gplots))
 suppressMessages(library(Biobase))
 suppressMessages(library(limma))
 library(reshape)
-library(qvalue)
+#library(qvalue)
 # Set up the environment
 library(knitr) 
 opts_chunk$set(cache.path='cache/', fig.path='img/', cache=F, tidy=T, fig.keep='high', echo=T, dpi=300, out.width=700)
@@ -23,7 +23,7 @@ set.seed(1)
 
 ```{r loadData, echo=FALSE}
 # One or more GenomeRunner Web results data folders.
-dname <- "data//tumorportal_vs_ENCODE/"
+dname <- "data//tumorportal_vs_ENCODE3/"
 mtx<-do.call("rbind", lapply(dname, function(fn) as.matrix(read.table(paste(fn, "matrix.txt", sep=""), sep="\t", header=T, row.names=1))))
 # Optional: filter unused genomic features
 # mtx<-mtx[grep("snp", rownames(mtx), ignore.case=T, invert=T), ]
@@ -125,9 +125,9 @@ for (i in 1:length(c$lower)){
 
 **Text mining question 1:** Are the tumors within a cluster share stronger literature similarity than the tumors between the clusters? To answer, we need literature similarity scores for each pair, then split the pairs into cluster-specific groups and compare score distributions with what can be expected by chance, calculating the p-values for it. *Expected answer:* Tumors within each cluster are related to each other by literature findings stronger than could be expected by chance. Tumors between the clusters are not related to each other by literature findings, and this also may be statistically significant.
 
-Analysis of regulatory elements differentially associated with the tumor-associated SNPs in the two groups identified a set of transcription factors.
+Analysis of regulatory elements differentially associated with the tumor-associated SNPs in the two groups identified a set of repressive histone modification marks (H3K27me3 and H3K9me3) and EZH2 binding sites as differentially associated with the two groups.
 
-The "Enrichment 1/2" columns show the average p-values of the group-specific SNPs-regulatory associations. A "-" sign indicates that an association is underrepresented. E.g., the TRIM28 binding sites are significantly enriched in the tumor-associated SNPs from the first group, and are non-significantly depleted in the SNPs from the second group.
+The "Enrichment 1/2" columns show the average p-values of the group-specific SNPs-regulatory associations. A "-" sign indicates that an association is underrepresented. E.g., the H3K27me3 binding sites are significantly enriched in the tumor-associated SNPs from the first group, and are significantly depleted in the SNPs from the second group.
 
 The "p-value" column shows whether the difference in the associations bwtween the groups is statistically significantly different.
 
@@ -145,13 +145,14 @@ for (i in 1:length(c$lower)) { # Go through each cluster
 }
 ```
 
-```{r limmaOnClusters, echo=FALSE, warning=FALSE}
-mtx.ordered <- mtx[grep("Tfbs", rownames(mtx)), h$colInd] # Use the enrichment matrix ordered by clustering order
+```{r limmaOnClusters, echo=23, warning=FALSE}
+#mtx.ordered <- mtx[grep("Tfbs", rownames(mtx)), eset.labels] # Use the enrichment matrix ordered by clustering order, limited to TFBSs only
+mtx.ordered <- mtx[, eset.labels] # Use the enrichment matrix ordered by clustering order
 for (i in 1:length(c$lower)) { # Cycle through each cluster combinations
   for (j in 1:length(c$lower)) {
     if (i < j) { # Avoid testing the same pairs, e.g., do not repeat 1vs2 2vs1 tests
       # Collect a list of p-values for differences in -log10 p-values distributions between the groups (differences p-values)
-      d <- apply(mtx.ordered, 1, function(x) {t.test(x[eset.groups == i], x[eset.groups == j])$p.value})
+      d <- apply(mtx.ordered, 1, function(x) {wilcox.test(x[eset.groups == i], x[eset.groups == j])$p.value})
     }
   }
 }
@@ -171,11 +172,30 @@ for (i in 1:nrow(degs.pvals.log)) {
 }
 
 degs <- cbind(degs, degs.pvals) # Bind the differences p-values with the converted averaged association p-values
-#degs <- degs[order(degs.pvals.log[, 1] - degs.pvals.log[, 2], decreasing=T), ] # Order them by the ratio of the differences
+degs <- degs[order(degs.pvals.log[, 1] - degs.pvals.log[, 2], decreasing=T), ] # Order them by the ratio of the differences
 degs <- degs[abs(degs[, 2]) < 0.05 | abs(degs[, 3]) < 0.05, ] # Keep rows that have at least one significant association p-value
-degs.table <- merge(degs, trackDb.hg19, by="row.names", sort=FALSE) # Merge with the descriptions
-colnames(degs.table) <- c("Table name", "p-value", "Enrichment 1", "Enrichment 2", "Description")
+degs.table <- merge(degs, trackDb.hg19, by="row.names", all.x=TRUE, sort=FALSE) # Merge with the descriptions
+colnames(degs.table) <- c("Table_name", "p_value", "Enrichment_1", "Enrichment_2", "Description")
+#degs.table <- degs.table[with(degs.table, order(p_value, Table_name)), ] # Order by p-value, then by table name
+rownames(degs.table) <- NULL # Get rid of row names
+nrow(degs.table) # How many regulatory datasets are differentially associated?
 pander(degs.table[1:20, c(5, 3, 4, 2)])
+write.table(degs.table[, c(1, 5, 3, 4, 2)], "results/tumorportal.degs.txt", sep="\t", quote=F, row.names=F)
+```
+
+```{r counts, echo=FALSE, eval=FALSE}
+# Investigate distribution of text labels
+degs.txt <- degs.table[degs.table$p_value == min(degs.table$p_value), "Description"] # Get descriptions of the most significant associations
+degs.txt <- gsub(" TFBS Uniform Peaks of ", " ", degs.txt) # Remove some extraneous text
+degs.txt <- gsub(" EtOH 0.02% ", " ", degs.txt)
+degs.txt <- gsub(" DEX 100 nM ", " ", degs.txt)
+degs.txt <- gsub(" Wb33676984 ", " ", degs.txt)
+degs.txt <- gsub(" Wb78495824 ", " ", degs.txt)
+degs.txt <- gsub(" C ", " ", degs.txt)
+degs.txt <- gsub("B cells CD20+ RO01778 ", "CD20+ ", degs.txt)
+degs.txt <- degs.txt[-75] # And an outlier
+table(sapply(degs.txt, function(x) as.character(strsplit(x, " ")[[1]][1]))) # How many cell lines we have
+table(sapply(degs.txt, function(x) as.character(strsplit(x, " ")[[1]][2]))) # How many TFBSs
 ```
 
 **Text mining question 2:** Are the names of the transcription factors, TIM28, GATA3 and TCF12, associated stronger with the tumors in the first cluster based on the literature strength? Are they associated (statistically significantly) weaker with the second cluster? Are the transcription factors themselves related based on the literature? *Expected answer:* Yes, the literature associations should confirm the relationships.
