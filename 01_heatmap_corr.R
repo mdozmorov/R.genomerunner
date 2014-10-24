@@ -1,10 +1,12 @@
 ## ----preprocessCorrel, echo=c(-4, -5), dependson='preprocessData'--------
 # rcorr returns a list, [[1]] - correl coeffs, [[3]] - p-values. Type - pearson/spearman
+library(Hmisc)
 mtx.cor<-rcorr(as.matrix(mtx), type="spearman")
 # Optionally, try kendall correlation
 # mtx.cor[[1]]<-cor(as.matrix(mtx), method="kendall")
 
 ## ----epigenomicVisualization, echo=c(-1:-6), fig.cap='Epigenomic similarity heatmap', fig.show='hold', fig.height=6.5----
+library(gplots)
 dev.off()
 pdf(paste(rname, "mtx_clustered.pdf", sep=""))
 par(oma=c(9,0,0,9), mar=c(12, 4.1, 4.1, 7)) # Adjust margins

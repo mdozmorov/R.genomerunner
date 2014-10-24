@@ -15,6 +15,9 @@ dname <- "data//gwasCatalog_vs_ENCODE_precalc/"
 dname <- "data//tumorportal_vs_ENCODE/"
 dname <- "data//ICGC_vs_tfbsEncode/"
 mtx<-do.call("rbind", lapply(dname, function(fn) as.matrix(read.table(paste(fn, "matrix.txt", sep=""), sep="\t", header=T, row.names=1))))
+# Exploratory: check quantiles and remove diseaases showing no enrichments
+mtx.sumstat <- as.data.frame(apply(mtx, 2, quantile)) # Get quantiles
+mtx <- mtx[ , apply(mtx.sumstat, 2, function(x) sum(abs(x)) != 5)] # REmove those that have all "1" or "-1"
 # Optional: filter unused genomic features
 # mtx<-mtx[grep("snp", rownames(mtx), ignore.case=T, invert=T), ]
 mtx<-mtx.transform(mtx) # -log10 transform p-values
