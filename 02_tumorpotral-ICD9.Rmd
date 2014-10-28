@@ -31,7 +31,9 @@ mtx<-mtx.transform(mtx) # -log10 transform p-values
 # Read in deciphering of tumor abbreviations
 tumorportal.names <- read.table("data/tumorportal.txt", sep="\t", row.names=1, header=F)
 colnames(mtx) <- tumorportal.names[colnames(mtx), ]
-# Optional: adjust columns for multiple testing, if not already done. See utils.R for the function definition.
+# Exploratory: check quantiles and remove diseaases showing no enrichments
+mtx.sumstat <- as.data.frame(apply(mtx, 2, quantile)) # Get quantiles
+mtx <- mtx[ , apply(mtx.sumstat, 2, function(x) sum(abs(x)) != 5)] # REmove those that have all "1" or "-1"# Optional: adjust columns for multiple testing, if not already done. See utils.R for the function definition.
 # mtx<-mtx.adjust(mtx) 
 trackDb.hg19 <- read.table("data//trackDb.hg19", sep="\t", row.names=1)
 ```
@@ -81,7 +83,8 @@ granularity = 10
 my.breaks <- seq(min(mtx.cor[[1]][mtx.cor[[1]]!=min(mtx.cor[[1]])]),
                  max(mtx.cor[[1]][mtx.cor[[1]]!=max(mtx.cor[[1]])]),
                  length.out=(2*granularity + 1))
-h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=0.7, cexCol=0.7, breaks=my.breaks)
+#h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=0.7, cexCol=0.7, breaks=my.breaks)
+h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", col=color, distfun=function(x){dist(1-cor(x))}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=0.7, cexCol=0.7, breaks=my.breaks)
 write.table(melt(mtx.cor[[1]][h$rowInd, h$colInd]), "results/tumorportal.cor.txt", sep="\t", quote=F, row.names=F, col.names=F)
 ```
 
@@ -198,7 +201,7 @@ table(sapply(degs.txt, function(x) as.character(strsplit(x, " ")[[1]][1]))) # Ho
 table(sapply(degs.txt, function(x) as.character(strsplit(x, " ")[[1]][2]))) # How many TFBSs
 ```
 
-**Text mining question 2:** Are the names of the transcription factors, TIM28, GATA3 and TCF12, associated stronger with the tumors in the first cluster based on the literature strength? Are they associated (statistically significantly) weaker with the second cluster? Are the transcription factors themselves related based on the literature? *Expected answer:* Yes, the literature associations should confirm the relationships.
+**Text mining question 2:** Are the H3K27me3, H3K9me3 and EZH2 terms associated stronger with the tumors in the first cluster based on the literature strength? Are they associated (statistically significantly) weaker with the second cluster? Are the transcription factors themselves related based on the literature? *Expected answer:* Yes, the literature associations should confirm the relationships.
 
 Regulatory- and co-morbidity similarities
 -------------------------------------------
@@ -268,20 +271,30 @@ colnames(tumorportal.cor.mtx) <- tumorportal.mapping$ICD.9.3.digits
 
 To evaluate correlation between the two methods of measurements, the matrixes are correlated with each other. A matrix of correlation coefficients, a total number of pairs used for correlation measurement, and a matrix of p-values are outputted.
 
+The ongoing debate is whether to remove or keep self-self associations.
+
 ```{r diseaseNetwork3, echo=FALSE}
 # Finally, check correlation between pairwise relationships
 # head(melt(tumorportal.cor.mtx)) # Check how melt look like
-# head(melt(tumorportal.ICD9.mtx)) 
+# head(melt(tumorportal.ICD9.mtx))
+# Manually merging two melted matrixes
+tumorportal.cor.melt <- melt(tumorportal.cor.mtx)
+rownames(tumorportal.cor.melt) <- paste(tumorportal.cor.melt$X1, tumorportal.cor.melt$X2, sep="-")
+tumorportal.ICD9.melt <- melt(tumorportal.ICD9.mtx)
+rownames(tumorportal.ICD9.melt) <- paste(tumorportal.ICD9.melt$X1, tumorportal.ICD9.melt$X2, sep="-")
+tumorportal.cor.ICD9 <- merge(tumorportal.cor.melt, tumorportal.ICD9.melt, by="row.names")
+tumorportal.cor.ICD9 <- tumorportal.cor.ICD9[, c(2, 3, 4, 7)]
+colnames(tumorportal.cor.ICD9) <- c("Disease1", "Disease2", "Episimilarity", "Comorbidity")
+tumorportal.cor.ICD9 <- tumorportal.cor.ICD9[ !(tumorportal.cor.ICD9$Disease1 == tumorportal.cor.ICD9$Disease2), ]
+# write.table(tumorportal.cor.ICD9, "results/tumorportal.ICD9.episim.occurr.txt", sep="\t", row.names=F)
 # Get correlations
-(rcorr(melt(tumorportal.cor.mtx)$value, melt(tumorportal.ICD9.mtx)$value, type="pearson"))
+(rcorr(tumorportal.cor.ICD9$Episimilarity, tumorportal.cor.ICD9$Comorbidity, type="pearson"))
 # V5 - Co-ocurrence between diseases 1 and 2, Pearson 0.53 (p=0), Spearman 0.28 (p=0)
 # V6 - Relative risk, Pearson 0.52 (p=0), Spearman 0.23 (p=0.0002)
 # V9 - Phi-correlation,  Pearson 0.54 (p=0), Spearman 0.24 (p=0)
 ```
 
-The regulatory and co-morbidity-based (Phi-correlations) disease-disease correlations correlate with each other at Pearson's correlation coefficient of 0.54 (p-value = 0). Using "relative risk" co-morbidity correlations produces similar results.
-
-**Text mining question 3:** If we take all 21 tumor types, map them to SNOMED IDs and get pair-wise correlations among the SNOMED IDs based on literature strength (or any other literature-based metrics) - what are the literature-based and regulatory correlations? *Expected answer:* We have already seen that it is correlated very well, even better than co-morbidities. We need to put it into a reproducible piece of code to share along with the publication.
+The regulatory and co-morbidity-based (Phi-correlations) disease-disease correlations correlate with each other at Pearson's correlation coefficient of 0.54 (when keeping self-correlations, p-value = 0). Using "relative risk" co-morbidity correlations produces similar results.
 
 ```{r diseaseNetwork4, echo=FALSE, eval=FALSE}
 # The diseases most different and similar when comparing regulatory similarity and comorbidities.
