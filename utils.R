@@ -1,6 +1,6 @@
 # Set up the environment
-library(dplyr)
 library(plyr)
+library(dplyr)
 library(reshape2)
 library(cluster)
 library(ggplot2)
