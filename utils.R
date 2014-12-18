@@ -10,10 +10,10 @@ library(Biobase)
 library(limma)
 # Work paths
 # trackDb <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/gf_descriptions_hg19.txt", sep="\t", header=F))
-# gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
+ gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 # Home paths
-trackDb <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/gf_descriptions_hg19.txt", sep="\t", header=F))
-gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
+#trackDb <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/gf_descriptions_hg19.txt", sep="\t", header=F))
+#gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 
 
 ## ----------------------------------------------------------------------------------
@@ -153,13 +153,19 @@ showTable <- function(fname, isLog10=TRUE, adjust="fdr", pval=0.05) {
 ##     location - where to put the legend (e.g., "topright", "bottomright")
 ##     bottom - bottom margin (e.g., 5 or 15)
 ##     names.args - names of bar groups
+##     pval - where to draw cutoff lines
 ## 
-barplot1<-function(mtx, location="topright", bottom=5, names.args){
+barplot1<-function(mtx, location="topright", bottom=5, names.args, pval=0.1){
   par(mar=c(bottom,5,2,2)+0.1)
   groupcolors<-rainbow(ncol(mtx)) #c("yellow2","steelblue3","steelblue3","springgreen)
-  b<-barplot(as.matrix(t(mtx)), beside=T,  ylab="-log10(p-value)\nnegative = underrepresentation", col=groupcolors,space=c(0.2,1), cex.names=0.7, las=2, names.arg=names.args) # ,legend.text=colnames(mtx),args.legend=list(x=7,y=4))
-  #lines(c(0,100),c(-log10(0.01),-log10(0.01)),type="l",lty="dashed",lwd=2)
-  #lines(c(0,100),c(log10(0.01),log10(0.01)),type="l",lty="dashed",lwd=2)
+  if (grepl("top", location)) {
+    txt <- "Overrepresented regulatory associations"
+  } else {
+    txt <- "Underrepresented regulatory associations"
+  }
+  b<-barplot(as.matrix(t(mtx)), beside=T,  ylab="-log10(p-value)\nnegative = underrepresentation", col=groupcolors,space=c(0.2,1), cex.names=0.7, las=2, names.arg=names.args, main=txt) # ,legend.text=colnames(mtx),args.legend=list(x=7,y=4))
+  lines(c(0,100),c(-log10(pval),-log10(pval)),type="l",lty="dashed",lwd=2)
+  lines(c(0,100),c(log10(pval),log10(pval)),type="l",lty="dashed",lwd=2)
   legend(location, legend=colnames(mtx), fill=groupcolors, cex=0.5)
  }
 
@@ -178,17 +184,18 @@ barplot1<-function(mtx, location="topright", bottom=5, names.args){
 ##     adjust - whether to correct p-values for multiple testing ("fdr" for GR, "none" for GR WEB)
 ##     pval - cutoff of calling an enrichment significant
 ##     numofsig - number of cells in each row/column with non-missing significant values
+##     toPlot - what to plot. "both" plots the heatmap and the barplot. Or, use "heat", "bar" 
 ##     fileName - save the reshaped wide matrix into a file
 ##
 ## Examples:
 ##     For the original GR:
-## showHeatmap("matrix.txt", colnum=1, factor="Histone", isLog10=TRUE, adjust="fdr", pval=0.1, numofsig=4, fileName=NULL)
+## showHeatmap("matrix.txt", colnum=1, factor="Histone", isLog10=TRUE, adjust="fdr", pval=0.1, numofsig=4, toPlot="both", fileName=NULL)
 ##     For the GR WEB:
-## showHeatmap("matrix.txt", colnum=1, factor="Tfbs", isLog10=FALSE, adjust="none", pval=0.1, numofsig=4, fileName=NULL) - will plot the heatmap and the barplot
-## showHeatmap("matrix.txt", colnum=c(1, 5), factor="none", isLog10=FALSE, adjust="none", pval=0.1, numofsig=1, fileName=NULL) - will plot the barplot only
+## showHeatmap("matrix.txt", colnum=1, factor="Tfbs", isLog10=FALSE, adjust="none", pval=0.1, numofsig=4, toPlot="heat", fileName=NULL) - will plot the heatmap and the barplot
+## showHeatmap("matrix.txt", colnum=c(1, 5), factor="none", isLog10=FALSE, adjust="none", pval=0.1, numofsig=1, toPlot="bar", fileName=NULL) - will plot the barplot only
 
 
-showHeatmap <- function(fname, colnum=1, factor="none", isLog10=TRUE, adjust="fdr", pval=0.1, numofsig=4, fileName=NULL) {
+showHeatmap <- function(fname, colnum=1, factor="none", isLog10=TRUE, adjust="fdr", pval=0.1, numofsig=1, toPlot="both", fileName=NULL) {
   mtx <- tbl_df(read.table(fname, sep="\t", fill=T, header=F, stringsAsFactors=F)) # No header and row.names
   cols <- mtx[1, ] # Keep header
   if (factor != "none") {
@@ -199,13 +206,19 @@ showHeatmap <- function(fname, colnum=1, factor="none", isLog10=TRUE, adjust="fd
    # Adjust for multiple testing and -log10 transform, if needed
   for (i in 1:length(colnum)) {
     mtx[, i + 1] <- mtx.adjust.1(as.numeric(unlist(mtx[, i + 1])), adjust=adjust, isLog10=isLog10)
-  i}
+  }
   # Join with annotations
   mtx <- left_join(mtx, gfAnnot[, c(1, 3, 5, 2)], by=c("V1" = "V1")) 
-  colnames(mtx) <- c("GF", make.names(cols[colnum]), "cell", "factor", "description") # Rename columns
+  # Assign columns
+  ifelse(isLog10, colnum <- colnum + 1,) # Shift colnum for the original GR
+  colnames(mtx) <- c("GF", make.names(cols[colnum]), "cell", "factor", "description") # Rename columns  
+  # Save the matrix, if needed
+  if (!is.null(fileName)) { 
+    write.table(mtx, fileName, sep="\t", col.names=NA)
+  }
   
   ## Creates Cell x Factor heatmap from a matrix of enrichments from a Histone/Tfbs matrix.
-  if (length(colnum) == 1 & factor != "none") { # If only 1 column selected, we can plot heatmap
+  if (length(colnum) == 1 & (toPlot == "both" | toPlot == "heat")) { # If only 1 column selected, we can plot heatmap
     # Make wide matrix
     mtx.cast <- dcast(mtx, formula=cell~factor, fun.aggregate=mean, value.var=make.names(cols[colnum]))
     rownames(mtx.cast) <- mtx.cast$cell # Reassign rownames
@@ -225,17 +238,13 @@ showHeatmap <- function(fname, colnum=1, factor="none", isLog10=TRUE, adjust="fd
       color<-colorRampPalette(c("blue", "yellow", "red")) # Define color gradient
       dist.method<-"euclidean"  
       hclust.method<-"ward.D2"
-      h<-heatmap.2(as.matrix(mtx.cast), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=1, cexCol=1)
-      if (!is.null(fileName)) {
-        write.table(mtx.cast[h$rowInd, h$colInd], fileName, sep="\t", col.names=NA)
-      }
+      ifelse( (-0.04*ncol(mtx.cast) + 1) < 0.25, notecex <- 0.25, notecex <- -0.04*ncol(mtx.cast) + 1) # Size of cell text
+      h<-heatmap.2(as.matrix(mtx.cast), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=1, cexCol=1, 
+                   cellnote=formatC(1/10^abs(as.matrix(mtx.cast)), format="e", digits=2), notecol="black", notecex=notecex)
     }    
   } 
   
-  if (TRUE) { # If more than 1 column, we can also plot barplots
-    if (!is.null(fileName)) { # Save the matrix, if needed
-      write.table(mtx, fileName, sep="\t", col.names=NA, row.names=F)
-    }
+  if (toPlot == "both" | toPlot == "bar") { # If more than 1 column, we can also plot barplots
     mtx <- as.data.frame(mtx) # Make data frame, to allow row names
     rownames(mtx) <- mtx$GF; mtx <- mtx[, -1] # Make row names
     mtx.sorted.up <- list(); mtx.sorted.dn <- list() # Storage for sorted matrixes 
@@ -259,9 +268,7 @@ showHeatmap <- function(fname, colnum=1, factor="none", isLog10=TRUE, adjust="fd
       bottom <- 5
     }
     # Plot barplots
-    barplot1(mtx.barplot.up[, seq(1:length(colnum)), drop=F], "topright", bottom=bottom, names.args=names.args.up)
-    print("---------------------------------------------------------------")
-    barplot1(mtx.barplot.dn[, seq(1:length(colnum)), drop=F], "bottomright", bottom=bottom, names.args=names.args.dn)
-    print("---------------------------------------------------------------")
+    barplot1(mtx.barplot.up[, seq(1:length(colnum)), drop=F], "topright", bottom=bottom, names.args=names.args.up, pval=pval)
+    barplot1(mtx.barplot.dn[, seq(1:length(colnum)), drop=F], "bottomright", bottom=bottom, names.args=names.args.dn, pval=pval)
   }
 }
