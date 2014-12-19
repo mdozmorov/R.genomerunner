@@ -10,10 +10,10 @@ library(Biobase)
 library(limma)
 # Work paths
 # trackDb <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/gf_descriptions_hg19.txt", sep="\t", header=F))
- gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
+# gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 # Home paths
 #trackDb <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/gf_descriptions_hg19.txt", sep="\t", header=F))
-#gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
+gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 
 
 ## ----------------------------------------------------------------------------------
@@ -163,12 +163,48 @@ barplot1<-function(mtx, location="topright", bottom=5, names.args, pval=0.1){
   } else {
     txt <- "Underrepresented regulatory associations"
   }
+  mtx[mtx == Inf] <- 308 # Replace infinite values to a finite number
   b<-barplot(as.matrix(t(mtx)), beside=T,  ylab="-log10(p-value)\nnegative = underrepresentation", col=groupcolors,space=c(0.2,1), cex.names=0.7, las=2, names.arg=names.args, main=txt) # ,legend.text=colnames(mtx),args.legend=list(x=7,y=4))
   lines(c(0,100),c(-log10(pval),-log10(pval)),type="l",lty="dashed",lwd=2)
   lines(c(0,100),c(log10(pval),log10(pval)),type="l",lty="dashed",lwd=2)
   legend(location, legend=colnames(mtx), fill=groupcolors, cex=0.5)
  }
 
+## ----------------------------------------------------------------------------------
+## Trim the rows/columns of the enrichment matrix until each row/column has at least
+## numofsig number of cells above pval threshold
+##
+mtx.trim.numofsig <- function(mtx.cast, pval=0.1, numofsig=1) {
+dims.new <- dim(mtx.cast[apply(mtx.cast, 1, function(x) sum(abs(x) > -log10(pval), na.rm=T)) >= numofsig, apply(mtx.cast, 2, function(x) sum(abs(x) > -log10(pval), na.rm=T))>=numofsig])
+repeat {
+    # Trim the matrix
+    mtx.cast<-mtx.cast[apply(mtx.cast, 1, function(x) sum(abs(x) > -log10(pval), na.rm=T)) >= numofsig, apply(mtx.cast, 2, function(x) sum(abs(x) > -log10(pval), na.rm=T)) >= numofsig] 
+    dims.old <- dim(mtx.cast)
+    dims.new <- dim(mtx.cast[apply(mtx.cast, 1, function(x) sum(abs(x) > -log10(pval), na.rm=T)) >= numofsig, apply(mtx.cast, 2, function(x) sum(abs(x) > -log10(pval), na.rm=T))>=numofsig])
+    if (all(dims.new == dims.old)) {
+      return(mtx.cast)
+      break
+    }
+  }
+}
+
+## ----------------------------------------------------------------------------------
+## Trim the rows/columns of the enrichment matrix until each row/column has less NAs than
+## the numofnas number
+##
+mtx.trim.numofnas <- function(mtx.cast, numofnas=1) {
+  dims.new <- dim(mtx.cast[apply(mtx.cast, 1, function(x) sum(is.na(x))) <= numofnas, apply(mtx.cast, 2, function(x) sum(is.na(x))) <= numofnas])
+  repeat {
+    # Trim the matrix
+    mtx.cast<-mtx.cast[apply(mtx.cast, 1, function(x) sum(is.na(x))) <= numofnas, apply(mtx.cast, 2, function(x) sum(is.na(x))) <= numofnas]
+    dims.old <- dim(mtx.cast)
+    dims.new <- dim(mtx.cast[apply(mtx.cast, 1, function(x) sum(is.na(x))) <= numofnas, apply(mtx.cast, 2, function(x) sum(is.na(x))) <= numofnas])
+    if (all(dims.new == dims.old)) {
+      return(mtx.cast)
+      break
+    }
+  }
+}
 
 ## ----------------------------------------------------------------------------------
 ## Creates Cell x Factor heatmap from a Histone/TFBS one-column matrix of enrichments.
@@ -183,19 +219,19 @@ barplot1<-function(mtx, location="topright", bottom=5, names.args, pval=0.1){
 ##     isLog10 - whether a matrix is log10-transformed (TRUE for GR, FALSE for GR WEB)
 ##     adjust - whether to correct p-values for multiple testing ("fdr" for GR, "none" for GR WEB)
 ##     pval - cutoff of calling an enrichment significant
-##     numofsig - number of cells in each row/column with non-missing significant values
+##     numtofilt - number of cells in each row/column to filter
 ##     toPlot - what to plot. "both" plots the heatmap and the barplot. Or, use "heat", "bar" 
 ##     fileName - save the reshaped wide matrix into a file
 ##
 ## Examples:
 ##     For the original GR:
-## showHeatmap("matrix.txt", colnum=1, factor="Histone", isLog10=TRUE, adjust="fdr", pval=0.1, numofsig=4, toPlot="both", fileName=NULL)
+## showHeatmap("matrix.txt", colnum=1, factor="Histone", isLog10=TRUE, adjust="fdr", pval=0.1, numtofilt=4, toPlot="both", fileName=NULL)
 ##     For the GR WEB:
-## showHeatmap("matrix.txt", colnum=1, factor="Tfbs", isLog10=FALSE, adjust="none", pval=0.1, numofsig=4, toPlot="heat", fileName=NULL) - will plot the heatmap and the barplot
-## showHeatmap("matrix.txt", colnum=c(1, 5), factor="none", isLog10=FALSE, adjust="none", pval=0.1, numofsig=1, toPlot="bar", fileName=NULL) - will plot the barplot only
+## showHeatmap("matrix.txt", colnum=1, factor="Tfbs", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=4, toPlot="heat", fileName=NULL) - will plot the heatmap and the barplot
+## showHeatmap("matrix.txt", colnum=c(1, 5), factor="none", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=1, toPlot="bar", fileName=NULL) - will plot the barplot only
 
 
-showHeatmap <- function(fname, colnum=1, factor="none", isLog10=TRUE, adjust="fdr", pval=0.1, numofsig=1, toPlot="both", fileName=NULL) {
+showHeatmap <- function(fname, colnum=1, factor="none", isLog10=TRUE, adjust="fdr", pval=0.1, numtofilt=1, toPlot="both", fileName=NULL) {
   mtx <- tbl_df(read.table(fname, sep="\t", fill=T, header=F, stringsAsFactors=F)) # No header and row.names
   cols <- mtx[1, ] # Keep header
   if (factor != "none") {
@@ -223,12 +259,8 @@ showHeatmap <- function(fname, colnum=1, factor="none", isLog10=TRUE, adjust="fd
     mtx.cast <- dcast(mtx, formula=cell~factor, fun.aggregate=mean, value.var=make.names(cols[colnum]))
     rownames(mtx.cast) <- mtx.cast$cell # Reassign rownames
     mtx.cast <- mtx.cast[, -1] # Remove no longer needed first column
-    # Filter it
-    dim(mtx.cast) # Check original dimensions
-    # What remains if we remove rows/cols with nothing significant
-    dim(mtx.cast[apply(mtx.cast, 1, function(x) sum(abs(x) > -log10(pval), na.rm=T)) >= numofsig, apply(mtx.cast, 2, function(x) sum(abs(x) > -log10(pval), na.rm=T))>=numofsig])
-    # Trim the matrix
-    mtx.cast<-mtx.cast[apply(mtx.cast, 1, function(x) sum(abs(x) > -log10(pval), na.rm=T)) >= numofsig, apply(mtx.cast, 2, function(x) sum(abs(x) > -log10(pval), na.rm=T)) >= numofsig] 
+    mtx.cast <- mtx.trim.numofsig(mtx.cast, pval=pval, numofsig=numtofilt) # Filter by counting number of significant cells
+    # mtx.cast <- mtx.trim.numofnas(mtx.cast, numofnas=numtofilt) # Not working currently
     if (nrow(mtx.cast) == 0 | ncol(mtx.cast) == 0) { 
       print("Nothing significant, cannot plot heatmap")
       return()
