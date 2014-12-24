@@ -215,25 +215,32 @@ mtx.trim.numofnas <- function(mtx.cast, numofnas=1) {
 ##     colnum - which column(s) to use, in case of multi-column matrix. If a single column
 ## selected, and the factor is set, a heatmap of Cell x Factor enrichments is plotted
 ##     factor - subset matrix by "Histone"/"Tfbs" enrichments, or "none". If "none", 
-## barplot is labeled with table names, otherwise, by "cell.factor" labels
+## barplot is labeled with table names, otherwise, by "cell.factor" labels. Multiple factors are 'AND'
+## allowed, e.g., using c("Histone", "Gm12878") will select histone AND Gm12878 datasets
+##     cell - subset matrix by cell type(s). Multiple terms are OR allowed, e.g., using 
+## c("Gm12878", "K562") will select Gm12878 OR K562 datasets
 ##     isLog10 - whether a matrix is log10-transformed (TRUE for GR, FALSE for GR WEB)
 ##     adjust - whether to correct p-values for multiple testing ("fdr" for GR, "none" for GR WEB)
 ##     pval - cutoff of calling an enrichment significant
-##     numtofilt - number of cells in each row/column to filter
-##     toPlot - what to plot. "both" plots the heatmap and the barplot. Or, use "heat", "bar", or "barup"/"bardn" to plot only over/underrepresented barplots
+##     numtofilt - number of cells in each row/column to filter. Valid for 'heat' plot only
+##     toPlot - to plot "heat", "bar", or "barup"/"bardn", or "lines". "heat" is relevant for 1-column
+## Histone/Tfbs-specific matrix. "bar" can be used on multiple columns, matrix can be filtered. 
+## "lines" used to compare profiles of p-values across multiple columns, matrix can be filtered.
 ##     fileName - save the reshaped wide matrix into a file
 ##
 ## Examples:
 ##     For the original GR:
-## showHeatmap("matrix.txt", colnum=1, factor="Histone", isLog10=TRUE, adjust="fdr", pval=0.1, numtofilt=4, toPlot="both", fileName=NULL)
+## showHeatmap("matrix.txt", colnum=1, factor="Histone", cell="none", isLog10=TRUE, adjust="fdr", pval=0.1, numtofilt=4, toPlot="heat", fileName=NULL)
 ##     For the GR WEB:
-## showHeatmap("matrix.txt", colnum=1, factor="Tfbs", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=4, toPlot="heat", fileName=NULL) - will plot the heatmap and the barplot
-## showHeatmap("matrix.txt", colnum=c(1, 5), factor="none", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=1, toPlot="bar", fileName=NULL) - will plot the barplot only
-## colnum=1; factor="none"; isLog10=TRUE; adjust="fdr"; pval=0.1; numtofilt=1; toPlot="both"; fileName=NULL
+## showHeatmap("matrix.txt", colnum=1, factor="Tfbs", cell="none", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=4, toPlot="heat", fileName=NULL) - will plot the heatmap and the barplot
+## showHeatmap("matrix.txt", colnum=c(1, 5), factor="none", cell="none", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=1, toPlot="bar", fileName=NULL) - will plot the barplot only
+##
+## colnum=1; factor="none"; cell="none"; isLog10=TRUE; adjust="fdr"; pval=0.1; numtofilt=1; toPlot="heat"; fileName=NULL
 
-showHeatmap <- function(fname, colnum=1, factor="none", isLog10=TRUE, adjust="fdr", pval=0.1, numtofilt=1, toPlot="both", fileName=NULL) {
+showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRUE, adjust="fdr", pval=0.1, numtofilt=1, toPlot="bar", fileName=NULL) {
   mtx <- tbl_df(read.table(fname, sep="\t", fill=T, header=F, stringsAsFactors=F)) # No header and row.names
   cols <- mtx[1, ] # Keep header
+  # Subsettinb by factor
   if (factor != "none") {
     mtx <- mtx[grep(factor[1], mtx$V1), c(1, colnum + 1)] # Subset by factor and column 
     if (length(factor) > 1) {
@@ -243,6 +250,10 @@ showHeatmap <- function(fname, colnum=1, factor="none", isLog10=TRUE, adjust="fd
     }
   } else {
     mtx <- mtx[-1, c(1, colnum + 1)] # Do not subset
+  }
+  # Subsetting by cell
+  if (cell != "none") {
+    mtx <- mtx[grepl(paste(cell, collapse="|"), mtx$V1), ]
   }
    # Adjust for multiple testing and -log10 transform, if needed
   for (i in 1:length(colnum)) {
@@ -259,7 +270,7 @@ showHeatmap <- function(fname, colnum=1, factor="none", isLog10=TRUE, adjust="fd
   }
   
   ## Creates Cell x Factor heatmap from a matrix of enrichments from a Histone/Tfbs matrix.
-  if (length(colnum) == 1 & (toPlot == "both" | toPlot == "heat")) { # If only 1 column selected, we can plot heatmap
+  if (length(colnum) == 1 & (toPlot == "heat")) { # If only 1 column selected, we can plot heatmap
     # Make wide matrix
     mtx.cast <- dcast(mtx, formula=cell~factor, fun.aggregate=mean, value.var=make.names(cols[colnum]))
     rownames(mtx.cast) <- mtx.cast$cell # Reassign rownames
@@ -281,7 +292,8 @@ showHeatmap <- function(fname, colnum=1, factor="none", isLog10=TRUE, adjust="fd
     }    
   } 
   
-  if (toPlot == "both" | grepl("bar", toPlot)) { # If more than 1 column, we can also plot barplots
+  ## Plot barplot representation of the enrichments
+  if (grepl("bar", toPlot)) { # If more than 1 column, we can also plot barplots
     mtx <- as.data.frame(mtx) # Make data frame, to allow row names
     rownames(mtx) <- mtx$GF; mtx <- mtx[, -1] # Make row names
     mtx.sorted.up <- list(); mtx.sorted.dn <- list() # Storage for sorted matrixes 
@@ -300,12 +312,21 @@ showHeatmap <- function(fname, colnum=1, factor="none", isLog10=TRUE, adjust="fd
       names.args.dn <- make.names(unlist(lapply(mtx.sorted.dn, rownames)), unique=T)
       bottom <- 15
     } else {
-      names.args.up <- paste(mtx.barplot.up$cell, mtx.barplot.up$factor, sep=".")
-      names.args.dn <- paste(mtx.barplot.dn$cell, mtx.barplot.dn$factor, sep=".")
+      names.args.up <- paste(mtx.barplot.up$cell, mtx.barplot.up$factor, sep=":")
+      names.args.dn <- paste(mtx.barplot.dn$cell, mtx.barplot.dn$factor, sep=":")
       bottom <- 6
     }
     # Plot barplots
     if (!grepl("dn", toPlot)) { barplot1(mtx.barplot.up[, seq(1:length(colnum)), drop=F], "topright", bottom=bottom, names.args=names.args.up, pval=pval) }
     if (!grepl("up", toPlot)) { barplot1(mtx.barplot.dn[, seq(1:length(colnum)), drop=F], "bottomright", bottom=bottom, names.args=names.args.dn, pval=pval) }
+  }
+  
+  ## Plot lines
+  # http://kohske.wordpress.com/2010/12/27/faq-geom_line-doesnt-draw-lines/
+  if ((length(colnum) > 1) & (toPlot == "lines")) {
+    df <- mtx[, 1:(length(colnum) + 1)]
+    df$GF <- factor(df$GF)
+    df.melted <- melt(df, id.vars="GF")
+    ggplot(df.melted, aes(x=variable, y=value, colour=GF, group=GF)) + geom_line() + geom_point() + theme(legend.position="none")
   }
 }
