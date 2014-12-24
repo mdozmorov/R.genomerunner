@@ -10,10 +10,10 @@ library(Biobase)
 library(limma)
 # Work paths
 # trackDb <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/gf_descriptions_hg19.txt", sep="\t", header=F))
-# gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
+gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 # Home paths
 #trackDb <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/gf_descriptions_hg19.txt", sep="\t", header=F))
-gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
+#gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 
 
 ## ----------------------------------------------------------------------------------
@@ -220,7 +220,7 @@ mtx.trim.numofnas <- function(mtx.cast, numofnas=1) {
 ##     adjust - whether to correct p-values for multiple testing ("fdr" for GR, "none" for GR WEB)
 ##     pval - cutoff of calling an enrichment significant
 ##     numtofilt - number of cells in each row/column to filter
-##     toPlot - what to plot. "both" plots the heatmap and the barplot. Or, use "heat", "bar" 
+##     toPlot - what to plot. "both" plots the heatmap and the barplot. Or, use "heat", "bar", or "barup"/"bardn" to plot only over/underrepresented barplots
 ##     fileName - save the reshaped wide matrix into a file
 ##
 ## Examples:
@@ -229,13 +229,18 @@ mtx.trim.numofnas <- function(mtx.cast, numofnas=1) {
 ##     For the GR WEB:
 ## showHeatmap("matrix.txt", colnum=1, factor="Tfbs", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=4, toPlot="heat", fileName=NULL) - will plot the heatmap and the barplot
 ## showHeatmap("matrix.txt", colnum=c(1, 5), factor="none", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=1, toPlot="bar", fileName=NULL) - will plot the barplot only
-
+## colnum=1; factor="none"; isLog10=TRUE; adjust="fdr"; pval=0.1; numtofilt=1; toPlot="both"; fileName=NULL
 
 showHeatmap <- function(fname, colnum=1, factor="none", isLog10=TRUE, adjust="fdr", pval=0.1, numtofilt=1, toPlot="both", fileName=NULL) {
   mtx <- tbl_df(read.table(fname, sep="\t", fill=T, header=F, stringsAsFactors=F)) # No header and row.names
   cols <- mtx[1, ] # Keep header
   if (factor != "none") {
-    mtx <- mtx[grep(factor, mtx$V1), c(1, colnum + 1)] # Subset by factor and column
+    mtx <- mtx[grep(factor[1], mtx$V1), c(1, colnum + 1)] # Subset by factor and column 
+    if (length(factor) > 1) {
+      for (i in 2:length(factor)) {
+        mtx <- mtx[grep(factor[i], mtx$V1), ] # Subset by factor, keep columns
+      }  
+    }
   } else {
     mtx <- mtx[-1, c(1, colnum + 1)] # Do not subset
   }
@@ -246,7 +251,7 @@ showHeatmap <- function(fname, colnum=1, factor="none", isLog10=TRUE, adjust="fd
   # Join with annotations
   mtx <- left_join(mtx, gfAnnot[, c(1, 3, 5, 2)], by=c("V1" = "V1")) 
   # Assign columns
-  ifelse(isLog10, colnum <- colnum + 1,) # Shift colnum for the original GR
+  ifelse(isLog10, colnum <- colnum + 1, colnum <- colnum + 1) # Shift colnum for the original GR
   colnames(mtx) <- c("GF", make.names(cols[colnum]), "cell", "factor", "description") # Rename columns  
   # Save the matrix, if needed
   if (!is.null(fileName)) { 
@@ -276,7 +281,7 @@ showHeatmap <- function(fname, colnum=1, factor="none", isLog10=TRUE, adjust="fd
     }    
   } 
   
-  if (toPlot == "both" | toPlot == "bar") { # If more than 1 column, we can also plot barplots
+  if (toPlot == "both" | grepl("bar", toPlot)) { # If more than 1 column, we can also plot barplots
     mtx <- as.data.frame(mtx) # Make data frame, to allow row names
     rownames(mtx) <- mtx$GF; mtx <- mtx[, -1] # Make row names
     mtx.sorted.up <- list(); mtx.sorted.dn <- list() # Storage for sorted matrixes 
@@ -297,10 +302,10 @@ showHeatmap <- function(fname, colnum=1, factor="none", isLog10=TRUE, adjust="fd
     } else {
       names.args.up <- paste(mtx.barplot.up$cell, mtx.barplot.up$factor, sep=".")
       names.args.dn <- paste(mtx.barplot.dn$cell, mtx.barplot.dn$factor, sep=".")
-      bottom <- 5
+      bottom <- 6
     }
     # Plot barplots
-    barplot1(mtx.barplot.up[, seq(1:length(colnum)), drop=F], "topright", bottom=bottom, names.args=names.args.up, pval=pval)
-    barplot1(mtx.barplot.dn[, seq(1:length(colnum)), drop=F], "bottomright", bottom=bottom, names.args=names.args.dn, pval=pval)
+    if (!grepl("dn", toPlot)) { barplot1(mtx.barplot.up[, seq(1:length(colnum)), drop=F], "topright", bottom=bottom, names.args=names.args.up, pval=pval) }
+    if (!grepl("up", toPlot)) { barplot1(mtx.barplot.dn[, seq(1:length(colnum)), drop=F], "bottomright", bottom=bottom, names.args=names.args.dn, pval=pval) }
   }
 }
