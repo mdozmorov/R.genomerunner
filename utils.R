@@ -286,8 +286,9 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
       color<-colorRampPalette(c("blue", "yellow", "red")) # Define color gradient
       dist.method<-"euclidean"  
       hclust.method<-"ward.D2"
-      ifelse( (-0.04*ncol(mtx.cast) + 1) < 0.25, notecex <- 0.25, notecex <- -0.04*ncol(mtx.cast) + 1) # Size of cell text
-      h<-heatmap.2(as.matrix(mtx.cast), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=1, cexCol=1, 
+      notecex <- -0.05*ncol(mtx.cast) + 1 # Size of cell text
+      if (notecex < 0.3) { notecex <- 0.3 }
+      h<-heatmap.2(as.matrix(mtx.cast), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=0.8, cexCol=0.8, 
                    cellnote=formatC(1/10^abs(as.matrix(mtx.cast)), format="e", digits=2), notecol="black", notecex=notecex)
     }    
   } 
@@ -314,7 +315,7 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
     } else {
       names.args.up <- paste(mtx.barplot.up$cell, mtx.barplot.up$factor, sep=":")
       names.args.dn <- paste(mtx.barplot.dn$cell, mtx.barplot.dn$factor, sep=":")
-      bottom <- 6
+      bottom <- 7
     }
     # Plot barplots
     if (!grepl("dn", toPlot)) { barplot1(mtx.barplot.up[, seq(1:length(colnum)), drop=F], "topright", bottom=bottom, names.args=names.args.up, pval=pval) }
