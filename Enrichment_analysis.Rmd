@@ -1,0 +1,111 @@
+---
+title: "Overview of visualization functionality of GenomeRunner"
+author: "Mikhail Dozmorov"
+#date: "`r format(Sys.time(), '%d %B, %Y')`
+output: html_document
+---
+
+```{r setup, echo=FALSE, include=FALSE, cache=FALSE}
+# Set up the environment
+library(knitr) 
+opts_chunk$set(cache.path='cache/', fig.path='img/', cache=F, tidy=T, fig.keep='high', dpi=300,  echo=T, autodep=T, width=200, warning=FALSE, comment=NA)
+options(replace.assign=TRUE, width=500)
+tidy.opts=list(width.cutoff=200)
+suppressMessages(library(pander))
+panderOptions('table.split.table', Inf)
+set.seed(1)
+```
+
+To simplify visualization of various GenomeRunner results, a wrapper function has been created - *mtx.sig <- showHeatmap*. See the **utils.R** file for more details.
+
+The enrichment p-values can be corrected for multiple testing. 
+
+The *mtx.sig <- showHeatmap* function returns filtered and clustered matrixes of the -log10-transformed p-values. 
+
+```{r warning=FALSE, message=F}
+source("utils.R")
+dirs <- list.dirs("data/", full.names=T, recursive=F) # Paths the SNP sets analyses
+```
+
+Regulatory similarity visualization
+===
+Input: an N x M enrichment matrix, where N are the regulatory datasets, M are the sets of features of interest (FOIs, e.g., SNP sets), and each cell represent the corresponding enrichment p-value.
+
+Output: a heatmap of Pearson or Spearman correlation coefficients among the sets of FOIs (columns), and a numerical matrix of correlation coefficients used for the heatmap. The numerical matrix can be saved into a file.
+
+```{r fig.height=6, results='hide', eval=T}
+mtx.sig <- showHeatmap(paste(dirs[2], "matrix.txt", sep="/"), colnum=seq(1,50), factor="none", cell="none", isLog10=FALSE, adjust="none", pval=0.5, numtofilt=1, toPlot="corrSpearman")
+```
+
+Cell type-specific visualization
+===
+There are two particularly interesting categories of regulatory datasets provided by the ENCODE project:
+
+* **Histone** - 722 cell-type specific histone modification marks. Information about individual marks can be looked up on [Histome: the Histone Infobase](http://www.actrec.gov.in/histome/searchgoog.php).
+* **TFBSs** - 1952 cell-type specific transcription factor binding sites. Information about individual transcription factors can be looked up on [Factorbook](http://factorbook.org/mediawiki/index.php/Welcome_to_factorbook).
+
+Information about the cell lines used in the ENCODE project can be found at [the ENCODE cell types](http://genome.ucsc.edu/ENCODE/cellTypes.html) portal.
+
+Input: an enrichment matrix. Specify which column and which category to use for visualization. Tweak the number of missing values (NAs) allowed in rows/columns - the rows/columns having more NAs will be filtered out.
+
+Output: a heatmap of *cell x regulatory mark* enrichment results, and a numerical matrix of -log10-transformed p-valued used for the heatmap. The color key shows the range of the -log10-transformed p-values.
+
+The numerical matrix can be saved into a file. The -log10-transformed p-values can be converted to regular p-value scale in Excel using '=1/POWER(10, ABS(A1))*SIGN(A1)' formula. Note a "-" sign indicates significant depletion instead of enrichment.
+
+Instead of using all available cell lines, subsets of tissue-specific cell lines can be used. For example:
+
+* Brain cell lines: c("Sknsh", "Sknshra", "Nha", "Pfsk1", "Sknmc", "Be2c", "U87", "Hah", "Gliobla", "M059j", "Medullo", "Shsy5y", "Bcbrainh11058n", "Medullod341")
+* Lung cell lines: c("A549", "Imr90", "Hpae", "Hpaf", "Hpf", "Nhbe", "Nhbera", "Nhlf", "Saec", "Tbec", "Wi38")
+
+The ENCODE datasets are cell-type incomplete, that is, for one cell type the data about the distribution of all histone marks are available, but the other cell type may have only a few histone mark datasets. So, the matrixes of *cells x marks* will have many missing values. They have to be filtered to remove rows/columns containing too much missing values, otherwise, clustering and visualization algorithms break. The heatmaps of such filtered matrixes are shown.
+
+Enrichment of **the Crohn's disease**-associated SNPs in **histone marks** in different cell types
+---
+```{r fig.height=5, results='hide', eval=T}
+mtx.sig <- showHeatmap(paste(dirs[1], "matrix.txt", sep="/"), colnum=62, factor="Histone", cell="none", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=2, toPlot="heat")
+```
+
+Enrichment of **the Inflammatory bowel disease**-associated SNPs in **histone marks** in different cell types
+---
+```{r fig.height=5, results='hide', eval=T}
+mtx.sig <- showHeatmap(paste(dirs[1], "matrix.txt", sep="/"), colnum=102, factor="Histone", cell="none", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=4, toPlot="heat")
+```
+
+Enrichment of **the Inflammatory bowel disease**-associated SNPs in **transcription factor binding sites** in different cell types
+---
+```{r fig.height=5, results='hide', eval=T}
+mtx.sig <- showHeatmap(paste(dirs[1], "matrix.txt", sep="/"), colnum=102, factor="Tfbs", cell="none", isLog10=FALSE, adjust="none", pval=1, numtofilt=7, toPlot="heat")
+```
+
+Barplot of the enrichments of the Crohn's disease-associated SNPs in histone marks in Monocd14ro1746 cell line
+---
+Each bar represents the -log10-transformed enrichment p-value - the higher the bar the more significant the enrichment is.
+
+```{r fig.height=3, results='hide', eval=T}
+mtx.sig <- showHeatmap(paste(dirs[1], "matrix.txt", sep="/"), colnum=102, factor="Histone", cell="Monocd14ro1746", isLog10=FALSE, adjust="fdr", pval=0.1, numtofilt=7, toPlot="barup")
+```
+
+Comparing the enrichments of the Crohn's disease and the Inflammatory bowel disease-associated SNPs in histone marks in Gm12878 cell line
+---
+One, or several comparisons can be plotted. Note, if *two* conditions are plotted, the barplot is split in *two* parts - one part shows the most significant enrichments for the first condition, while the other showls the most significant enrichments for the second condition. 
+
+Both overrepresented and underrepsesented barplots can be plotted.
+
+```{r fig.height=3, results='hide', eval=T}
+mtx.sig <- showHeatmap(paste(dirs[1], "matrix.txt", sep="/"), colnum=c(62, 102), factor="Histone", cell="Gm12878", isLog10=FALSE, adjust="fdr", pval=0.1, numtofilt=7, toPlot="barup")
+```
+
+Observe enrichment p-values change in among different SNP sets for H3K4me1 and H3K4me2 histone marks, in Gm12878 cell line
+---
+
+```{r fig.height=3, eval=T}
+showHeatmap(paste(dirs[1], "matrix.txt", sep="/"), colnum=c(62, 102, 135, 195), factor="H3k4me1|H3k4me2", cell="Gm12878", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=1, toPlot="lines")
+```
+
+Investigate regulatory similarity among different SNP sets using enrichment in histone marks in Gm12878 cell line
+---
+Regualtory similarity analysis compares SNP set-specific regulatory enrichment profiles using Pearson or Spearman correlation coefficient.
+```{r fig.height=5, results='hide', eval=T}
+mtx.sig <- showHeatmap(paste(dirs[1], "matrix.txt", sep="/"), colnum=c(62, 102, 135, 195), factor="Histone", cell="Gm12878", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=1, toPlot="corrPearson")
+```
+
