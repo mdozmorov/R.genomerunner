@@ -164,10 +164,10 @@ barplot1<-function(mtx, location="topright", bottom=5, names.args, pval=0.1){
     txt <- "Underrepresented regulatory associations"
   }
   mtx[mtx == Inf] <- 308 # Replace infinite values to a finite number
-  b<-barplot(as.matrix(t(mtx)), beside=T,  ylab="-log10(p-value)\nnegative = underrepresentation", col=groupcolors,space=c(0.2,1), cex.names=0.7, las=2, names.arg=names.args, main=txt) # ,legend.text=colnames(mtx),args.legend=list(x=7,y=4))
+  b<-barplot(as.matrix(t(mtx)), beside=T,  ylab="-log10(p-value)\nnegative = underrepresentation", col=groupcolors,space=c(0.2,1), cex.names=0.6, las=2, names.arg=names.args, main=txt) # ,legend.text=colnames(mtx),args.legend=list(x=7,y=4))
   lines(c(0,100),c(-log10(pval),-log10(pval)),type="l",lty="dashed",lwd=2)
   lines(c(0,100),c(log10(pval),log10(pval)),type="l",lty="dashed",lwd=2)
-  legend(location, legend=colnames(mtx), fill=groupcolors, cex=0.5)
+  legend(location, legend=colnames(mtx), fill=groupcolors, cex=0.6)
  }
 
 ## ----------------------------------------------------------------------------------
@@ -278,9 +278,13 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
   
   ## Creates Cell x Factor heatmap from a matrix of enrichments from a Histone/Tfbs matrix.
   if (length(colnum) == 1 & (toPlot == "heat")) { # If only 1 column selected, we can plot heatmap
-    # Make wide matrix
-    mtx.cast <- dcast(mtx, formula=cell~factor, fun.aggregate=mean, value.var=make.names(cols[colnum]))
-    rownames(mtx.cast) <- mtx.cast$cell # Reassign rownames
+    # Make wide matrix. To properly handle duplicates, use https://stackoverflow.com/questions/12831524/can-dcast-be-used-without-an-aggregate-function
+    tmp1 <- ddply(mtx, .(cell, factor), transform, newid = paste(cell, seq_along(factor)))
+    out <- dcast(tmp1, cell + newid ~ factor, value.var=make.names(cols[colnum]))
+    out <- out[,-which(colnames(out) == "newid")]
+    mtx.cast <- out; rm(tmp1, out)
+    #mtx.cast <- dcast(mtx, formula=cell~factor, fun.aggregate=mean, value.var=make.names(cols[colnum]))
+    rownames(mtx.cast) <- make.names(mtx.cast$cell, unique=T) # Reassign rownames
     mtx.cast <- mtx.cast[, -1] # Remove no longer needed first column
     mtx.cast <- mtx.trim.numofsig(mtx.cast, pval=pval, numofsig=numtofilt) # Filter by counting number of significant cells
     # mtx.cast <- mtx.trim.numofnas(mtx.cast, numofnas=numtofilt) # Not working currently
@@ -294,7 +298,7 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
       dist.method<-"euclidean"  
       hclust.method<-"ward.D2"
       notecex <- -0.05*ncol(mtx.cast) + 1 # Size of cell text
-      if (notecex < 0.3) { notecex <- 0.3 }
+      if (notecex < 0.4) { notecex <- 0.4 }
       h<-heatmap.2(as.matrix(mtx.cast), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=0.8, cexCol=0.8, 
                    cellnote=formatC(1/10^abs(as.matrix(mtx.cast)), format="e", digits=2), notecol="black", notecex=notecex)
       return(h$carpet)
@@ -306,9 +310,9 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
     mtx.sorted.up <- list(); mtx.sorted.dn <- list() # Storage for sorted matrixes 
     for (i in 1:length(colnum)) {
       # For each column, reorder p-values and store top X most significantly enriched
-      mtx.sorted.up[[length(mtx.sorted.up) + 1]] <- mtx[order(mtx[, i], decreasing=T)[1:round(15/length(colnum))], ]
+      mtx.sorted.up[[length(mtx.sorted.up) + 1]] <- mtx[order(mtx[, i], decreasing=T)[1:round(20/length(colnum))], ]
       # And depleted
-      mtx.sorted.dn[[length(mtx.sorted.dn) + 1]] <- mtx[order(mtx[, i], decreasing=F)[1:round(15/length(colnum))], ]
+      mtx.sorted.dn[[length(mtx.sorted.dn) + 1]] <- mtx[order(mtx[, i], decreasing=F)[1:round(20/length(colnum))], ]
     }
     # Combine lists into matrixes
     mtx.barplot.up <- ldply(mtx.sorted.up, rbind)
@@ -321,7 +325,7 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
     } else {
       names.args.up <- paste(mtx.barplot.up$cell, mtx.barplot.up$factor, sep=":")
       names.args.dn <- paste(mtx.barplot.dn$cell, mtx.barplot.dn$factor, sep=":")
-      bottom <- 7
+      bottom <- 8
     }
     # Plot barplots
     if (!grepl("dn", toPlot)) { barplot1(mtx.barplot.up[, seq(1:length(colnum)), drop=F], "topright", bottom=bottom, names.args=names.args.up, pval=pval) }
