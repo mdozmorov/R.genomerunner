@@ -175,12 +175,15 @@ barplot1<-function(mtx, location="topright", bottom=5, names.args, pval=0.1){
 ## numofsig number of cells above pval threshold
 ##
 mtx.trim.numofsig <- function(mtx.cast, pval=0.1, numofsig=1) {
-dims.new <- dim(mtx.cast[apply(mtx.cast, 1, function(x) sum(abs(x) > -log10(pval), na.rm=T)) >= numofsig, apply(mtx.cast, 2, function(x) sum(abs(x) > -log10(pval), na.rm=T))>=numofsig])
+dims.new <- dim(mtx.cast[apply(mtx.cast, 1, function(x) sum(abs(x) > -log10(pval), na.rm=T)) >= numofsig, 
+                         apply(mtx.cast, 2, function(x) sum(abs(x) > -log10(pval), na.rm=T)) >= numofsig])
 repeat {
     # Trim the matrix
-    mtx.cast<-mtx.cast[apply(mtx.cast, 1, function(x) sum(abs(x) > -log10(pval), na.rm=T)) >= numofsig, apply(mtx.cast, 2, function(x) sum(abs(x) > -log10(pval), na.rm=T)) >= numofsig] 
+    mtx.cast<-mtx.cast[apply(mtx.cast, 1, function(x) sum(abs(x) > -log10(pval), na.rm=T)) >= numofsig, 
+                       apply(mtx.cast, 2, function(x) sum(abs(x) > -log10(pval), na.rm=T)) >= numofsig] 
     dims.old <- dim(mtx.cast)
-    dims.new <- dim(mtx.cast[apply(mtx.cast, 1, function(x) sum(abs(x) > -log10(pval), na.rm=T)) >= numofsig, apply(mtx.cast, 2, function(x) sum(abs(x) > -log10(pval), na.rm=T))>=numofsig])
+    dims.new <- dim(mtx.cast[apply(mtx.cast, 1, function(x) sum(abs(x) > -log10(pval), na.rm=T)) >= numofsig, 
+                             apply(mtx.cast, 2, function(x) sum(abs(x) > -log10(pval), na.rm=T)) >= numofsig])
     if (all(dims.new == dims.old)) {
       return(mtx.cast)
       break
@@ -223,24 +226,28 @@ mtx.trim.numofnas <- function(mtx.cast, numofnas=1) {
 ##     adjust - whether to correct p-values for multiple testing ("fdr" for GR, "none" for GR WEB)
 ##     pval - cutoff of calling an enrichment significant
 ##     numtofilt - number of cells in each row/column to filter. Valid for 'heat' plot only
-##     toPlot - to plot "heat", "bar", or "barup"/"bardn", or "lines". "heat" is relevant for 1-column
-## Histone/Tfbs-specific matrix. "bar" can be used on multiple columns, matrix can be filtered. 
-## "lines" used to compare profiles of p-values across multiple columns, matrix can be filtered.
+##     toPlot - What to plot. Can be "heat", "bar" or "barup"/"bardn", "lines", "corrPearson" or "corrSpearman". 
+## "heat" is relevant for 1-column Histone/Tfbs/BroadHmm-specific matrix. Returns clustered carpet
+## "bar" can be used on multiple columns, matrix can be filtered by factor/cell. Returns either up- or downregulated matrixes, or a list of both
+## "lines" used to compare profiles of p-values across multiple columns, matrix can be filtered. Returns nothing
+## "corrPearson"/"corrSpearman" - correlation heatmap. Works best on multi-column/row matrix. Returns clustered carpet
 ##     fileName - save the reshaped wide matrix into a file
 ##
 ## Examples:
 ##     For the original GR:
 ## showHeatmap("matrix.txt", colnum=1, factor="Histone", cell="none", isLog10=TRUE, adjust="fdr", pval=0.1, numtofilt=4, toPlot="heat", fileName=NULL)
 ##     For the GR WEB:
-## showHeatmap("matrix.txt", colnum=1, factor="Tfbs", cell="none", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=4, toPlot="heat", fileName=NULL) - will plot the heatmap and the barplot
-## showHeatmap("matrix.txt", colnum=c(1, 5), factor="none", cell="none", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=1, toPlot="bar", fileName=NULL) - will plot the barplot only
+## showHeatmap("matrix.txt", colnum=1, factor="Tfbs", cell="none", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=4, toPlot="heat", fileName=NULL)
+## showHeatmap("matrix.txt", colnum=c(1, 5), factor="none", cell="none", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=1, toPlot="bar", fileName=NULL)
+## showHeatmap("matrix.txt", colnum=c(5,6,7,8), factor=c("Tfbs"), cell="none", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=6, toPlot="lines")
+## showHeatmap("matrix.txt", colnum=seq(1,50), factor="none", cell="none", isLog10=FALSE, adjust="none", pval=0.5, numtofilt=1, toPlot="corrSpearman")
 ##
 ## colnum=1; factor="none"; cell="none"; isLog10=TRUE; adjust="fdr"; pval=0.1; numtofilt=1; toPlot="heat"; fileName=NULL
 
 showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRUE, adjust="fdr", pval=0.1, numtofilt=1, toPlot="bar", fileName=NULL) {
   mtx <- tbl_df(read.table(fname, sep="\t", fill=T, header=F, stringsAsFactors=F)) # No header and row.names
   cols <- mtx[1, ] # Keep header
-  # Subsettinb by factor
+  # Subsetting by factor
   if (factor != "none") {
     mtx <- mtx[grep(factor[1], mtx$V1), c(1, colnum + 1)] # Subset by factor and column 
     if (length(factor) > 1) {
@@ -262,7 +269,7 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
   # Join with annotations
   mtx <- left_join(mtx, gfAnnot[, c(1, 3, 5, 2)], by=c("V1" = "V1")) 
   # Assign columns
-  ifelse(isLog10, colnum <- colnum + 1, colnum <- colnum + 1) # Shift colnum for the original GR
+  ifelse(isLog10, colnum <- colnum + 1, colnum <- colnum) # Shift colnum for the original GR
   colnames(mtx) <- c("GF", make.names(cols[colnum]), "cell", "factor", "description") # Rename columns  
   # Save the matrix, if needed
   if (!is.null(fileName)) { 
@@ -290,11 +297,10 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
       if (notecex < 0.3) { notecex <- 0.3 }
       h<-heatmap.2(as.matrix(mtx.cast), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=0.8, cexCol=0.8, 
                    cellnote=formatC(1/10^abs(as.matrix(mtx.cast)), format="e", digits=2), notecol="black", notecex=notecex)
+      return(h$carpet)
     }    
-  } 
-  
-  ## Plot barplot representation of the enrichments
-  if (grepl("bar", toPlot)) { # If more than 1 column, we can also plot barplots
+  } else if (grepl("bar", toPlot)) { # If more than 1 column, we can also plot barplots
+    ## Plot barplot representation of the enrichments
     mtx <- as.data.frame(mtx) # Make data frame, to allow row names
     rownames(mtx) <- mtx$GF; mtx <- mtx[, -1] # Make row names
     mtx.sorted.up <- list(); mtx.sorted.dn <- list() # Storage for sorted matrixes 
@@ -320,14 +326,41 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
     # Plot barplots
     if (!grepl("dn", toPlot)) { barplot1(mtx.barplot.up[, seq(1:length(colnum)), drop=F], "topright", bottom=bottom, names.args=names.args.up, pval=pval) }
     if (!grepl("up", toPlot)) { barplot1(mtx.barplot.dn[, seq(1:length(colnum)), drop=F], "bottomright", bottom=bottom, names.args=names.args.dn, pval=pval) }
-  }
-  
-  ## Plot lines
-  # http://kohske.wordpress.com/2010/12/27/faq-geom_line-doesnt-draw-lines/
-  if ((length(colnum) > 1) & (toPlot == "lines")) {
+    if ((!grepl("up", toPlot)) & (!grepl("dn", toPlot))) {
+      return(list(up=mtx.barplot.up, dn=mtx.barplot.dn))
+    } else if (grepl("up", toPlot)) {
+      return(mtx.barplot.up)
+    } else {
+      return(mtx.barplot.dn)
+    }
+  } else if ((length(colnum) > 1) & (toPlot == "lines")) {
+    ## Plot lines. http://kohske.wordpress.com/2010/12/27/faq-geom_line-doesnt-draw-lines/
     df <- mtx[, 1:(length(colnum) + 1)]
     df$GF <- factor(df$GF)
     df.melted <- melt(df, id.vars="GF")
     ggplot(df.melted, aes(x=variable, y=value, colour=GF, group=GF)) + geom_line() + geom_point() + theme(legend.position="none")
-  }
+  } else if ((length(colnum) > 3) & (grepl("corr", toPlot))) {
+    ## Plot correlation heatmap from the original multi-column matrix
+    mtx <- as.data.frame(mtx) # Make data frame, to allow row names
+    rownames(mtx) <- mtx$GF; mtx <- mtx[, -1] # Make row names
+    mtx <- mtx.trim.numofsig(mtx[, 1:length(colnum) ], pval=pval, numofsig=numtofilt) # Filter by counting number of significant cells
+    if (grepl("Pearson", toPlot)) {
+      mtx.cor <- rcorr(as.matrix(mtx), type="pearson")
+    } else {
+      mtx.cor <- rcorr(as.matrix(mtx), type="spearman")
+    }
+    par(cex.main=0.65, oma=c(5,0,0,5), mar=c(5, 4.1, 4.1, 5)) # Adjust margins
+    color<-colorRampPalette(c("blue", "yellow")) # Define color gradient
+    dist.method<-"euclidean"  
+    hclust.method<-"ward.D2"
+    notecex <- -0.05*ncol(mtx.cor[[1]]) + 1 # Size of cell text
+    if (notecex < 0.4) { notecex <- 0.4 }
+    granularity <- 7
+    my.breaks <- seq(min(mtx.cor[[1]][mtx.cor[[1]]!=min(mtx.cor[[1]])]),
+                     max(mtx.cor[[1]][mtx.cor[[1]]!=max(mtx.cor[[1]])]),
+                     length.out=(2*granularity + 1))
+    h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", symkey=T, col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, 
+                 cexRow=0.8, cexCol=0.8, breaks=my.breaks, cellnote=formatC(as.matrix(mtx.cor[[1]]), format="f", digits=2), notecol="black", notecex=notecex)
+    return(h$carpet)
+    }
 }
