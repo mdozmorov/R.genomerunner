@@ -1,5 +1,5 @@
 ---
-title: "Exploratory analysis and explanation of GenomeRunner results"
+title: "Exploratory analysis and explanation of the GenomeRunner results"
 author: "Mikhail Dozmorov"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
@@ -19,11 +19,8 @@ Prerequisites
 ---
 * A matrix of the enrichment results. Rows are the names of regulatory datasets (aka Genomic Features, GFs), columns are the names of features of interest sets (FOIs), cells are the enrichment p-values.
 * R, [RStudio](http://www.rstudio.com/) recommended
-* Several R packages, shown below
-
-Example
----
-* Disease- and trait-specific sets of SNPs from GWAScatalog (FOIs) will be analyzed for the enrichment in 161 transcription factor binding sites (TFBSs, GFs) using GenomeRunner web server;
+* Several R packages, listed in the *utils.R* file
+* Results of the enrichmend analysis of disease- and trait-specific sets of SNPs from GWAScatalog (FOIs) in 161 transcription factor binding sites (TFBSs, GFs), using [GenomeRunner web](http://genomerunner.org) server;
 
 What will be done
 ---
@@ -61,7 +58,7 @@ mtx<-mtx.transform(mtx) # -log10 transform p-values, keeping the "-" sign
 # mtx<-mtx.adjust(mtx) 
 ```
 
-The matrix now contains the transformed p-values, negative in the case of depletion. Rows are the TFBSs names, columns are the names of disease- or trait-associated SNP sets. The matrix is filtered by removing the rows if a corresponding TFBS does not show enrichment in any of the SNP sets. If a SNP set shows no enrichments in any of the TFBS, the corresponding columns are removed as well. It is a good idea to check the final dimensions before actually trim the matrix.
+The matrix now contains the transformed p-values, negative in the case of depletion. Rows are the TFBS names, columns are the names of disease- or trait-associated SNP sets. The matrix is filtered by removing the rows if a corresponding TFBS does not show enrichment in any of the SNP sets. If a SNP set shows no enrichments in any of the TFBS, the corresponding columns are removed as well. It is a good idea to check the final dimensions before actually trim the matrix.
 
 ```{r}
 dim(mtx) # Check the original dimensions
@@ -107,11 +104,11 @@ my.breaks <- seq(min(mtx.cor[[1]][mtx.cor[[1]]!=min(mtx.cor[[1]])]),
 h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=0.7, cexCol=0.7, breaks=my.breaks, main="Regulatory similarity clustering")
 ```
 
-Most regulatory correlated sets of SNPs
+Most regulatory similar sets of SNPs
 ===
 Out of all regulatory similarity results, the natural question may be asked: ”What pair of sets of SNPs show the strongest regulatory similarity?”
 
-To ansver it, the correlation matrix is scanned to detect rows corresponding to minimum and maximum correlation coefficients. The perfect self-correlations should be ignored by setting the diagonal of the matrix containing such self-correlations to 0. The results are outputted in the `r print(fn_maxmin)` file.
+To ansver it, the correlation matrix is scanned to detect rows corresponding to minimum and maximum correlation coefficients. The perfect self-correlations should be ignored by setting the diagonal of the matrix containing such self-correlations to 0. The results are outputted in the `r paste(fn_maxmin)` file.
 
 ```{r maxMin1}
 # Checking max/min correlations
@@ -127,9 +124,9 @@ pander(head(mtx.maxMin, n=10))
 write.table(mtx.maxMin, fn_maxmin, sep="\t", quote=F,  row.names=F)
 ```
 
-Regulatory differences among the clusters
+Regulatory differences among the clusters (Differential enrichment analysis)
 ===
-The heatmap object contains information about the clustering. This information can be visualized as a dendrogram, cut into separate clusters defined by the cut height (user defined). The cluster ordering is outputted into the `r print(fn_clust)` file. 
+The heatmap object contains information about the clustering. This information can be visualized as a dendrogram, cut into separate clusters defined by the cut height (user defined). The cluster ordering is outputted into the `r paste(fn_clust)` file. 
 
 ```{r defineClusters1, echo=FALSE}
 par(oma=c(0, 0, 0, 0), mar=c(5.1, 4.1, 4.1,25.1), cex=0.5)
@@ -151,9 +148,9 @@ for (i in 1:length(c$lower)) {
 }
 ```
 
-The p-values are -log10-transformed. The distributions of these transformed p-values can be tested for statistically significant differences among the clusters using the Bioconductor *limma* package.
+The p-values are -log10-transformed. The distributions of these transformed p-values can be tested for the statistically significant differences among the clusters using the Bioconductor *limma* package.
 
-First, the cluster groups and labels are defined. If the number of FOI sets in each cluster is less than the minimum number (user defined), such cluster is not considered for differential enrichment.
+First, the cluster groups and labels are defined. If the number of SNP sets in each cluster is less than the minimum number (user defined), such cluster is not considered for the differential enrichment analysis.
 
 ```{r defineGroups1, echo=FALSE}
 eset.labels <- character() # Empty vector to hold cluster labels
@@ -169,7 +166,7 @@ for (i in 1:length(c$lower)) { # Go through each cluster
 }
 ```
 
-For the limma analysis, the ExpressionSet, the design matrix, the thresholds are defined. The limma analysis is performed for each pair of clusters. The results of limma analysis are outputted into the `r print(fn_degs)` file.
+For the *limma* analysis, the ExpressionSet, the design matrix, and the thresholds are defined. The limma analysis is performed for each pair of clusters. The results of limma analysis are outputted into the `r paste(fn_degs)` file.
 
 ```{r limmaOnClusters1, warning=FALSE}
 eset<-new("ExpressionSet", exprs=as.matrix(mtx[, eset.labels]))
@@ -231,9 +228,9 @@ pander(degs.matrix)
 
 Enrichment results visualization
 ===
-Clstering and visualization of the enrichment results is the main heatmap generated by GenomeRunner. It is the fastest way to overview which regulatory datasets enriched where, and how strong. Due to large number of regulatory datasets typically used for the analysis, GenomeRunner filters those that do not show enrichment in any of the sets of SNPs. This tutorial will show how to tweak the default filtering parameters to visualize the most significant enrichments.
+Clstering and visualization of the enrichment results is the main heatmaps generated by GenomeRunner. It is the fastest way to overview which regulatory datasets enriched where, and how strong. Due to the large number of regulatory datasets typically used for the analysis, GenomeRunner filters those that do not show enrichment in any of the sets of SNPs. This tutorial shows how to tweak the default filtering parameters to visualize the most significant enrichments.
 
-First, the minimum number of times an regulatory element should show statistically significant associations should be defined - at least once in this tutorial. Then, the distributions of the transformed p-value and SD are examined, and the corresponding cutoffs for matrix filtering are set. The higher the p-value cutoff - the more regulatory datasets will be filtered. The SD cutoff is used to filter out similarly enriched regulatory datasets and bring up the most differentially enriched regulatory datasets.
+First, the minimum number of times a regulatory dataset should be statistically significant enriched should be defined - "1" in the following example. Then, the distributions of the transformed p-value and the standard deviations (SDs) are examined, and the corresponding cutoffs for matrix filtering are set - the 3rd quantiles in the example. The higher the p-value cutoff - the more regulatory datasets will be filtered out. The SD cutoff is used to filter out similarly enriched regulatory datasets and bring up *the most differentially enriched* regulatory datasets.
 
 ```{r}
 par(oma=c(1, 0, 0, 0), mar=c(5.1, 4.1, 4.1,2.1), cex=1)
@@ -249,7 +246,7 @@ hist(c(as.vector(apply(mtx,1,sd)), as.vector(apply(mtx,2,sd))), breaks=50, main=
 #cutoff.p<- -log10(0.05); cutoff.sd<-0.8
 ```
 
-Both rows and columns are filtered. It is possible to either take the top 10 regulatory datasets most differentially enriched across the sets of SNPs, or to filter by the p-value cutoff.
+Rows and columns are both filtered. It is possible to either take the top 10 regulatory datasets most differentially enriched across the sets of SNPs, or to filter by the p-value cutoff.
 
 ```{r}
 # Take top 10 most variably enriched elements
