@@ -213,7 +213,7 @@ for(i in colnames(design)){
           print(paste(i, "vs.", j, ", number of degs significant at adj.p.val <", cutoff.pval, ":", ndegs))
           # Keep the number of DEGs in the matrix
           degs.matrix[as.numeric(sub("c", "", i)), as.numeric(sub("c", "", j))] <- ndegs
-          degs.table <- merge(degs, trackDb.hg19, by="row.names", all.x=TRUE, sort=FALSE) # Merge with the descriptions
+          degs.table <- merge(degs, gfAnnot, by.x="row.names", by.y="V1", all.x=TRUE, sort=FALSE) # Merge with the descriptions
           if(ndegs > 10) { ndegs <- 10 }
           pandoc.table(degs.table[1:ndegs, c(1, 8, 9, 6, 10)])
           write.table(degs.table[, c(1, 8, 9, 6, 10)], fn_degs, sep="\t", quote=F,  col.names=NA, append=T)
