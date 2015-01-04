@@ -41,7 +41,7 @@ suppressMessages(source("utils.R")) # See the required packages there
 # Set up the file names to output the results
 fn_maxmin <- "results/maxmin_correlations_all.txt" # Pair-wise regulatory similarity results
 fn_clust <- "results/clustering_all.txt" # Regulatory similar clusters
-fn_degs <- "results/clusters-degs_all.txt" # Differential GFs among the clusters
+fn_degs <- "results/degs_all.txt" # Differential GFs among the clusters
 ```
 
 The enrichment analysis results are outputted in the *matrix.txt* file, stored as the enrichment p-values with a ”-” sign added to denote depletion. The raw p-values are transformed using -log10 transformation, the ”-” sign is kept for depleted associations.
@@ -75,7 +75,7 @@ mtx <- mtx[apply(mtx, 1, function(x) sum(abs(x) > cutoff)) >= numofsig,
 
 Visualizing regulatory similarity results
 ===
-Regulatory similarity analysis groups SNP sets by correlation of their regulatory enrichemt profiles, or sets of the transformed p-values. The NxN square matrix of correlation coefficients is assembled, where N is the number of SNP sets.
+Regulatory similarity analysis groups SNP sets by correlation of their regulatory enrichemt profiles, or sets of the transformed p-values. The NxN square matrix of correlation coefficients is assembled, where N is the count of SNP sets.
 
 ```{r}
 # rcorr returns a list, [[1]] - correl coeffs, [[3]] - p-values. Type - pearson/spearman
@@ -206,7 +206,7 @@ for(i in colnames(design)){
           }
         }
         degs <- cbind(degs, degs.pvals) # Bind the differences p-values with the converted averaged association p-values
-        degs <- degs[ degs$adj.P.Val < 0.1 & (abs(degs[, 7]) < 0.01 | abs(degs[, 8]) < 0.01), ] # Filter non-significant differences. Warning: Hardcoded thresholds
+        degs <- degs[ degs$adj.P.Val < cutoff.pval & (abs(degs[, 7]) < 0.01 | abs(degs[, 8]) < 0.01), ] # Filter non-significant differences. Warning: Hardcoded thresholds
         if(dim(degs)[[1]] > 0) {
           ndegs <- nrow(degs) # The number of differentially associated regulatory datasets
           degs <- degs[order(degs$adj.P.Val, decreasing=F), ] # Order them by the ratio of the differences

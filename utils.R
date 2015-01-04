@@ -8,11 +8,10 @@ library(gplots)
 library(Hmisc)
 library(Biobase)
 library(limma)
+library(pander)
 # Work paths
-# trackDb <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/gf_descriptions_hg19.txt", sep="\t", header=F))
 gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 # Home paths
-#trackDb <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/gf_descriptions_hg19.txt", sep="\t", header=F))
 #gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 
 
@@ -251,7 +250,7 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
   if (factor != "none") {
     mtx <- mtx[grep(factor[1], mtx$V1), c(1, colnum + 1)] # Subset by factor and column 
     if (length(factor) > 1) {
-      for (i in 2:length(factor)) {
+      for (i in 1:length(factor)) {
         mtx <- mtx[grep(factor[i], mtx$V1), ] # Subset by factor, keep columns
       }  
     }
@@ -269,7 +268,7 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
   # Join with annotations
   mtx <- left_join(mtx, gfAnnot[, c(1, 3, 5, 2)], by=c("V1" = "V1")) 
   # Assign columns
-  ifelse(isLog10, colnum <- colnum + 1, colnum <- colnum) # Shift colnum for the original GR
+  ifelse(isLog10, colnum <- colnum + 1, colnum <- colnum + 1) # Shift colnum for the original GR
   colnames(mtx) <- c("GF", make.names(cols[colnum]), "cell", "factor", "description") # Rename columns  
   # Save the matrix, if needed
   if (!is.null(fileName)) { 

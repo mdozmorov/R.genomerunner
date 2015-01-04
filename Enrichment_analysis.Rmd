@@ -59,6 +59,7 @@ Instead of all available cell lines, subsets of tissue-specific cell lines can b
 * Embryonic cell lines: c("H1hesc", "Hsmm", "H1neurons", "H7es", "H9es")
 * Blood cell lines: c("K562", "Gm12878", "Gm12891", "Gm12892", "Gm06990", "Nb4", "Hl60", "Cd20", "Th1", "Gm12865", "Jurkat", "Dnd41", "Gm12864", "Th2", "Gm19239", "Cd20ro01778", "Cmk", "Gm19240", "Gm12875", "Gm12873", "Gm12872", "Pbde", "Cd20ro01794", "Gm12874", "Gm12801", "Cd34mobilized", "Tregwb78495824", "Th2wb54553204", "Th1wb54553204", "Th1wb33676984", "Th17", "Pbmc", "Gm19238", "Gm19193", "Gm19099", "Gm18951", "Gm18526", "Gm18507", "Gm18505", "Gm15510", "Gm12878ximat", "Gm10847", "Cd4naivewb11970640")
 * Blood vessel cell lines: c("Huvec", "Hpaf", "Aoaf", "Hbmec", "Hmvecdblad", "Aosmc", "Hmveclly", "Hmveclbl", "Hmvecdneo", "Hmvecdlyneo", "Hmvecdlyad", "Hmvecdblneo", "Hmvecdad", "Hbvsmc")
+* Breast cell lines: c("Mcf7", "Hmec", "T47d", "Bcbreast0203015", "Breastoc", "Mcf10aes", "Mdamb231")
 
 The ENCODE datasets are cell-type incomplete, that is, for one cell type the data about the distribution of all histone marks are available, but the other cell type may have only a few histone mark datasets. So, the matrixes of *cells x marks* will have many missing values. They have to be filtered to remove rows/columns containing too much missing values, otherwise, clustering and visualization algorithms break. The heatmaps of such filtered matrixes are shown.
 
@@ -92,7 +93,7 @@ mtx.sig <- showHeatmap(paste(dirs[1], "matrix.txt", sep="/"), colnum=102, factor
 
 Comparing the enrichments of the Crohn's disease and the Inflammatory bowel disease-associated SNPs in histone marks in Gm12878 cell line
 ---
-One, or several comparisons can be plotted. Note, if *two* conditions are plotted, the barplot is split in *two* parts - one part shows the most significant enrichments for the first condition, while the other showls the most significant enrichments for the second condition. 
+One, or several comparisons can be plotted. Note, if *two* conditions are plotted, the barplot is split in *two* parts - one part shows the most significant enrichments for the first condition, while the other part shows the most significant enrichments for the second condition. 
 
 Both overrepresented and underrepsesented barplots can be plotted.
 
