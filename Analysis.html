@@ -63,7 +63,7 @@ img {
 <div id="header">
 <h1 class="title">Exploratory analysis and explanation of the GenomeRunner results</h1>
 <h4 class="author"><em>Mikhail Dozmorov</em></h4>
-<h4 class="date"><em>01 January, 2015</em></h4>
+<h4 class="date"><em>05 January, 2015</em></h4>
 </div>
 
 
@@ -95,7 +95,7 @@ img {
 # Set up the file names to output the results
 fn_maxmin &lt;- &quot;results/maxmin_correlations_all.txt&quot;  # Pair-wise regulatory similarity results
 fn_clust &lt;- &quot;results/clustering_all.txt&quot;  # Regulatory similar clusters
-fn_degs &lt;- &quot;results/clusters-degs_all.txt&quot;  # Differential GFs among the clusters</code></pre>
+fn_degs &lt;- &quot;results/degs_all.txt&quot;  # Differential GFs among the clusters</code></pre>
 <p>The enrichment analysis results are outputted in the <em>matrix.txt</em> file, stored as the enrichment p-values with a ”-” sign added to denote depletion. The raw p-values are transformed using -log10 transformation, the ”-” sign is kept for depleted associations.</p>
 <pre class="r"><code># Define output and data subfolders to use, change to analyze different data
 rname &lt;- &quot;results//&quot;  # Output folder
@@ -119,7 +119,7 @@ mtx &lt;- mtx[apply(mtx, 1, function(x) sum(abs(x) &gt; cutoff)) &gt;= numofsig,
 </div>
 <div id="visualizing-regulatory-similarity-results" class="section level1">
 <h1>Visualizing regulatory similarity results</h1>
-<p>Regulatory similarity analysis groups SNP sets by correlation of their regulatory enrichemt profiles, or sets of the transformed p-values. The NxN square matrix of correlation coefficients is assembled, where N is the number of SNP sets.</p>
+<p>Regulatory similarity analysis groups SNP sets by correlation of their regulatory enrichemt profiles, or sets of the transformed p-values. The NxN square matrix of correlation coefficients is assembled, where N is the count of SNP sets.</p>
 <pre class="r"><code># rcorr returns a list, [[1]] - correl coeffs, [[3]] - p-values. Type - pearson/spearman
 mtx.cor &lt;- rcorr(as.matrix(mtx), type = &quot;pearson&quot;)
 # Optionally, try kendall correlation mtx.cor[[1]]&lt;-cor(as.matrix(mtx), method='kendall')</code></pre>
@@ -251,7 +251,7 @@ lipid_metabolism_phenotypes
  </code></pre>
 <p>The p-values are -log10-transformed. The distributions of these transformed p-values can be tested for the statistically significant differences among the clusters using the Bioconductor <em>limma</em> package.</p>
 <p>First, the cluster groups and labels are defined. If the number of SNP sets in each cluster is less than the minimum number (user defined), such cluster is not considered for the differential enrichment analysis.</p>
-<p>For the <em>limma</em> analysis, the ExpressionSet, the design matrix, and the thresholds are defined. The limma analysis is performed for each pair of clusters. The results of limma analysis are outputted into the results/clusters-degs_all.txt file.</p>
+<p>For the <em>limma</em> analysis, the ExpressionSet, the design matrix, and the thresholds are defined. The limma analysis is performed for each pair of clusters. The results of limma analysis are outputted into the results/degs_all.txt file.</p>
 <pre class="r"><code>eset &lt;- new(&quot;ExpressionSet&quot;, exprs = as.matrix(mtx[, eset.labels]))
 # Make model matrix
 design &lt;- model.matrix(~0 + factor(eset.groups))
@@ -293,7 +293,7 @@ for (i in colnames(design)) {
                   }
                 }
                 degs &lt;- cbind(degs, degs.pvals)  # Bind the differences p-values with the converted averaged association p-values
-                degs &lt;- degs[degs$adj.P.Val &lt; 0.1 &amp; (abs(degs[, 7]) &lt; 0.01 | abs(degs[, 8]) &lt; 0.01), ]  # Filter non-significant differences. Warning: Hardcoded thresholds
+                degs &lt;- degs[degs$adj.P.Val &lt; cutoff.pval &amp; (abs(degs[, 7]) &lt; 0.01 | abs(degs[, 8]) &lt; 0.01), ]  # Filter non-significant differences. Warning: Hardcoded thresholds
                 if (dim(degs)[[1]] &gt; 0) {
                   ndegs &lt;- nrow(degs)  # The number of differentially associated regulatory datasets
                   degs &lt;- degs[order(degs$adj.P.Val, decreasing = F), ]  # Order them by the ratio of the differences

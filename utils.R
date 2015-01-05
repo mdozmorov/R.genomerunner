@@ -250,7 +250,7 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
   if (factor != "none") {
     mtx <- mtx[grep(factor[1], mtx$V1), c(1, colnum + 1)] # Subset by factor and column 
     if (length(factor) > 1) {
-      for (i in 1:length(factor)) {
+      for (i in 2:length(factor)) {
         mtx <- mtx[grep(factor[i], mtx$V1), ] # Subset by factor, keep columns
       }  
     }
@@ -268,11 +268,12 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
   # Join with annotations
   mtx <- left_join(mtx, gfAnnot[, c(1, 3, 5, 2)], by=c("V1" = "V1")) 
   # Assign columns
-  ifelse(isLog10, colnum <- colnum + 1, colnum <- colnum + 1) # Shift colnum for the original GR
-  colnames(mtx) <- c("GF", make.names(cols[colnum]), "cell", "factor", "description") # Rename columns  
+  #ifelse(isLog10, colnum <- colnum + 1, colnum <- colnum + 1) # Shift colnum for the original GR
+  colnum <- colnum + 1
+  colnames(mtx) <- c("GF", make.names(cols[colnum ]), "cell", "factor", "description") # Rename columns  
   # Save the matrix, if needed
   if (!is.null(fileName)) { 
-    write.table(mtx, fileName, sep="\t", col.names=NA)
+    write.table(mtx, fileName, sep="\t", row.names=F)
   }
   
   ## Creates Cell x Factor heatmap from a matrix of enrichments from a Histone/Tfbs matrix.
