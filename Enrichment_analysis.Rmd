@@ -52,14 +52,16 @@ Output: a heatmap of *cell x regulatory mark* enrichment results, and a numerica
 
 The numerical matrix can be saved into a file. The -log10-transformed p-values can be converted to regular p-value scale in Excel using '=1/POWER(10, ABS(A1))*SIGN(A1)' formula. Note a "-" sign indicates significant depletion instead of enrichment.
 
-Instead of all available cell lines, subsets of tissue-specific cell lines can be used. For example:
+Instead of all available cell lines, subsets of tissue-specific cell lines can be used. Cell lines that have no data are not shown.
 
-* Brain cell lines: c("Sknsh", "Sknshra", "Nha", "Pfsk1", "Sknmc", "Be2c", "U87", "Hah", "Gliobla", "M059j", "Medullo", "Shsy5y", "Bcbrainh11058n", "Medullod341")
-* Lung cell lines: c("A549", "Imr90", "Hpae", "Hpaf", "Hpf", "Nhbe", "Nhbera", "Nhlf", "Saec", "Tbec", "Wi38")
+* Blood cell lines, any karyotype: c("K562", "Gm12878", "Gm12891", "Gm12892", "Gm06990", "Nb4", "Hl60", "Cd20", "Th1", "Gm12865", "Jurkat", "Dnd41", "Gm12864", "Th2", "Gm19239", "Cd20ro01778", "Cmk", "Gm19240", "Gm12875", "Gm12873", "Gm12872")
+* Blood cell lines, normal karyotype: c("Gm12878", "Cd20ro01778", "Cd20", "Cd20ro01794")
+* Blood vessel cell lines: c("Huvec", "Hpaf", "Aoaf", "Hbmec", "Hmvecdblad", "Aosmc")
+* Brain cell lines, any karyotype: c("Sknsh", "Nha", "Pfsk1", "Sknmc", "Be2c", "U87", "Hah", "Gliobla", "M059j")
+* Brain cell lines, normal karyotype: c("Nha", "Hah", "Bcbrainh11058n")
+* Breast cell lines: c("Mcf7", "Hmec", "T47d", "Mcf10aes")
 * Embryonic cell lines: c("H1hesc", "Hsmm", "H1neurons", "H7es", "H9es")
-* Blood cell lines: c("K562", "Gm12878", "Gm12891", "Gm12892", "Gm06990", "Nb4", "Hl60", "Cd20", "Th1", "Gm12865", "Jurkat", "Dnd41", "Gm12864", "Th2", "Gm19239", "Cd20ro01778", "Cmk", "Gm19240", "Gm12875", "Gm12873", "Gm12872", "Pbde", "Cd20ro01794", "Gm12874", "Gm12801", "Cd34mobilized", "Tregwb78495824", "Th2wb54553204", "Th1wb54553204", "Th1wb33676984", "Th17", "Pbmc", "Gm19238", "Gm19193", "Gm19099", "Gm18951", "Gm18526", "Gm18507", "Gm18505", "Gm15510", "Gm12878ximat", "Gm10847", "Cd4naivewb11970640")
-* Blood vessel cell lines: c("Huvec", "Hpaf", "Aoaf", "Hbmec", "Hmvecdblad", "Aosmc", "Hmveclly", "Hmveclbl", "Hmvecdneo", "Hmvecdlyneo", "Hmvecdlyad", "Hmvecdblneo", "Hmvecdad", "Hbvsmc")
-* Breast cell lines: c("Mcf7", "Hmec", "T47d", "Bcbreast0203015", "Breastoc", "Mcf10aes", "Mdamb231")
+* Lung cell lines: c("A549", "Imr90", "Hpae", "Hpaf", "Hpf", "Nhbe", "Nhlf", "Saec", "Wi38")
 
 The ENCODE datasets are cell-type incomplete, that is, for one cell type the data about the distribution of all histone marks are available, but the other cell type may have only a few histone mark datasets. So, the matrixes of *cells x marks* will have many missing values. They have to be filtered to remove rows/columns containing too much missing values, otherwise, clustering and visualization algorithms break. The heatmaps of such filtered matrixes are shown.
 
