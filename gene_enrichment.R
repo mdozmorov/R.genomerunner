@@ -35,8 +35,10 @@ xx <- as.list(x[mapped_genes])
 ## Saves gene names for each of the enriched GO or KEGG at the end of the file
 ##
 ## Usage: 
-##     enrichmentGO <- Enrichment(gene_names_list, id="hgnc_symbol", use="GO", , ont="MF")
-##     enrichmentPW <- Enrichment(gene_names_list, id="entrezgene", use="KEGG", "results.txt")
+##     res <- Enrichment(gene_names_list, id="symbol", use="GO", , ont="MF")
+##     res <- Enrichment(gene_names_list, id="entrezgene", use="KEGG", "results.txt")
+##     if (nrow(res) > 10) n <-10 else n <- nrow(res)
+##     grid.table(res[1:n, ], gp=gpar(fontsize=7))
 ##
 Enrichment <- function(res, id="symbol", use="GO", ont="BP", fileName=NULL)
 {
@@ -70,7 +72,7 @@ Enrichment <- function(res, id="symbol", use="GO", ont="BP", fileName=NULL)
     # In addition to saving the enrichment results
     # save genes in each GO category
     if (id == "entrezgene") { keytype <- "ENTREZID" }
-    if (id == "hgnc_symbol") { keytype <- "SYMBOL" }
+    if (id == "symbol") { keytype <- "SYMBOL" }
     if (use == "GO" & nrow(result) > 0) {
         geneList.go <- select(org.Hs.eg.db,
                            keys = res,
