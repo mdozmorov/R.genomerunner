@@ -7,7 +7,9 @@ Scripts for processing the enrichment analysis matrixes produced by [GenomeRunne
 
 * `Enrichment_analysis.Rmd and Enrichment_analysis.html` - Demonstration of the ideas for visualization of the enrichment results.
 
-* `utils.R` - Functions used by main scripts.
+* `utils.R` - Functions used by main scripts. Main function plotting tme majority of the results
+
+* `utils1.R` - New version of the main function that treats the results from same cell-factor experiments from different institutions as replicates, and plots the most significant results. 
 
 * `01_heatmap_corr.R` - Code snippets to perform enrichment- and regulatory similarity analyses clustering and visualization, as well as some exploratory tests.
 

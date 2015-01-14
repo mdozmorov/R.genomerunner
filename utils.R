@@ -10,9 +10,9 @@ library(Biobase)
 library(limma)
 library(pander)
 # Work paths
-gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
+#gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 # Home paths
-#gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
+gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 
 
 ## ----------------------------------------------------------------------------------
@@ -195,12 +195,15 @@ repeat {
 ## the numofnas number
 ##
 mtx.trim.numofnas <- function(mtx.cast, numofnas=1) {
-  dims.new <- dim(mtx.cast[apply(mtx.cast, 1, function(x) sum(is.na(x))) <= numofnas, apply(mtx.cast, 2, function(x) sum(is.na(x))) <= numofnas])
+  dims.new <- dim(mtx.cast[apply(mtx.cast, 1, function(x) sum(is.na(x))) <= numofnas,
+                           apply(mtx.cast, 2, function(x) sum(is.na(x))) <= numofnas])
   repeat {
     # Trim the matrix
-    mtx.cast<-mtx.cast[apply(mtx.cast, 1, function(x) sum(is.na(x))) <= numofnas, apply(mtx.cast, 2, function(x) sum(is.na(x))) <= numofnas]
+    mtx.cast<-mtx.cast[apply(mtx.cast, 1, function(x) sum(is.na(x))) <= numofnas,
+                       apply(mtx.cast, 2, function(x) sum(is.na(x))) <= numofnas]
     dims.old <- dim(mtx.cast)
-    dims.new <- dim(mtx.cast[apply(mtx.cast, 1, function(x) sum(is.na(x))) <= numofnas, apply(mtx.cast, 2, function(x) sum(is.na(x))) <= numofnas])
+    dims.new <- dim(mtx.cast[apply(mtx.cast, 1, function(x) sum(is.na(x))) <= numofnas, 
+                             apply(mtx.cast, 2, function(x) sum(is.na(x))) <= numofnas])
     if (all(dims.new == dims.old)) {
       return(mtx.cast)
       break
@@ -310,9 +313,9 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
     mtx.sorted.up <- list(); mtx.sorted.dn <- list() # Storage for sorted matrixes 
     for (i in 1:length(colnum)) {
       # For each column, reorder p-values and store top X most significantly enriched
-      mtx.sorted.up[[length(mtx.sorted.up) + 1]] <- mtx[order(mtx[, i], decreasing=T)[1:round(20/length(colnum))], ]
+      mtx.sorted.up[[length(mtx.sorted.up) + 1]] <- mtx[order(mtx[, i], decreasing=T)[1:round(30/length(colnum))], ]
       # And depleted
-      mtx.sorted.dn[[length(mtx.sorted.dn) + 1]] <- mtx[order(mtx[, i], decreasing=F)[1:round(20/length(colnum))], ]
+      mtx.sorted.dn[[length(mtx.sorted.dn) + 1]] <- mtx[order(mtx[, i], decreasing=F)[1:round(30/length(colnum))], ]
     }
     # Combine lists into matrixes
     mtx.barplot.up <- ldply(mtx.sorted.up, rbind)
@@ -325,6 +328,8 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
     } else {
       names.args.up <- paste(mtx.barplot.up$cell, mtx.barplot.up$factor, sep=":")
       names.args.dn <- paste(mtx.barplot.dn$cell, mtx.barplot.dn$factor, sep=":")
+      names.args.up[names.args.up == "NA:NA"] <- make.names(unlist(lapply(mtx.sorted.up, rownames)), unique=T)[names.args.up == "NA:NA"]
+      names.args.dn[names.args.dn == "NA:NA"] <- make.names(unlist(lapply(mtx.sorted.dn, rownames)), unique=T)[names.args.dn == "NA:NA"]
       bottom <- 8
     }
     # Plot barplots
