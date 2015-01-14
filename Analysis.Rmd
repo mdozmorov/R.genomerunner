@@ -84,7 +84,7 @@ mtx.cor<-rcorr(as.matrix(mtx), type="pearson")
 # mtx.cor[[1]]<-cor(as.matrix(mtx), method="kendall")
 ```
 
-The matrix of correlation coefficients is visualized as a clustered heatmap. The distance and clustering parameters can be tweaked, or a code snippet from [01_heatmap_corr.R](https://github.com/mdozmorov/R.genomerunner/blob/master/01_heatmap_corr.R) script can be used ￼￼for automated testing of the combinations of them.
+The matrix of correlation coefficients is visualized as a clustered heatmap. The distance and clustering parameters can be tweaked, or a code below can be used for automated testing of the combinations of them.
 
 ```{r epigenomicVisualization1, fig.height=6}
 par(oma=c(5,0,0,5), mar=c(10, 4.1, 4.1, 5), cex.main=0.65) # Adjust margins
@@ -92,7 +92,7 @@ color <- colorRampPalette(c("blue","yellow")) # Define color gradient
 #color <- greenred # Standard green-black-red palette
 # Adjust clustering parameters.
 # Distance: "euclidean", "maximum","manhattan" or "minkowski". Do not use "canberra" or "binary"
-# Clustering: "ward", "single", "complete", "average", "mcquitty", "median" or "centroid"
+# Clustering: "ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median" or "centroid"
 dist.method <- "euclidean"  
 hclust.method <- "ward.D2"
 # Setting breaks to go from minimum to maximum correlation coefficients,
@@ -102,6 +102,19 @@ my.breaks <- seq(min(mtx.cor[[1]][mtx.cor[[1]]!=min(mtx.cor[[1]])]),
                  max(mtx.cor[[1]][mtx.cor[[1]]!=max(mtx.cor[[1]])]),
                  length.out=(2*granularity + 1))
 h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=0.7, cexCol=0.7, breaks=my.breaks, main="Regulatory similarity clustering")
+```
+Example of testing combinations of clustering methods
+```{r eval=FALSE}
+dist.methods <- c("euclidean", "maximum","manhattan", "minkowski")
+hclust.methods <- c("ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median", "centroid")
+for (d in dist.methods) {
+  for (h in hclust.methods) {
+    png(paste("results/clust", d, h,".png", sep="_"))
+    par(oma=c(10,0,0,10), mar=c(10, 4.1, 4.1, 10), cex.main=0.65) # Adjust margins
+    h<-heatmap.2(as.matrix(mtx.cor[[1]]), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=d)}, hclustfun=function(x){hclust(x, method=h)}, cexRow=1, cexCol=1,  main=paste(d, h),  breaks=my.breaks) # cellnote=formatC(as.matrix(mtx.cor[[1]]), format="f", digits=2), notecol="black", notecex=1,
+    dev.off()
+  }
+}
 ```
 
 Most regulatory similar sets of SNPs
