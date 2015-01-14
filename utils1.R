@@ -329,7 +329,7 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
     mtx.barplot.up <- ldply(mtx.sorted.up, rbind)
     mtx.barplot.dn <- ldply(mtx.sorted.dn, rbind)
     # Remove values going in wrong directions
-    mtx.barplot.up <- mtx.barplot.up[ apply(mtx.barplot.up[, seq(1:length(colnum)), drop=F], 1, function(x) { any(x > log10(pval)) }), , drop=F]
+    mtx.barplot.up <- mtx.barplot.up[ apply(mtx.barplot.up[, seq(1:length(colnum)), drop=F], 1, function(x) { any(x > -log10(pval)) }), , drop=F]
     mtx.barplot.dn <- mtx.barplot.dn[ apply(mtx.barplot.dn[, seq(1:length(colnum)), drop=F], 1, function(x) { any(x < log10(pval)) }), , drop=F]
     # Remove rows with NAs
     mtx.barplot.up <- mtx.barplot.up[ complete.cases(mtx.barplot.up), , drop=F]
