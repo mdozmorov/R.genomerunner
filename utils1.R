@@ -10,9 +10,9 @@ library(Biobase)
 library(limma)
 library(pander)
 # Work paths
-#gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
+gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 # Home paths
-gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
+#gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 
 
 ## ----------------------------------------------------------------------------------
@@ -374,4 +374,46 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
                  cexRow=0.8, cexCol=0.8, breaks=my.breaks, cellnote=formatC(as.matrix(mtx.cor[[1]]), format="f", digits=2), notecol="black", notecex=notecex)
     return(h$carpet)
     }
+}
+
+## ----------------------------------------------------------------------------------
+## Summarizes a matrix of n GFs x m FOIs by cell-factor most significant p-value
+## The rationale here is that different institutions provide data for the same cell and factor,
+## e.g., H1hesc:H3K4me3 from UW and H1hesc:H3K4me3 from Broad. The function selects the most
+## significant p-value for H1hesc:H3K4me3, and removes duplicated measurements
+## Also, returns the summarized matrix
+##
+## Parameters:
+##     mtx - n X m matrix. GF names (rows, n) should be able to be joined with a GF annotation table
+##     factor - subset matrix by "Histone"/"Tfbs" enrichments, or "none". Multiple factors 
+## are 'OR' allowed, e.g., using c("Histone", "Gm12878") will select histone OR Gm12878 GFs
+##     cell - subset matrix by cell type(s). Multiple terms are OR allowed, e.g., using 
+## c("Gm12878", "K562") will select Gm12878 OR K562 datasets
+##     fileName - save the reshaped wide matrix into a file
+##
+## Example:
+## mtx.summarize(mtx, factor="Histone", cell=c("H1hesc", "H7es", "H9es"), fName="results/summary_all_embryo_hist.txt")
+##
+
+mtx.summarize <- function(mtx, factor="none", cell="none", fName=NULL) {
+  mtx.annot <- left_join(data.frame(V1=rownames(mtx), mtx), gfAnnot[, c(1, 3, 5)], by=c("V1" = "V1")) 
+  if (factor != "none") { 
+    mtx.annot <- mtx.annot %>% dplyr::filter(grepl(paste(factor, collapse="|"), V1)) 
+  }
+  if (cell != "none") {
+    mtx.annot <- mtx.annot %>% dplyr::filter(grepl(paste(cells, collapse="|"), V1))
+  }
+  mtx.annot <- mtx.annot %>%  dplyr::select(-V1)
+  mtx.annot <- melt(mtx.annot, id.vars = c("V3", "V5"), variable.name = "experiment", value.name = "pvalue")
+  pmax <- function(x) { x[order(abs(x), decreasing=T)][1] } # Get absolute maximum p-value, keeping sign
+  mtx.annot <- mtx.annot %>% group_by(V5, experiment) %>% dplyr::summarise(mean = pmax(pvalue))
+  colnames(mtx.annot) <- c("factor", "experiment", "pmax")
+  mtx.annot <- dcast(mtx.annot, experiment ~ factor, value.var="pmax")
+  rownames(mtx.annot) <- mtx.annot[, 1]
+  mtx.annot <- mtx.annot[, -1]
+  mtx.annot <- mtx.untransform(as.matrix(mtx.annot))
+  if (!is.null(fName)) {
+    write.table(mtx.annot, fName, sep="\t", col.names=NA, quote=F)
+  }
+  return(mtx.annot)
 }
