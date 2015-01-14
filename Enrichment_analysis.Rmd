@@ -23,7 +23,7 @@ The enrichment p-values can be corrected for multiple testing.
 The *mtx.sig <- showHeatmap* function returns filtered and clustered matrixes of the -log10-transformed p-values. 
 
 ```{r warning=FALSE, message=F}
-source("utils.R")
+source("utils1.R")
 dirs <- list.dirs("data/", full.names=T, recursive=F) # Paths the SNP sets analyses
 ```
 
@@ -41,8 +41,8 @@ Cell type-specific visualization
 ===
 There are two particularly interesting categories of regulatory datasets provided by the ENCODE project:
 
-* **Histone** - 722 cell-type specific histone modification marks. Information about individual marks can be looked up on [Histome: the Histone Infobase](http://www.actrec.gov.in/histome/searchgoog.php).
-* **TFBSs** - 1952 cell-type specific transcription factor binding sites. Information about individual transcription factors can be looked up on [Factorbook](http://factorbook.org/mediawiki/index.php/Welcome_to_factorbook).
+* **Histone** - 722 cell-type specific histone modification marks (41 marks, 69 cell lines). Information about individual marks can be looked up on [Histome: the Histone Infobase](http://www.actrec.gov.in/histome/searchgoog.php). For more detailed overview, check an excellent paper [Barski, A., Cuddapah, S., Cui, K., Roh, T.-Y., Schones, D. E., Wang, Z., … Zhao, K. (2007). High-resolution profiling of histone methylations in the human genome. Cell, 129(4), 823–37. doi:10.1016/j.cell.2007.05.009](http://www.sciencedirect.com/science/article/pii/S0092867407006009)
+* **TFBSs** - 1952 cell-type specific transcription factor binding sites (277 transcription factors, 91 cell lines). Information about individual transcription factors can be looked up on [Factorbook](http://factorbook.org/mediawiki/index.php/Welcome_to_factorbook).
 
 Information about the cell lines used in the ENCODE project can be found at [the ENCODE cell types](http://genome.ucsc.edu/ENCODE/cellTypes.html) portal.
 
