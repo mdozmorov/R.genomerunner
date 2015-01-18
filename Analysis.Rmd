@@ -37,7 +37,7 @@ The results used in this tutorial have been obtained with [GenomeRunner Web](htt
 
 Prepare the environment
 ```{r}
-suppressMessages(source("utils.R")) # See the required packages there
+suppressMessages(source("utils1.R")) # See the required packages there
 # Set up the file names to output the results
 fn_maxmin <- "results/maxmin_correlations_all.txt" # Pair-wise regulatory similarity results
 fn_clust <- "results/clustering_all.txt" # Regulatory similar clusters
@@ -191,7 +191,7 @@ degs.matrix<-matrix(0, length(c$lower), length(c$lower))
 colnames(degs.matrix)<-paste("c", seq(1,length(c$lower)), sep="")
 rownames(degs.matrix)<-paste("c", seq(1, length(c$lower)), sep="") 
 # Tweak p-value and log2 fold change cutoffs, and adjustment for multiple testing
-cutoff.pval <- 0.05
+cutoff.pval <- 0.1
 cutoff.lfc <- log2(1)
 cutoff.adjust <- "none" # Use "fdr" or "none"
 unlink(fn_degs)
@@ -221,14 +221,34 @@ for(i in colnames(design)){
         degs <- cbind(degs, degs.pvals) # Bind the differences p-values with the converted averaged association p-values
         degs <- degs[ degs$adj.P.Val < cutoff.pval & (abs(degs[, 7]) < 0.01 | abs(degs[, 8]) < 0.01), ] # Filter non-significant differences. Warning: Hardcoded thresholds
         if(dim(degs)[[1]] > 0) {
-          ndegs <- nrow(degs) # The number of differentially associated regulatory datasets
-          degs <- degs[order(degs$adj.P.Val, decreasing=F), ] # Order them by the ratio of the differences
-          print(paste(i, "vs.", j, ", number of degs significant at adj.p.val <", cutoff.pval, ":", ndegs))
+          degs <- degs[order(degs$adj.P.Val, decreasing=F), ] # Order them by the significance of the differences
+          print(paste(i, "vs.", j, ", number of degs significant at adj.p.val <", cutoff.pval, ":", nrow(degs)))
           # Keep the number of DEGs in the matrix
-          degs.matrix[as.numeric(sub("c", "", i)), as.numeric(sub("c", "", j))] <- ndegs
+          degs.matrix[as.numeric(sub("c", "", i)), as.numeric(sub("c", "", j))] <- nrow(degs)
           degs.table <- merge(degs, gfAnnot, by.x="row.names", by.y="V1", all.x=TRUE, sort=FALSE) # Merge with the descriptions
-          if(ndegs > 10) { ndegs <- 10 }
-          pandoc.table(degs.table[1:ndegs, c(1, 8, 9, 6, 10)])
+          # Print top most significant differences
+          if(nrow(degs.table) > 10) {
+            print(paste("Top 10 differential marks"))
+            pandoc.table(degs.table[1:10, c(1, 8, 9, 6, 10)])
+          } else {
+            print(paste("Total", nrow(degs.table), "differential marks"))
+            pandoc.table(degs.table[1:nrow(degs.table), c(1, 8, 9, 6, 10)])
+          }
+          # Separate the total table into GF specific tables
+          # Print each GF specific table
+          degs.list <- list(); gfs.names <- c("Histone", "Tfbs", "BroadHmm")
+          for (g in gfs.names) {
+            degs.list <- c(degs.list, list(degs.table[ grepl(g, degs.table$Row.names), , drop=F]))
+          }
+          for (i in 1:length(gfs.names)) {
+            if (nrow(degs.list[[i]]) > 10) {
+              print(paste("Top 10 differential", gfs.names[i], "marks"))
+              pandoc.table(degs.list[[i]][1:10, c(1, 8, 9, 6, 10)])
+            } else if (nrow(degs.list[[i]]) > 0) {
+              print(paste("Total", nrow(degs.list[[i]]), "differential", gfs.names[i], "marks"))
+              pandoc.table(degs.list[[i]][1:nrow(degs.list[[i]]), c(1, 8, 9, 6, 10)])
+            }
+          }
           write.table(degs.table[, c(1, 8, 9, 6, 10)], fn_degs, sep="\t", quote=F,  col.names=NA, append=T)
         }
       }
