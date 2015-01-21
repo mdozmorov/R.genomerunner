@@ -1,20 +1,22 @@
 # Load necessary packages
-suppressMessages(library(Biobase))
-suppressMessages(library(org.Hs.eg.db))
-suppressMessages(library(reactome.db))
-suppressMessages(library(KEGG.db))
-#suppressMessages(library(arrayQualityMetrics)) 
-#suppressMessages(library(limma))
-#suppressMessages(library(genefilter))
-#suppressMessages(library(sva))
-#suppressMessages(library(WGCNA))
-#suppressMessages(library(gplots))
-#suppressMessages(library(RColorBrewer))
-#suppressMessages(library(tspair))
-suppressMessages(library(gridExtra))
-suppressMessages(library(GO.db))
-suppressMessages(library(GOstats))
-suppressMessages(library(Hmisc))
+library(Biobase)
+library(reactome.db)
+library(KEGG.db)
+#library(arrayQualityMetrics)
+#library(limma)
+#library(genefilter)
+#library(sva)
+#library(WGCNA)
+#library(gplots)
+#library(RColorBrewer)
+#library(tspair)
+library(gridExtra)
+library(GO.db)
+library(GOstats)
+library(Hmisc)
+
+# Human annotations
+library(org.Hs.eg.db)
 # Preparing environment for remapping Gene Symbols to Entrez IDs
 x <- org.Hs.egSYMBOL2EG
 # Get the entrez gene identifiers that are mapped to a gene symbol
