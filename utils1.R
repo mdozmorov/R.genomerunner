@@ -15,6 +15,9 @@ gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomer
 cellAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/ENCODE_cells.txt", sep="\t", header=T, fill=T, quote="\""))
 # Home paths
 #gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=T))
+# Define color palette
+#color<-colorRampPalette(c("blue", "yellow", "red")) # Define color gradient
+color <- matlab.like
 
 ## ----------------------------------------------------------------------------------
 ## Convert a matrix of raw p-values (with "-" indicating depletion) into -log10-transformed
@@ -282,12 +285,16 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
   
   ## Creates Cell x Factor heatmap from a matrix of enrichments from a Histone/Tfbs matrix.
   if (length(colnum) == 1 & (toPlot == "heat")) { # If only 1 column selected, we can plot heatmap
+    # Make wide matrix. 
+    pmax <- function(x) { x[order(abs(x), decreasing=T)][1] } # Get absolute maximum p-value, keeping sign
+    mtx.cast <- dcast(mtx, formula=cell~factor, fun.aggregate=pmax, value.var=make.names(cols[colnum]))
+    
     # Make wide matrix. To properly handle duplicates, use https://stackoverflow.com/questions/12831524/can-dcast-be-used-without-an-aggregate-function
-    tmp1 <- ddply(mtx, .(cell, factor), transform, newid = paste(cell, seq_along(factor)))
-    out <- dcast(tmp1, cell + newid ~ factor, value.var=make.names(cols[colnum]))
-    out <- out[,-which(colnames(out) == "newid")]
-    mtx.cast <- out; rm(tmp1, out)
-    #mtx.cast <- dcast(mtx, formula=cell~factor, fun.aggregate=mean, value.var=make.names(cols[colnum]))
+#     tmp1 <- ddply(mtx, .(cell, factor), transform, newid = paste(cell, seq_along(factor)))
+#     out <- dcast(tmp1, cell + newid ~ factor, value.var=make.names(cols[colnum]))
+#     out <- out[,-which(colnames(out) == "newid")]
+#     mtx.cast <- out; rm(tmp1, out)
+
     rownames(mtx.cast) <- make.names(mtx.cast$cell, unique=T) # Reassign rownames
     mtx.cast <- mtx.cast[, -1] # Remove no longer needed first column
     mtx.cast <- mtx.trim.numofsig(mtx.cast, pval=pval, numofsig=numtofilt) # Filter by counting number of significant cells
@@ -298,12 +305,15 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
     } else {
       # Plotting
       par(cex.main=0.65, oma=c(5,0,0,5), mar=c(5, 4.1, 4.1, 5)) # Adjust margins
-      color<-colorRampPalette(c("blue", "yellow", "red")) # Define color gradient
       dist.method<-"euclidean"  
       hclust.method<-"ward.D2"
       notecex <- -0.05*ncol(mtx.cast) + 1 # Size of cell text
       if (notecex < 0.4) { notecex <- 0.4 }
-      h<-heatmap.2(as.matrix(mtx.cast), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=0.8, cexCol=0.8, 
+      mtx.plot <- as.matrix(mtx.cast) # Matrix to plot
+      mtx.max <- max(abs(mtx.plot[mtx.plot != max(abs(mtx.plot))])) # Second to max value
+      my.breaks <- c(seq(-mtx.max, 0, length.out=10), 0, seq(0, mtx.max, length.out=10)) # Breaks symmetric around 0
+      h<-heatmap.2(mtx.plot, trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, 
+                   cexRow=0.8, cexCol=0.8, breaks=my.breaks,
                    cellnote=formatC(1/10^abs(as.matrix(mtx.cast)), format="e", digits=2), notecol="black", notecex=notecex)
       return(h$carpet)
     }    
