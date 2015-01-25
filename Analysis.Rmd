@@ -182,7 +182,7 @@ for (i in 1:length(c$lower)) { # Go through each cluster
 For the *limma* analysis, the ExpressionSet, the design matrix, and the thresholds are defined. The limma analysis is performed for each pair of clusters. The results of limma analysis are outputted into the `r paste(fn_degs)` file.
 
 ```{r limmaOnClusters1, warning=FALSE}
-eset<-new("ExpressionSet", exprs=as.matrix(mtx[, eset.labels]))
+eset<-new("ExpressionSet", exprs=as.matrix(scale(mtx[, eset.labels])))
 # Make model matrix
 design<-model.matrix(~ 0+factor(eset.groups)) 
 colnames(design)<-paste("c", unique(eset.groups), sep="")
@@ -193,7 +193,7 @@ rownames(degs.matrix)<-paste("c", seq(1, length(c$lower)), sep="")
 # Tweak p-value and log2 fold change cutoffs, and adjustment for multiple testing
 cutoff.pval <- 0.1
 cutoff.lfc <- log2(1)
-cutoff.adjust <- "none" # Use "fdr" or "none"
+cutoff.adjust <- "fdr" # Use "fdr" or "none"
 unlink(fn_degs)
 for(i in colnames(design)){ 
   for(j in colnames(design)){
@@ -207,8 +207,9 @@ for(i in colnames(design)){
       degs<-topTable(fit2, number=dim(exprs(eset))[[1]], adjust.method=cutoff.adjust, p.value=cutoff.pval, lfc=cutoff.lfc)
       if(nrow(degs)>0) {
         # Average values in clusters i and j
-        i.av<-rowMeans(matrix(exprs(eset)[rownames(degs), eset.groups == as.numeric(sub("c", "", i))], nrow=nrow(degs)))
-        j.av<-rowMeans(matrix(exprs(eset)[rownames(degs), eset.groups == as.numeric(sub("c", "", j))], nrow=nrow(degs)))
+        mtx.sub <- mtx[, eset.labels] # Subset of the original matrix for averaging
+        i.av<-rowMeans(matrix(mtx.sub[rownames(degs), eset.groups == as.numeric(sub("c", "", i))], nrow=nrow(degs)))
+        j.av<-rowMeans(matrix(mtx.sub[rownames(degs), eset.groups == as.numeric(sub("c", "", j))], nrow=nrow(degs)))
         # Merge and convert the values
         degs.pvals.log <- cbind(i.av, j.av)
         degs.pvals <- matrix(0, nrow=nrow(degs.pvals.log), ncol=ncol(degs.pvals.log), dimnames=list(rownames(degs.pvals.log), c(i, j))) # Empty matrix to hold converted p
@@ -242,7 +243,7 @@ for(i in colnames(design)){
           }
           for (i in 1:length(gfs.names)) {
             if (nrow(degs.list[[i]]) > 10) {
-              print(paste("Top 10 differential", gfs.names[i], "marks"))
+              print(paste("Top 10 differential", gfs.names[i], "marks, out of total", nrow(degs.list[[i]])))
               pandoc.table(degs.list[[i]][1:10, c(1, 8, 9, 6, 10)])
             } else if (nrow(degs.list[[i]]) > 0) {
               print(paste("Total", nrow(degs.list[[i]]), "differential", gfs.names[i], "marks"))

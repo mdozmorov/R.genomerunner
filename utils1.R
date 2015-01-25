@@ -308,9 +308,9 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
       dist.method<-"euclidean"  
       hclust.method<-"ward.D2"
       notecex <- -0.05*ncol(mtx.cast) + 1 # Size of cell text
-      if (notecex < 0.4) { notecex <- 0.4 }
+      if (notecex < 0.5) { notecex <- 0.5 }
       mtx.plot <- as.matrix(mtx.cast) # Matrix to plot
-      mtx.max <- max(abs(mtx.plot[mtx.plot != max(abs(mtx.plot))])) # Second to max value
+      mtx.max <- max(abs(mtx.plot[mtx.plot != max(abs(mtx.plot), na.rm=T)]), na.rm=T) # Second to max value
       my.breaks <- c(seq(-mtx.max, 0, length.out=10), 0, seq(0, mtx.max, length.out=10)) # Breaks symmetric around 0
       h<-heatmap.2(mtx.plot, trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, 
                    cexRow=0.8, cexCol=0.8, breaks=my.breaks,
