@@ -15,9 +15,18 @@ gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomer
 cellAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/ENCODE_cells.txt", sep="\t", header=T, fill=T, quote="\""))
 # Home paths
 #gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=T))
+# # Windows paths
+# gfAnnot <- tbl_df(read.table("D://MyDocuments//Work//GenomeRunner//genomerunner_database//hg19//GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
+# cellAnnot <- tbl_df(read.table("D://MyDocuments//Work//GenomeRunner//genomerunner_database//hg19//ENCODE_cells.txt", sep="\t", header=T, fill=T, quote="\""))
 # Define color palette
 #color<-colorRampPalette(c("blue", "yellow", "red")) # Define color gradient
 color <- matlab.like
+# Adjust clustering parameters.
+# Distance: "euclidean", "maximum","manhattan" or "minkowski". Do not use "canberra" or "binary"
+# Clustering: "ward.D", "ward.D2", "single", "complete", "average", "mcquitty", "median" or "centroid"
+granularity <- 10
+dist.method <- "euclidean"  
+hclust.method <- "ward.D2"
 
 ## ----------------------------------------------------------------------------------
 ## Convert a matrix of raw p-values (with "-" indicating depletion) into -log10-transformed
@@ -29,6 +38,38 @@ mtx.transform<-function(x){
     }
   }
   return(tmp)
+}
+
+## ----------------------------------------------------------------------------------
+## Convert a matrix of p-values (with "-" indicating depletion) into Z-scores
+mtx.transform.p2z <- function(datapv) {
+  dataz = sign(datapv) * qnorm(p = as.matrix(abs(datapv))/2, lower.tail = FALSE)
+  return(dataz)
+}
+
+## ----------------------------------------------------------------------------------
+#' Creates crossproduct correlation matrix
+#' 
+#' A function to convert matrix of enrichment profiles (columns) into correlation matrix using crossproduct
+#' 
+#' @param dataz an N x M matrix of signed Z-scores. Required
+#' @param quantile top X% of Z-scores to consider for correlations. Default - 5%.
+#' 
+#' @return an N x N matrix of correlation crossproducts
+#' @export
+#' 
+#' @examples
+#' mtx.cr <- mtx.cor.crossprod(dataz)
+##
+mtx.cor.crossprod <- function(dataz, quantile=0.05) {
+  transform01 = function(vec, quantile) {
+    threshold = quantile(x = abs(vec), probs = 1-quantile);
+    rez = sign(vec) * (abs(vec) >= threshold);
+    return( rez );
+  }
+  data01 = data.frame( lapply(as.data.frame(dataz), transform01, quantile) )
+  cr = crossprod(as.matrix(data01));
+  return(cr)
 }
 
 ## ----------------------------------------------------------------------------------
