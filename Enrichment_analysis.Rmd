@@ -39,12 +39,6 @@ mtx.sig <- showHeatmap(paste(dirs[2], "matrix.txt", sep="/"), colnum=seq(1,50), 
 
 Cell type-specific visualization
 ===
-There are two particularly interesting categories of regulatory datasets provided by the ENCODE project:
-
-* **Histone** - 722 cell-type specific histone modification marks (41 marks, 69 cell lines). Information about individual marks can be looked up on [Histome: the Histone Infobase](http://www.actrec.gov.in/histome/searchgoog.php). For more detailed overview, check an excellent paper [Barski, A., Cuddapah, S., Cui, K., Roh, T.-Y., Schones, D. E., Wang, Z., … Zhao, K. (2007). High-resolution profiling of histone methylations in the human genome. Cell, 129(4), 823–37. doi:10.1016/j.cell.2007.05.009](http://www.sciencedirect.com/science/article/pii/S0092867407006009)
-* **TFBSs** - 1952 cell-type specific transcription factor binding sites (277 transcription factors, 91 cell lines). Information about individual transcription factors can be looked up on [Factorbook](http://factorbook.org/mediawiki/index.php/Welcome_to_factorbook).
-
-Information about the cell lines used in the ENCODE project can be found at [the ENCODE cell types](http://genome.ucsc.edu/ENCODE/cellTypes.html) portal.
 
 Input: an enrichment matrix. Specify which column and which category to use for visualization. Tweak the number of missing values (NAs) allowed in rows/columns - the rows/columns having more NAs will be filtered out.
 
@@ -52,11 +46,25 @@ Output: a heatmap of *cell x regulatory mark* enrichment results, and a numerica
 
 The numerical matrix can be saved into a file. The -log10-transformed p-values can be converted to regular p-value scale in Excel using '=1/POWER(10, ABS(A1))*SIGN(A1)' formula. Note a "-" sign indicates significant depletion instead of enrichment.
 
-Instead of all available cell lines, subsets of tissue-specific cell lines can be used. Cell lines that have no data are not shown.
+There are three particularly interesting categories of regulatory datasets provided by the ENCODE project:
+
+* **Histone** - 722 cell type-specific histone modification marks (41 marks, 69 cell lines). Information about individual marks can be looked up on [Histome: the Histone Infobase](http://www.actrec.gov.in/histome/searchgoog.php). For more detailed overview, check an excellent paper [Barski, A., Cuddapah, S., Cui, K., Roh, T.-Y., Schones, D. E., Wang, Z., … Zhao, K. (2007). High-resolution profiling of histone methylations in the human genome. Cell, 129(4), 823–37. doi:10.1016/j.cell.2007.05.009](http://www.sciencedirect.com/science/article/pii/S0092867407006009)
+
+* **TFBSs** - 1952 cell type-specific transcription factor binding sites (277 transcription factors, 91 cell lines). Information about individual transcription factors can be looked up on [Factorbook](http://factorbook.org/mediawiki/index.php/Welcome_to_factorbook).
+
+* **Chromatin States** - 135 cell type-specific chromatin state segmentations (15 states X 9 cell lines). See the [track setting description](http://genome.ucsc.edu/cgi-bin/hgTrackUi?hgsid=409202813_FOl2Y2hYFxIGcu5y8QH02oEAazUK&g=wgEncodeBroadHmm&hgTracksConfigPage=configure)
+
+Information about cell lines used in the ENCODE project can be found at [the ENCODE cell types](http://genome.ucsc.edu/ENCODE/cellTypes.html) portal.
+
+Information about Roadmap Epigenomics abbreviations can be found in the [jul2013.roadmapData.qc](https://docs.google.com/spreadsheet/ccc?key=0Am6FxqAtrFDwdHU1UC13ZUxKYy1XVEJPUzV6MEtQOXc&usp=sharing) document.
+
+Instead of all available cell lines, subsets of tissue-specific cell lines can be used.
 
 * Blood cell lines, any karyotype: c("K562", "Gm12878", "Gm12891", "Gm12892", "Gm06990", "Nb4", "Hl60", "Cd20", "Th1", "Gm12865", "Jurkat", "Dnd41", "Gm12864", "Th2", "Gm19239", "Cd20ro01778", "Cmk", "Gm19240", "Gm12875", "Gm12873", "Gm12872")
 * Blood cell lines, normal karyotype: c("Gm12878", "Cd20ro01778", "Cd20", "Cd20ro01794")
 * Blood vessel cell lines: c("Huvec", "Hpaf", "Aoaf", "Hbmec", "Hmvecdblad", "Aosmc")
+* Blood cell lines, Roadmap mnemonics: c("E033", "E034", "E037", "E038", "E039", "E040", "E041", "E042", "E043", "E044", "E045", "E047", "E048", "E062", "E115", "E116", "E123", "E124", "E029", "E030", "E031", "E032", "E035", "E036", "E046", "E050", "E051")
+* Brain cell lines, Roadmap mnemonics: c("E067", "E068", "E069", "E070", "E071", "E072", "E073", "E074", "E081", "E082", "E125", "E053", "E054")
 * Brain cell lines, any karyotype: c("Sknsh", "Nha", "Pfsk1", "Sknmc", "Be2c", "U87", "Hah", "Gliobla", "M059j")
 * Brain cell lines, normal karyotype: c("Nha", "Hah", "Bcbrainh11058n")
 * Breast cell lines: c("Mcf7", "Hmec", "T47d", "Mcf10aes")
@@ -65,19 +73,23 @@ Instead of all available cell lines, subsets of tissue-specific cell lines can b
 
 The ENCODE datasets are cell-type incomplete, that is, for one cell type the data about the distribution of all histone marks are available, but the other cell type may have only a few histone mark datasets. So, the matrixes of *cells x marks* will have many missing values. They have to be filtered to remove rows/columns containing too much missing values, otherwise, clustering and visualization algorithms break. The heatmaps of such filtered matrixes are shown.
 
-Enrichment of **the Crohn's disease**-associated SNPs in **histone marks** in different cell types
+The [Roadmap Epigenomics](https://sites.google.com/site/anshulkundaje/projects/epigenomeroadmap) datasets are also incomplete, i.e., brain has only 7 histone modification marks profiled (h3k9me3, h3k4me3, h3k4me1, h3k36me3, h3k27me3, h3k9ac, h3k27ac).
+
+P-values are corrected for multiple testing using FDR. For each analysis, only the significant enrichment results (p.adj < 0.1) are shown. Negative p-value indicates depletion. Tables show top 10 or less enriched/depleted associations, barplots visualize the same results. If an analysis does not have any significant results, it is not displayed.
+
+Enrichment of **Crohn's disease**-associated SNPs in **histone marks** in different cell types
 ---
 ```{r fig.height=5, results='hide', eval=T}
 mtx.sig <- showHeatmap(paste(dirs[1], "matrix.txt", sep="/"), colnum=62, factor="Histone", cell="none", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=3, toPlot="heat")
 ```
 
-Enrichment of **the Inflammatory bowel disease**-associated SNPs in **histone marks** in different cell types
+Enrichment of **Inflammatory bowel disease**-associated SNPs in **histone marks** in different cell types
 ---
 ```{r fig.height=5, results='hide', eval=T}
 mtx.sig <- showHeatmap(paste(dirs[1], "matrix.txt", sep="/"), colnum=102, factor="Histone", cell="none", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=5, toPlot="heat")
 ```
 
-Enrichment of **the Inflammatory bowel disease**-associated SNPs in **transcription factor binding sites** in different cell types
+Enrichment of **Inflammatory bowel disease**-associated SNPs in **transcription factor binding sites** in different cell types
 ---
 ```{r fig.height=5, results='hide', eval=T}
 mtx.sig <- showHeatmap(paste(dirs[1], "matrix.txt", sep="/"), colnum=102, factor="Tfbs", cell="none", isLog10=FALSE, adjust="fdr", pval=0.1, numtofilt=2, toPlot="heat")

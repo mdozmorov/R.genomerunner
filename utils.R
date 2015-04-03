@@ -10,9 +10,9 @@ library(Biobase)
 library(limma)
 library(pander)
 # Work paths
-#gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
+gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 # Home paths
-gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
+#gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 
 
 ## ----------------------------------------------------------------------------------
@@ -163,7 +163,8 @@ barplot1<-function(mtx, location="topright", bottom=5, names.args, pval=0.1){
     txt <- "Underrepresented regulatory associations"
   }
   mtx[mtx == Inf] <- 308 # Replace infinite values to a finite number
-  b<-barplot(as.matrix(t(mtx)), beside=T,  ylab="-log10(p-value)\nnegative = underrepresentation", col=groupcolors,space=c(0.2,1), cex.names=0.6, las=2, names.arg=names.args, main=txt) # ,legend.text=colnames(mtx),args.legend=list(x=7,y=4))
+  b<-barplot(as.matrix(t(mtx)), beside=T,  ylab="-log10(p-value)\nnegative = underrepresentation", col=groupcolors,space=c(0.2,1), 
+             cex.names=0.6, las=2, names.arg=names.args, cex.lab=0.6, cex.axis=0.6) # , main=txt ,legend.text=colnames(mtx),args.legend=list(x=7,y=4))
   lines(c(0,100),c(-log10(pval),-log10(pval)),type="l",lty="dashed",lwd=2)
   lines(c(0,100),c(log10(pval),log10(pval)),type="l",lty="dashed",lwd=2)
   legend(location, legend=colnames(mtx), fill=groupcolors, cex=0.6)
@@ -313,9 +314,9 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
     mtx.sorted.up <- list(); mtx.sorted.dn <- list() # Storage for sorted matrixes 
     for (i in 1:length(colnum)) {
       # For each column, reorder p-values and store top X most significantly enriched
-      mtx.sorted.up[[length(mtx.sorted.up) + 1]] <- mtx[order(mtx[, i], decreasing=T)[1:round(30/length(colnum))], ]
+      mtx.sorted.up[[length(mtx.sorted.up) + 1]] <- mtx[order(mtx[, i], decreasing=T)[1:round(20/length(colnum))], ]
       # And depleted
-      mtx.sorted.dn[[length(mtx.sorted.dn) + 1]] <- mtx[order(mtx[, i], decreasing=F)[1:round(30/length(colnum))], ]
+      mtx.sorted.dn[[length(mtx.sorted.dn) + 1]] <- mtx[order(mtx[, i], decreasing=F)[1:round(20/length(colnum))], ]
     }
     # Combine lists into matrixes
     mtx.barplot.up <- ldply(mtx.sorted.up, rbind)
