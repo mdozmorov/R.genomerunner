@@ -10,14 +10,16 @@ library(Biobase)
 library(limma)
 library(pander)
 library(colorRamps)
+library(genefilter)
 # Work paths
 gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
-cellAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/ENCODE_cells.txt", sep="\t", header=T, fill=T, quote="\""))
+gfAnnot$V1 <- make.names(gfAnnot$V1)
+#cellAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/ENCODE_cells.txt", sep="\t", header=T, fill=T, quote="\""))
 # Home paths
 #gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=T))
-# # Windows paths
-# gfAnnot <- tbl_df(read.table("D://MyDocuments//Work//GenomeRunner//genomerunner_database//hg19//GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
-# cellAnnot <- tbl_df(read.table("D://MyDocuments//Work//GenomeRunner//genomerunner_database//hg19//ENCODE_cells.txt", sep="\t", header=T, fill=T, quote="\""))
+# Windows paths
+#gfAnnot <- tbl_df(read.table("F:/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
+#cellAnnot <- tbl_df(read.table("F:/Work/GenomeRunner/genomerunner_database/hg19/ENCODE_cells.txt", sep="\t", header=T, fill=T, quote="\""))
 # Define color palette
 #color<-colorRampPalette(c("blue", "yellow", "red")) # Define color gradient
 color <- matlab.like
@@ -27,6 +29,47 @@ color <- matlab.like
 granularity <- 10
 dist.method <- "euclidean"  
 hclust.method <- "ward.D2"
+# For coordinate-extracting function
+library(biomaRt)
+mart <- useMart("ENSEMBL_MART_ENSEMBL", dataset="hsapiens_gene_ensembl", host="feb2014.archive.ensembl.org",path="/biomart/martservice",archive=FALSE, verbose=TRUE) # Last mart containing HG19 genome annotation
+upstream <- 2000 # Definition of the promoter - 2000bp upstream
+downstream <- 500 # and 500bp downstream
+
+
+
+## ----------------------------------------------------------------------------------
+#' Extracts genomic coorfinates for a list of EntrezIDs
+#' 
+#' A function to extract strand-specific genomic coordinates of a list of EntrezIDs. Homo Sapiens only, for now
+#' 
+#' @param entrezIDs a numeric vector of EntrezIDs. Required
+#' 
+#' @return a matrix of genomic coordinates in BED format
+#' @export
+#' 
+#' @examples
+#' mtx.cr <- entrez2bed(c("3106","51752","149233","118429","864"))
+##
+entrez2bed <- function(entrezIDs){
+  coords <- getBM(attributes=c('chromosome_name','start_position', 'end_position', 'hgnc_symbol', 'strand'), filters='entrezgene', values=entrezIDs, mart=mart, uniqueRows=F)
+  coords <- coords[ coords$chromosome_name %in% c(seq(1,22), "X"), ] # Keep only normal chromosomes
+  ind.pos <- coords$strand == 1 # Indexes of positive strand
+  ind.neg <- coords$strand == -1 # and negative strand
+  # Recalculate promoters depending on strand
+  coords$end_position[ ind.pos ] <- coords$start_position[ ind.pos ] + downstream
+  coords$start_position[ ind.pos ] <- coords$start_position[ ind.pos ] - upstream
+  coords$start_position[ ind.neg ] <- coords$end_position[ ind.neg ] - downstream
+  coords$end_position[ ind.neg ] <- coords$end_position[ ind.neg ] + upstream
+  # Make BED format
+  coords$strand[ ind.pos ] <- "+"
+  coords$strand[ ind.neg ] <- "-"
+  coords$chromosome_name <- paste("chr", coords$chromosome_name, sep="")
+  # Format into BED format
+  coords <- cbind(coords$chromosome_name, coords$start_position, coords$end_position, coords$hgnc_symbol, rep(".", nrow(coords)), coords$strand)
+  return(coords)
+}
+
+
 
 ## ----------------------------------------------------------------------------------
 ## Convert a matrix of raw p-values (with "-" indicating depletion) into -log10-transformed
@@ -46,6 +89,14 @@ mtx.transform.p2z <- function(datapv) {
   dataz = sign(datapv) * qnorm(p = as.matrix(abs(datapv))/2, lower.tail = FALSE)
   return(dataz)
 }
+
+## ----------------------------------------------------------------------------------
+## Convert a matrix of Z-scores (with "-" indicating depletion) into p-values
+mtx.transform.z2p <- function(dataz) {
+  datapv = sign(dataz) * 2* pnorm(q = as.matrix(-abs(dataz)))
+  return(datapv)
+}
+
 
 ## ----------------------------------------------------------------------------------
 #' Creates crossproduct correlation matrix
