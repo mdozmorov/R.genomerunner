@@ -154,6 +154,7 @@ getV1OddsRatioPvalMatrix <- function(infile){
   write.table(as.data.frame((modPvals)), file=paste(dirname(infile), "matrix_PVAL.txt", sep="/"), quote=FALSE, sep="\t")
 }
 
+<<<<<<< HEAD
 # ## Processing multiple folders
 # 
 # datadir <- "/Users/mikhail/Documents/Work/VCU_work/Edwin/meQTLs2/data.gr.filtered"
@@ -171,3 +172,22 @@ getV1OddsRatioPvalMatrix <- function(infile){
 #     print(f)
 #   }
 # }
+=======
+## Processing multiple folders
+
+datadir <- "/Users/mikhail/Documents/Work/VCU_work/Edwin/meQTLs2/data.gr.filtered"
+
+for (d in dir(datadir, pattern="^cr")) {
+  for (f in (list.files(paste(datadir, d, sep="/"), pattern="LOG.gr$", full.names=TRUE))) {
+    getV1OddsRatioPvalMatrix(f)
+    print(f)
+  }
+}
+
+for (d in dir(datadir, pattern="^c")) {
+  for (f in (list.files(paste(datadir, d, sep="/"), pattern="^detailed", full.names=TRUE))) {
+    getV2OddsRatioMatrix(f)
+    print(f)
+  }
+}
+>>>>>>> 57179e5c802878dcbb84e7f8829a6f3db4b38a08

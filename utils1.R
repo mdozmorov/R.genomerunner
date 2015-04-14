@@ -40,17 +40,18 @@ downstream <- 500 # and 500bp downstream
 ## ----------------------------------------------------------------------------------
 #' Extracts genomic coorfinates for a list of EntrezIDs
 #' 
-#' A function to extract strand-specific genomic coordinates of a list of EntrezIDs. Homo Sapiens only, for now
+#' A function to extract strand-specific genomic coordinates of a list of EntrezIDs. Homo Sapiens only, for now.
+#' Writes the output to fileName
 #' 
 #' @param entrezIDs a numeric vector of EntrezIDs. Required
+#' @param fileName the name of the file to output converted coorcinates
 #' 
-#' @return a matrix of genomic coordinates in BED format
 #' @export
 #' 
 #' @examples
-#' mtx.cr <- entrez2bed(c("3106","51752","149233","118429","864"))
+#' entrez2bed(c("3106","51752","149233","118429","864"), "coords.bed")
 ##
-entrez2bed <- function(entrezIDs){
+entrez2bed <- function(entrezIDs, fileName){
   coords <- getBM(attributes=c('chromosome_name','start_position', 'end_position', 'hgnc_symbol', 'strand'), filters='entrezgene', values=entrezIDs, mart=mart, uniqueRows=F)
   coords <- coords[ coords$chromosome_name %in% c(seq(1,22), "X"), ] # Keep only normal chromosomes
   ind.pos <- coords$strand == 1 # Indexes of positive strand
@@ -66,7 +67,11 @@ entrez2bed <- function(entrezIDs){
   coords$chromosome_name <- paste("chr", coords$chromosome_name, sep="")
   # Format into BED format
   coords <- cbind(coords$chromosome_name, coords$start_position, coords$end_position, coords$hgnc_symbol, rep(".", nrow(coords)), coords$strand)
-  return(coords)
+  # Sort, merge and save the coordinates
+  write.table(coords, "tmp.bed", sep="\t", quote=F, row.names=FALSE, col.names=FALSE)
+  command <- paste("bedtools sort -i tmp.bed | mergeBed -i - -c 4 -o collapse > ", fileName, sep="")
+  system(command)
+  unlink("tmp.bed")
 }
 
 
