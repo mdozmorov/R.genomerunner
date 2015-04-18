@@ -68,6 +68,7 @@ Instead of all available cell lines, subsets of tissue-specific cell lines can b
 * Brain cell lines, any karyotype: c("Sknsh", "Nha", "Pfsk1", "Sknmc", "Be2c", "U87", "Hah", "Gliobla", "M059j")
 * Brain cell lines, normal karyotype: c("Nha", "Hah", "Bcbrainh11058n")
 * Breast cell lines: c("Mcf7", "Hmec", "T47d", "Mcf10aes")
+* Breast cell lines: c("E119", "E027", "E028")
 * Embryonic cell lines: c("H1hesc", "Hsmm", "H1neurons", "H7es", "H9es")
 * Lung cell lines: c("A549", "Imr90", "Hpae", "Hpaf", "Hpf", "Nhbe", "Nhlf", "Saec", "Wi38")
 
