@@ -13,7 +13,7 @@ library(colorRamps)
 library(genefilter)
 # Work paths
 gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
-gfAnnot$V1 <- make.names(gfAnnot$V1)
+#gfAnnot$V1 <- make.names(gfAnnot$V1)
 #cellAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/ENCODE_cells.txt", sep="\t", header=T, fill=T, quote="\""))
 # Home paths
 #gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=T))
@@ -325,7 +325,9 @@ mtx.trim.numofnas <- function(mtx.cast, numofnas=1) {
 ## allowed, e.g., using c("Histone", "Gm12878") will select histone AND Gm12878 datasets
 ##     cell - subset matrix by cell type(s). Multiple terms are OR allowed, e.g., using 
 ## c("Gm12878", "K562") will select Gm12878 OR K562 datasets
-##     isLog10 - whether a matrix is log10-transformed (TRUE for GR, FALSE for GR WEB)
+##     isLog10 - whether a matrix is log10-transformed (TRUE for GR, FALSE for GR WEB). A special case is when
+## isLog10="OR" and a matrix of odds ratios is provided - it will be log2-transformed. For odds ratios, no adjustment
+## for multiple testing is done, and pval/numtofilt parameters should be 1 and 1, respectively. Mind what's going on
 ##     adjust - whether to correct p-values for multiple testing ("fdr" for GR, "none" for GR WEB)
 ##     pval - cutoff of calling an enrichment significant
 ##     numtofilt - number of cells in each row/column to filter. Valid for 'heat' plot only
@@ -365,9 +367,13 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
   if (cell != "none") {
     mtx <- mtx[grepl(paste(cell, collapse="|"), mtx$V1), ]
   }
-   # Adjust for multiple testing and -log10 transform, if needed
+  # Adjust for multiple testing and -log10 transform, if needed
   for (i in 1:length(colnum)) {
-    mtx[, i + 1] <- mtx.adjust.1(as.numeric(unlist(mtx[, i + 1])), adjust=adjust, isLog10=isLog10)
+    if(is.logical(isLog10)){ # If p-values are provided, which is defined by TRUE or FALSE isLog10, adjust accordingly
+      mtx[, i + 1] <- mtx.adjust.1(as.numeric(unlist(mtx[, i + 1])), adjust=adjust, isLog10=isLog10)
+    } else { # If odds ratios, which is defined by isLog10 equal to non-logical value like "OR", simply log2-transform them
+      mtx[, i + 1] <- log2(as.numeric(unlist(mtx[, i + 1])))
+    }
   }
   # Join with annotations
   mtx <- left_join(mtx, gfAnnot[, c(1, 3, 5, 2)], by=c("V1" = "V1")) 
