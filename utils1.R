@@ -11,6 +11,7 @@ library(limma)
 library(pander)
 library(colorRamps)
 library(genefilter)
+source("/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/genomeRunner_file_formatting_functions.R")
 # Work paths
 gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 #gfAnnot$V1 <- make.names(gfAnnot$V1)
@@ -30,12 +31,65 @@ granularity <- 10
 dist.method <- "euclidean"  
 hclust.method <- "ward.D2"
 # For coordinate-extracting function
-library(biomaRt)
+suppressMessages(library(biomaRt))
 mart <- useMart("ENSEMBL_MART_ENSEMBL", dataset="hsapiens_gene_ensembl", host="feb2014.archive.ensembl.org",path="/biomart/martservice",archive=FALSE, verbose=TRUE) # Last mart containing HG19 genome annotation
 upstream <- 2000 # Definition of the promoter - 2000bp upstream
 downstream <- 500 # and 500bp downstream
 
-
+#' Enrichment analysis data import
+#' 
+#' A function to load enrichment analysis matrix(es) and remove non-informative epigenomic marks
+#'
+#' @param dname a string, or a character vector containing one or multiple paths to the matrix file(s). Multiple matrixes will be 'rbind'. If a matrix name has 'PVAL' in its name, the data will be -log10-transformed and filtered to remove rows with nothing significant. If a matrix name has 'OR' in its name, the data will be log2-transformed. If no such keywords are found, the data is returned as is. 
+#' @param subset a string used to subset a list of genomic features. Default - none. Examples - "Tfbs", "Histone"
+#'
+#' @return a matrix of filtered data
+#' @export
+#' @examples
+#' mtx <- load_gr_data("data/ENCODE/matrix_OR.txt")
+#' mtx <- load_gr_data(c("data/ENCODE_Tfbs/matrix_PVAL.txt", "data/ENCODE_Histone/matrix_PVAL.txt"), subset=c("Tfbs", "Histone"))
+##
+load_gr_data <- function(dname, subset="none") {
+  # mtx<-do.call("rbind", lapply(dname, function(fn) as.matrix(read.table(paste(fn, "matrix.txt", sep=""), sep="\t", header=T, row.names=1))))
+  mtx.list <- list()
+  for (d in dname) {
+    mtx.list <- c(mtx.list, list(as.matrix(read.table(d, sep="\t", header=T, row.names=1, stringsAsFactors=F, check.names=FALSE))))
+  }
+  # rbind matching column names
+  # https://stackoverflow.com/questions/16962576/how-can-i-rbind-vectors-matching-their-column-names
+  mtx <- do.call("rbind", lapply(mtx.list, function(x) x[, match(colnames(mtx.list[[1]]), colnames(x)) ]))
+  class(mtx) <- "numeric" # Convert to numbers
+  if (subset != "none") {
+    mtx <- mtx[grep(paste(subset, collapse="|"), rownames(mtx), ignore.case=T), ] # filter GF list
+  }
+  # Exploratory: check quantiles and remove diseaases showing no enrichments
+  # mtx.sumstat <- as.data.frame(apply(mtx, 2, quantile)) # Get quantiles
+  # mtx <- mtx[ , apply(mtx.sumstat, 2, function(x) sum(abs(x)) != 5)] # Remove those that have all "1" or "-1"
+  # Optional: filter unused genomic features
+  # mtx<-mtx[grep("snp", rownames(mtx), ignore.case=T, invert=T), ]
+  if (grepl("PVAL", d)) { # Process matrix of raw p-values
+    mtx<-mtx.transform(mtx) # -log10 transform p-values
+    # Optional: adjust columns for multiple testing. See utils.R for the function definition.
+    # mtx<-mtx.adjust(mtx) 
+    dim(mtx) # Check original dimensions
+    # Define minimum number of times a row/col should have values above the cutoffs
+    numofsig <- 1
+    cutoff <- -log10(0.1) # q-value significance cutoff
+    # What remains if we remove rows/cols with nothing significant
+    dim(mtx[apply(mtx, 1, function(x) sum(abs(x) > cutoff)) >= numofsig, ])
+    # apply(mtx, 2, function(x) sum(abs(x)>cutoff))>=numofsig])
+    # Trim the matrix
+    mtx<-mtx[apply(mtx, 1, function(x) sum(abs(x) > cutoff)) >= numofsig, ]
+    # apply(mtx, 2, function(x) sum(abs(x)>cutoff))>=numofsig]
+    # If there are columns with SD=0, add jitter to it
+    set.seed(1)
+    mtx[, apply(mtx, 2, sd) == 0] <- jitter(mtx[, apply(mtx, 2, sd) == 0], factor=0.1)
+  }
+  if (grepl("OR", d)) { # Prpcess matrix of odds ratios
+    mtx <- log2(mtx)
+  }
+  return(as.matrix(mtx)) # Return (processed) data
+}
 
 ## ----------------------------------------------------------------------------------
 #' Extracts genomic coorfinates for a list of EntrezIDs
