@@ -11,9 +11,11 @@ library(limma)
 library(pander)
 library(colorRamps)
 library(genefilter)
+library(xlsx)
 source("/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/genomeRunner_file_formatting_functions.R")
 # Work paths
-gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
+gfAnnot <- read.xlsx2("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
+#gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 #gfAnnot$V1 <- make.names(gfAnnot$V1)
 #cellAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/ENCODE_cells.txt", sep="\t", header=T, fill=T, quote="\""))
 # Home paths
@@ -430,7 +432,6 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
     }
   }
   # Join with annotations
-  mtx <- left_join(mtx, gfAnnot[, c(1, 3, 5, 2)], by=c("V1" = "V1")) 
   # Assign columns
   #ifelse(isLog10, colnum <- colnum + 1, colnum <- colnum + 1) # Shift colnum for the original GR
   colnum <- colnum + 1
@@ -570,7 +571,7 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
 ##
 
 mtx.summarize <- function(mtx, factor="none", cell="none", fName=NULL) {
-  mtx.annot <- left_join(data.frame(V1=rownames(mtx), mtx), gfAnnot[, c(1, 3, 5)], by=c("V1" = "V1")) 
+  mtx.annot <- left_join(data.frame(V1=rownames(mtx), mtx), gfAnnot[, c("name", "cell", "factor")], by=c("name" = "V1")) 
   if (factor != "none") { 
     mtx.annot <- mtx.annot %>% dplyr::filter(grepl(paste(factor, collapse="|"), V1)) 
   }

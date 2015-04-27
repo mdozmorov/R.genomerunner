@@ -291,7 +291,7 @@ mtx.rand <- function(mtx, randomize="row") {
     mtx.rnd <- melt(as.matrix(mtx))
     mtx.rnd$value <- sample(mtx.rnd$value)
     class(mtx.rnd$value) <- "numeric"
-    mtx.rnd <- dcast(mtx.rnd, Var1~Var2, mean)
+    mtx.rnd <- dcast(mtx.rnd, Var1 ~ Var2, value.var="value", mean)
   } else if(randomize == "rnd") {
     mtx.rnd <- melt(as.matrix(mtx))
     class(mtx.rnd$value) <- "numeric"
