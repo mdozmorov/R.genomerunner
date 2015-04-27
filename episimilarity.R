@@ -28,7 +28,7 @@ set.min <- function(mtx, replaceby=min(mtx[mtx != 0])) {
 #' @examples
 #' mtx.tumor.cor <- mtx.tumor.cor %>% mtx.plot
 ##
-mtx.plot <- function(mtx, dist.method="maximum", hclust.method="ward.D2", SideColors) {
+mtx.plot <- function(mtx, dist.method="euclidean", hclust.method="ward.D2", SideColors) {
   par(oma=c(5,0,0,5), mar=c(10, 4.1, 4.1, 5), cex.main=0.65) # Adjust margins
   my.breaks <- seq(min(mtx[mtx!=min(mtx)]), max(mtx[mtx!=max(mtx)]), length.out=(2*granularity + 1))
   h <- heatmap.2(as.matrix(mtx), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=0.7, cexCol=0.7, breaks=my.breaks, main="Regulatory similarity clustering", RowSideColors=SideColors, ColSideColors=SideColors)  
@@ -95,7 +95,7 @@ mtx.degfs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fd
   degs.matrix<-matrix(0, length(unique(clust$eset.groups)), length(unique(clust$eset.groups)))
   colnames(degs.matrix)<-paste("c", unique(clust$eset.groups), sep="")
   rownames(degs.matrix)<-paste("c", unique(clust$eset.groups), sep="") 
-  unlink(paste("results/degfs", label, ".txt", sep="_"))
+  unlink(paste("results/degfs", label, ".xlsx", sep="_"))
   for(i in 1:length(colnames(design))){ 
     for(j in 1:length(colnames(design))){
       # Test only unique pairs of clusters
@@ -116,9 +116,12 @@ mtx.degfs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fd
           
           # Keep the number of DEGs in the matrix
           degs.matrix[i, j] <- nrow(degs.pvals)
-          degs.table <- merge(degs.pvals, gfAnnot, by.x="row.names", by.y="V1", all.x=TRUE, sort=FALSE) # Merge with the descriptions
+          degs.table <- merge(degs.pvals, gfAnnot, by.x="row.names", by.y="name", all.x=TRUE, sort=FALSE) # Merge with the descriptions
           if (!is.null(label)) {
-            write.table(degs.table, paste("results/degfs", label, ".txt", sep="_"), sep="\t", quote=F,  col.names=NA, append=TRUE)
+            degs.table[, 2] <- formatC(degs.table[, 2], format="e", digits=2)
+            degs.table[, 3] <- formatC(degs.table[, 3], format="f", digits=3)
+            degs.table[, 4] <- formatC(degs.table[, 4], format="f", digits=3)
+            write.xlsx2(degs.table, paste("results/degfs", label, ".xlsx", sep="_"), sheetName=paste(colnames(design)[i], "vs", colnames(design)[j], sep="_"), row.names=FALSE, append=TRUE)
           }
         }
       } 
@@ -257,7 +260,6 @@ mtx.clinparam <- function(mtx, clust, label=NULL) {
   return(sapply(degs, function(x) length(x[ x < cutoff.pval ]))) # How many clin. par. are significant in each comparison
 }
 
-
 #' Randomize a matrix
 #' 
 #' A function to randomize a matrix using different methods
@@ -301,4 +303,80 @@ mtx.rand <- function(mtx, randomize="row") {
     mtx.rnd$Var1 <- NULL
   }
   return(mtx.rnd)
-}  
+}
+
+#' Cell type-specific enrichment analysis
+#' 
+#' A function to perform cell type-specific enrichment analysis on a matrix of the enrichment results
+#' 
+#' @param mtx a matrix of the enrichment results. The cell type-specific enrichment analysis is performed on each column.
+#' @param fname a path to a filename to save the results. Should be with "xlsx" extension. The results for each column are saved in separate worksheets.
+#' @return Nothing, saves the results into the file
+#' @export
+#' @examples
+#' mtx.cellspecific(mtx, fname="results/cellspecific_Roadmap.xlsx")
+##
+mtx.cellspecific <- function(mtx, fname) {
+  n.diseases <- ncol(mtx) # Total number of diseases to calculate the cell type-specific p-values
+  # Prepare the matrix for merging with GF annotations
+  mtx <- as.data.frame(cbind(GF=rownames(mtx), mtx))
+  mtx <- left_join(mtx, gfAnnot[, c("name", "cell", "factor", "description")], by=c("GF" = "name")) 
+  
+  pval <- 0.01 # P-value cutoff above which count the enrichments significant
+  cells <- unique(mtx$cell) # All cell types
+  # Global counts
+  tot.tests <- nrow(mtx) # Total number of enrichment analyses
+  cells.tests <- vector(mode="numeric", length=length(cells)) # Number of analyses per cell type
+  for(c in 1:length(cells)) {
+    cells.tests[c] <- length(mtx$cell[ mtx$cell == cells[c]]) # Number of analyses per cell type
+  }
+  
+  # Disease-specific counts
+  pval.disease <- list() # for p-values
+  c2x2.disease <- list() # for 2x2 tables
+  for(i in 2:(n.diseases + 1)){ # Disease positions are now shifted by 1
+    tot.sig <- length(mtx[ 1/10^abs(as.numeric(mtx[, i])) < pval, i]) # Disease-specific total number of significant results
+    cells.sig <- vector(mode="numeric", length=length(cells)) # Disease-specific & cell type-specific number of significant results
+    for(c in 1:length(cells)) {
+      mtx.sel <- as.numeric(mtx[ mtx$cell == cells[c], i ]) # Disease- and cell type-specific vector
+      cells.sig[c] <- length( mtx.sel[ 1/10^abs(mtx.sel) < pval ]  ) # How many are significant
+    }
+    pval.disease.cell <- vector(mode="numeric", length=length(cells)) # A vector to store disease- and cell type-specific p-values
+    c2x2.disease.cell <- list() # A list to store disease- and cell type-specific 2x2 tables
+    for(c in 1:length(cells)) {
+      cells.c2x2 <- matrix(c(cells.sig[c], cells.tests[c] - cells.sig[c], 
+                             tot.sig - cells.sig[c], tot.tests - tot.sig - (cells.tests[c] - cells.sig[c])),
+                           dimnames=list(c("cell", "not cell"), c("sig", "not sig")),
+                           ncol=2) # 2x2 contingency table
+      pval.disease.cell[c] <- fisher.test(cells.c2x2)$p.value # Store the p-values
+      c2x2.disease.cell <- c(c2x2.disease.cell, list(c(cells.sig[c], cells.tests[c], tot.sig, tot.tests))) # Store the numbers to construct 2x2 tables
+    }
+    names(pval.disease.cell) <- cells # Name the collected vectors
+    names(c2x2.disease.cell) <- cells # as cell names
+    pval.disease <- c(pval.disease, list(pval.disease.cell)) # Store them
+    c2x2.disease <- c(c2x2.disease, list(c2x2.disease.cell)) # in disease-specific lists
+  }
+  names(pval.disease) <- colnames(mtx)[2:(n.diseases + 1)] # Name the disease-specific lists
+  names(c2x2.disease) <- colnames(mtx)[2:(n.diseases + 1)] # by the names of the diseases
+  
+  unlink(fname)
+  # View most significant cell lines
+  for(d in 1:length(pval.disease)){ # Go through each disease
+    print(names(pval.disease)[d])
+    print(d)
+    cells.disease <- pval.disease[[d]][ pval.disease[[d]] < pval]
+    stats.disease <- c2x2.disease[[d]][ pval.disease[[d]] < pval]
+    if(length(cells.disease) > 0) {
+      # cells.stats.disease <- cbind(cells.disease, ldply(stats.disease, rbind))
+      cells.stats.disease <- as.data.frame(cbind(cells.disease, t(as.data.frame(stats.disease))))
+      colnames(cells.stats.disease) <- c(names(pval.disease)[d], "cell.sig", "cell.tot", "all.sig", "all.tot")
+      cells.stats.disease <- merge(cells.stats.disease, cellAnnot, by.x="row.names", by.y="cell")
+      class(cells.stats.disease$description) <- "character"
+      cells.stats.disease[, 2] <- formatC(cells.stats.disease[, 2], format="e", digits=2)
+      write.xlsx2(cells.stats.disease, fname, sheetName=names(pval.disease)[d], row.names=FALSE, append=TRUE)
+    } else {
+      write.xlsx2(names(pval.disease)[d], fname,  sheetName=names(pval.disease)[d], row.names=FALSE, append=TRUE)
+      write.xlsx2("No cell type-specific enrichments", fname, sheetName=names(pval.disease)[d], row.names=FALSE, append=TRUE)
+    }
+  }
+}
