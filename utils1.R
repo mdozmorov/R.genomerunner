@@ -23,6 +23,8 @@ gfAnnot <- read.xlsx2("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_d
 # Windows paths
 #gfAnnot <- tbl_df(read.table("F:/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 #cellAnnot <- tbl_df(read.table("F:/Work/GenomeRunner/genomerunner_database/hg19/ENCODE_cells.txt", sep="\t", header=T, fill=T, quote="\""))
+cellAnnot <- aggregate(gfAnnot$celldescr, list(gfAnnot$cell), unique)
+colnames(cellAnnot) <- c("cell", "description")
 # Define color palette
 #color<-colorRampPalette(c("blue", "yellow", "red")) # Define color gradient
 color <- matlab.like
@@ -432,9 +434,8 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
     }
   }
   # Join with annotations
+  mtx <- left_join(mtx, gfAnnot[, c("name", "cell", "factor", "description")], by=c("V1" = "name"))
   # Assign columns
-  #ifelse(isLog10, colnum <- colnum + 1, colnum <- colnum + 1) # Shift colnum for the original GR
-  colnum <- colnum + 1
   colnames(mtx) <- c("GF", make.names(cols[colnum ]), "cell", "factor", "description") # Rename columns  
   # Save the matrix, if needed
   if (!is.null(fileName)) { 
