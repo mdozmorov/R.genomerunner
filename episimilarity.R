@@ -31,7 +31,7 @@ set.min <- function(mtx, replaceby=min(mtx[mtx != 0])) {
 mtx.plot <- function(mtx, dist.method="euclidean", hclust.method="ward.D2", SideColors) {
   par(oma=c(5,0,0,5), mar=c(10, 4.1, 4.1, 5), cex.main=0.65) # Adjust margins
   my.breaks <- seq(min(mtx[mtx!=min(mtx)]), max(mtx[mtx!=max(mtx)]), length.out=(2*granularity + 1))
-  h <- heatmap.2(as.matrix(mtx), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=0.7, cexCol=0.7, breaks=my.breaks, main="Regulatory similarity clustering", RowSideColors=SideColors, ColSideColors=SideColors)  
+  h <- heatmap.2(as.matrix(mtx), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=1, cexCol=1, breaks=my.breaks, main="Regulatory similarity clustering", RowSideColors=SideColors, ColSideColors=SideColors)  
 }
 
 #' Define clusters
@@ -348,8 +348,13 @@ mtx.cellspecific <- function(mtx, fname) {
                              tot.sig - cells.sig[c], tot.tests - tot.sig - (cells.tests[c] - cells.sig[c])),
                            dimnames=list(c("cell", "not cell"), c("sig", "not sig")),
                            ncol=2) # 2x2 contingency table
-      pval.disease.cell[c] <- fisher.test(cells.c2x2)$p.value # Store the p-values
-      c2x2.disease.cell <- c(c2x2.disease.cell, list(c(cells.sig[c], cells.tests[c], tot.sig, tot.tests))) # Store the numbers to construct 2x2 tables
+      cells.test <- fisher.test(cells.c2x2)
+      if(cells.test$estimate > 1){
+        pval.disease.cell[c] <- cells.test$p.value # Store the enrichment p-values
+      } else {
+        pval.disease.cell[c] <- 1 # If depletion, it's not interesting
+      }
+      c2x2.disease.cell <- c( c2x2.disease.cell, list(c(cells.test$estimate, cells.sig[c], cells.tests[c], tot.sig, tot.tests))) # Store the numbers to construct 2x2 tables
     }
     names(pval.disease.cell) <- cells # Name the collected vectors
     names(c2x2.disease.cell) <- cells # as cell names
@@ -368,12 +373,15 @@ mtx.cellspecific <- function(mtx, fname) {
     stats.disease <- c2x2.disease[[d]][ pval.disease[[d]] < pval]
     if(length(cells.disease) > 0) {
       # cells.stats.disease <- cbind(cells.disease, ldply(stats.disease, rbind))
-      cells.stats.disease <- as.data.frame(cbind(cells.disease, t(as.data.frame(stats.disease))))
-      colnames(cells.stats.disease) <- c(names(pval.disease)[d], "cell.sig", "cell.tot", "all.sig", "all.tot")
+      cells.stats.disease <- as.data.frame(merge(as.matrix(cells.disease, ncol=1), t(as.data.frame(stats.disease)), by="row.names"))
+      rownames(cells.stats.disease) <- cells.stats.disease$Row.names
+      cells.stats.disease$Row.names <- NULL
+      colnames(cells.stats.disease) <- c(names(pval.disease)[d], "OR", "cell.sig", "cell.tot", "all.sig", "all.tot")
       cells.stats.disease <- merge(cells.stats.disease, cellAnnot, by.x="row.names", by.y="cell")
       class(cells.stats.disease$description) <- "character"
       cells.stats.disease[, 2] <- formatC(cells.stats.disease[, 2], format="e", digits=2)
-      write.xlsx2(cells.stats.disease, fname, sheetName=names(pval.disease)[d], row.names=FALSE, append=TRUE)
+      cells.stats.disease[, 3] <- formatC(cells.stats.disease[, 3], format="f", digits=2)
+      write.xlsx2(cells.stats.disease[ order(as.numeric(cells.stats.disease[, 3]), decreasing = TRUE), ], fname, sheetName=names(pval.disease)[d], row.names=FALSE, append=TRUE)
     } else {
       write.xlsx2(names(pval.disease)[d], fname,  sheetName=names(pval.disease)[d], row.names=FALSE, append=TRUE)
       write.xlsx2("No cell type-specific enrichments", fname, sheetName=names(pval.disease)[d], row.names=FALSE, append=TRUE)
