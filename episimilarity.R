@@ -105,8 +105,8 @@ mtx.degfs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fd
         degs <- degs[degs < cutoff.pval]
         if(sum(degs < cutoff.pval) > 0) {
           # Average values in clusters i and j
-          i.av<-rowMeans(exprs(eset)[names(degs), design[, i] == 1, drop=FALSE])
-          j.av<-rowMeans(exprs(eset)[names(degs), design[, j] == 1, drop=FALSE])
+          i.av<-2^rowMeans(exprs(eset)[names(degs), design[, i] == 1, drop=FALSE]) # Anti-log2 transform mean odds ratios
+          j.av<-2^rowMeans(exprs(eset)[names(degs), design[, j] == 1, drop=FALSE])
           
           # Merge and convert the values
           degs.pvals <- as.matrix(cbind(degs, i.av, j.av)) 
@@ -118,6 +118,7 @@ mtx.degfs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fd
           degs.matrix[i, j] <- nrow(degs.pvals)
           degs.table <- merge(degs.pvals, gfAnnot, by.x="row.names", by.y="name", all.x=TRUE, sort=FALSE) # Merge with the descriptions
           if (!is.null(label)) {
+            # Format columns
             degs.table[, 2] <- formatC(degs.table[, 2], format="e", digits=2)
             degs.table[, 3] <- formatC(degs.table[, 3], format="f", digits=3)
             degs.table[, 4] <- formatC(degs.table[, 4], format="f", digits=3)
@@ -294,6 +295,8 @@ mtx.rand <- function(mtx, randomize="row") {
     mtx.rnd$value <- sample(mtx.rnd$value)
     class(mtx.rnd$value) <- "numeric"
     mtx.rnd <- dcast(mtx.rnd, Var1 ~ Var2, value.var="value", mean)
+    rownames(mtx.rnd) <- mtx.rnd$Var1
+    mtx.rnd$Var1 <- NULL
   } else if(randomize == "rnd") {
     mtx.rnd <- melt(as.matrix(mtx))
     class(mtx.rnd$value) <- "numeric"
@@ -383,7 +386,7 @@ mtx.cellspecific <- function(mtx, fname) {
       cells.stats.disease[, 3] <- formatC(cells.stats.disease[, 3], format="f", digits=2)
       write.xlsx2(cells.stats.disease[ order(as.numeric(cells.stats.disease[, 3]), decreasing = TRUE), ], fname, sheetName=names(pval.disease)[d], row.names=FALSE, append=TRUE)
     } else {
-      write.xlsx2(names(pval.disease)[d], fname,  sheetName=names(pval.disease)[d], row.names=FALSE, append=TRUE)
+      #write.xlsx2(names(pval.disease)[d], fname,  sheetName=names(pval.disease)[d], row.names=FALSE, append=TRUE)
       write.xlsx2("No cell type-specific enrichments", fname, sheetName=names(pval.disease)[d], row.names=FALSE, append=TRUE)
     }
   }
