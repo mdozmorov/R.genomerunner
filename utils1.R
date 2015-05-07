@@ -405,9 +405,9 @@ mtx.trim.numofnas <- function(mtx.cast, numofnas=1) {
 ## showHeatmap("matrix.txt", colnum=c(5,6,7,8), factor=c("Tfbs"), cell="none", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=6, toPlot="lines")
 ## showHeatmap("matrix.txt", colnum=seq(1,50), factor="none", cell="none", isLog10=FALSE, adjust="none", pval=0.5, numtofilt=1, toPlot="corrSpearman")
 ##
-## colnum=1; factor="none"; cell="none"; isLog10=TRUE; adjust="fdr"; pval=0.1; numtofilt=1; toPlot="heat"; fileName=NULL
+## colnum=1; factor="none"; cell="none"; isLog10=FALSE; adjust="fdr"; pval=0.1; numtofilt=1; toPlot="bar"; fileName=NULL
 
-showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRUE, adjust="fdr", pval=0.1, numtofilt=1, toPlot="bar", fileName=NULL) {
+showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=FALSE, adjust="fdr", pval=0.1, numtofilt=1, toPlot="bar", fileName=NULL) {
   mtx <- tbl_df(read.table(fname, sep="\t", fill=T, header=F, stringsAsFactors=F)) # No header and row.names
   cols <- mtx[1, ] # Keep header
   # Subsetting by factor
@@ -429,8 +429,8 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
   for (i in 1:length(colnum)) {
     if(is.logical(isLog10)){ # If p-values are provided, which is defined by TRUE or FALSE isLog10, adjust accordingly
       mtx[, i + 1] <- mtx.adjust.1(as.numeric(unlist(mtx[, i + 1])), adjust=adjust, isLog10=isLog10)
-    } else { # If odds ratios, which is defined by isLog10 equal to non-logical value like "OR", simply log2-transform them
-      mtx[, i + 1] <- log2(as.numeric(unlist(mtx[, i + 1])))
+    } else { # If odds ratios, which is defined by isLog10 equal to non-logical value like "OR", simply keep the numerical values. Remember OR ranges 0-1 for underrepresentation and 1-Inf for overrepresentation
+      mtx[, i + 1] <- as.numeric(unlist(mtx[, i + 1]))
     }
   }
   # Join with annotations
