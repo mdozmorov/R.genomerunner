@@ -11,11 +11,13 @@ library(limma)
 library(pander)
 library(colorRamps)
 library(genefilter)
-library(xlsx)
 source("/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/genomeRunner_file_formatting_functions.R")
 # Work paths
+# library(readxl)
+# gfAnnot <- read_excel("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.xlsx", sheet="GFs_hg19_joined_cell_histone_1")
+library("xlsx")
 gfAnnot <- read.xlsx2("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
-#gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
+# gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 #gfAnnot$V1 <- make.names(gfAnnot$V1)
 #cellAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/ENCODE_cells.txt", sep="\t", header=T, fill=T, quote="\""))
 # Home paths
@@ -23,8 +25,6 @@ gfAnnot <- read.xlsx2("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_d
 # Windows paths
 #gfAnnot <- tbl_df(read.table("F:/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 #cellAnnot <- tbl_df(read.table("F:/Work/GenomeRunner/genomerunner_database/hg19/ENCODE_cells.txt", sep="\t", header=T, fill=T, quote="\""))
-cellAnnot <- aggregate(gfAnnot$celldescr, list(gfAnnot$cell), unique)
-colnames(cellAnnot) <- c("cell", "description")
 # Define color palette
 #color<-colorRampPalette(c("blue", "yellow", "red")) # Define color gradient
 color <- matlab.like
@@ -405,9 +405,9 @@ mtx.trim.numofnas <- function(mtx.cast, numofnas=1) {
 ## showHeatmap("matrix.txt", colnum=c(5,6,7,8), factor=c("Tfbs"), cell="none", isLog10=FALSE, adjust="none", pval=0.1, numtofilt=6, toPlot="lines")
 ## showHeatmap("matrix.txt", colnum=seq(1,50), factor="none", cell="none", isLog10=FALSE, adjust="none", pval=0.5, numtofilt=1, toPlot="corrSpearman")
 ##
-## colnum=1; factor="none"; cell="none"; isLog10=FALSE; adjust="fdr"; pval=0.1; numtofilt=1; toPlot="bar"; fileName=NULL
+## colnum=1; factor="none"; cell="none"; isLog10=TRUE; adjust="fdr"; pval=0.1; numtofilt=1; toPlot="heat"; fileName=NULL
 
-showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=FALSE, adjust="fdr", pval=0.1, numtofilt=1, toPlot="bar", fileName=NULL) {
+showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRUE, adjust="fdr", pval=0.1, numtofilt=1, toPlot="bar", fileName=NULL) {
   mtx <- tbl_df(read.table(fname, sep="\t", fill=T, header=F, stringsAsFactors=F)) # No header and row.names
   cols <- mtx[1, ] # Keep header
   # Subsetting by factor
@@ -429,13 +429,15 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=FAL
   for (i in 1:length(colnum)) {
     if(is.logical(isLog10)){ # If p-values are provided, which is defined by TRUE or FALSE isLog10, adjust accordingly
       mtx[, i + 1] <- mtx.adjust.1(as.numeric(unlist(mtx[, i + 1])), adjust=adjust, isLog10=isLog10)
-    } else { # If odds ratios, which is defined by isLog10 equal to non-logical value like "OR", simply keep the numerical values. Remember OR ranges 0-1 for underrepresentation and 1-Inf for overrepresentation
-      mtx[, i + 1] <- as.numeric(unlist(mtx[, i + 1]))
+    } else { # If odds ratios, which is defined by isLog10 equal to non-logical value like "OR", simply log2-transform them
+      mtx[, i + 1] <- log2(as.numeric(unlist(mtx[, i + 1])))
     }
   }
   # Join with annotations
-  mtx <- left_join(mtx, gfAnnot[, c("name", "cell", "factor", "description")], by=c("V1" = "name"))
+  mtx <- left_join(mtx, gfAnnot[, c(1, 3, 5, 2)], by=c("V1" = "V1")) 
   # Assign columns
+  #ifelse(isLog10, colnum <- colnum + 1, colnum <- colnum + 1) # Shift colnum for the original GR
+  colnum <- colnum + 1
   colnames(mtx) <- c("GF", make.names(cols[colnum ]), "cell", "factor", "description") # Rename columns  
   # Save the matrix, if needed
   if (!is.null(fileName)) { 
@@ -572,7 +574,7 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=FAL
 ##
 
 mtx.summarize <- function(mtx, factor="none", cell="none", fName=NULL) {
-  mtx.annot <- left_join(data.frame(V1=rownames(mtx), mtx), gfAnnot[, c("name", "cell", "factor")], by=c("name" = "V1")) 
+  mtx.annot <- left_join(data.frame(V1=rownames(mtx), mtx), gfAnnot[, c(1, 3, 5)], by=c("V1" = "V1")) 
   if (factor != "none") { 
     mtx.annot <- mtx.annot %>% dplyr::filter(grepl(paste(factor, collapse="|"), V1)) 
   }

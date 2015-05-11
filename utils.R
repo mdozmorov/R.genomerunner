@@ -165,9 +165,9 @@ barplot1<-function(mtx, location="topright", bottom=5, names.args, pval=0.1){
   mtx[mtx == Inf] <- 308 # Replace infinite values to a finite number
   b<-barplot(as.matrix(t(mtx)), beside=T,  ylab="-log10(p-value)\nnegative = underrepresentation", col=groupcolors,space=c(0.2,1), 
              cex.names=0.6, las=2, names.arg=names.args, cex.lab=0.6, cex.axis=0.6) # , main=txt ,legend.text=colnames(mtx),args.legend=list(x=7,y=4))
-  lines(c(0,100),c(-log10(pval),-log10(pval)),type="l",lty="dashed",lwd=2)
-  lines(c(0,100),c(log10(pval),log10(pval)),type="l",lty="dashed",lwd=2)
-  legend(location, legend=colnames(mtx), fill=groupcolors, cex=0.6)
+  #lines(c(0,100),c(-log10(pval),-log10(pval)),type="l",lty="dashed",lwd=2)
+  #lines(c(0,100),c(log10(pval),log10(pval)),type="l",lty="dashed",lwd=2)
+  #legend(location, legend=colnames(mtx), fill=groupcolors, cex=0.6)
  }
 
 ## ----------------------------------------------------------------------------------
@@ -329,6 +329,8 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=TRU
     } else {
       names.args.up <- paste(mtx.barplot.up$cell, mtx.barplot.up$factor, sep=":")
       names.args.dn <- paste(mtx.barplot.dn$cell, mtx.barplot.dn$factor, sep=":")
+#       names.args.up <- mtx.barplot.up$factor
+#       names.args.dn <- mtx.barplot.dn$factor
       names.args.up[names.args.up == "NA:NA"] <- make.names(unlist(lapply(mtx.sorted.up, rownames)), unique=T)[names.args.up == "NA:NA"]
       names.args.dn[names.args.dn == "NA:NA"] <- make.names(unlist(lapply(mtx.sorted.dn, rownames)), unique=T)[names.args.dn == "NA:NA"]
       bottom <- 8
