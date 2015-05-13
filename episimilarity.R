@@ -31,7 +31,8 @@ set.min <- function(mtx, replaceby=min(mtx[mtx != 0])) {
 mtx.plot <- function(mtx, dist.method="euclidean", hclust.method="ward.D2", SideColors) {
   par(oma=c(5,0,0,5), mar=c(10, 4.1, 4.1, 5), cex.main=0.65) # Adjust margins
   my.breaks <- seq(min(mtx[mtx!=min(mtx)]), max(mtx[mtx!=max(mtx)]), length.out=(2*granularity + 1))
-  h <- heatmap.2(as.matrix(mtx), trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=1, cexCol=1, breaks=my.breaks, main="Regulatory similarity clustering", RowSideColors=SideColors, ColSideColors=SideColors)  
+  # my.breaks <- seq(-1, 1, , 20) # For plotting heatmap of correlation coefficients
+  h <- heatmap.2(as.matrix(mtx), trace="none", density.info="none", symbreaks = TRUE, col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=1, cexCol=1, breaks=my.breaks, main="Regulatory similarity clustering", RowSideColors=SideColors, ColSideColors=SideColors)  
 }
 
 #' Define clusters
@@ -380,8 +381,8 @@ mtx.cellspecific <- function(mtx, fname) {
       rownames(cells.stats.disease) <- cells.stats.disease$Row.names
       cells.stats.disease$Row.names <- NULL
       colnames(cells.stats.disease) <- c(names(pval.disease)[d], "OR", "cell.sig", "cell.tot", "all.sig", "all.tot")
-      cells.stats.disease <- merge(cells.stats.disease, cellAnnot, by.x="row.names", by.y="cell")
-      class(cells.stats.disease$description) <- "character"
+      cells.stats.disease <- merge(cells.stats.disease, cells.annot, by.x="row.names", by.y="cell")
+      class(cells.stats.disease$celldescr) <- "character"
       cells.stats.disease[, 2] <- formatC(cells.stats.disease[, 2], format="e", digits=2)
       cells.stats.disease[, 3] <- formatC(cells.stats.disease[, 3], format="f", digits=2)
       write.xlsx2(cells.stats.disease[ order(as.numeric(cells.stats.disease[, 3]), decreasing = TRUE), ], fname, sheetName=names(pval.disease)[d], row.names=FALSE, append=TRUE)

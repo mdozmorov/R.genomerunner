@@ -25,6 +25,9 @@ gfAnnot <- read.xlsx2("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_d
 # Windows paths
 #gfAnnot <- tbl_df(read.table("F:/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 #cellAnnot <- tbl_df(read.table("F:/Work/GenomeRunner/genomerunner_database/hg19/ENCODE_cells.txt", sep="\t", header=T, fill=T, quote="\""))
+cells.annot <- aggregate(gfAnnot$celldescr, list(gfAnnot$cell), unique)
+cells.annot <- cells.annot[ cells.annot$Group.1 != "", ]
+colnames(cells.annot) <- c("cell", "celldescr")
 # Define color palette
 #color<-colorRampPalette(c("blue", "yellow", "red")) # Define color gradient
 color <- matlab.like
