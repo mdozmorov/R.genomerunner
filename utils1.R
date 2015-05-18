@@ -25,6 +25,7 @@ gfAnnot <- read.xlsx2("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_d
 #cellAnnot <- tbl_df(read.table("F:/Work/GenomeRunner/genomerunner_database/hg19/ENCODE_cells.txt", sep="\t", header=T, fill=T, quote="\""))
 cellAnnot <- aggregate(gfAnnot$celldescr, list(gfAnnot$cell), unique)
 colnames(cellAnnot) <- c("cell", "description")
+cellAnnot <- cellAnnot[ cellAnnot$cell != "", ] # Remove empty cells
 # Define color palette
 #color<-colorRampPalette(c("blue", "yellow", "red")) # Define color gradient
 color <- matlab.like
