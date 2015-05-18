@@ -352,6 +352,10 @@ mtx.cellspecific <- function(mtx, fname) {
                              tot.sig - cells.sig[c], tot.tests - tot.sig - (cells.tests[c] - cells.sig[c])),
                            dimnames=list(c("cell", "not cell"), c("sig", "not sig")),
                            ncol=2) # 2x2 contingency table
+      # Where zeros cause problems with computation of the odds ratio or its standard error, 0.5 is added to all cells (a, b, c, d) (Pagano & Gauvreau, 2000; Deeks & Higgins, 2010).
+      if(cells.c2x2["cell", "sig"] == 0 | cells.c2x2["cell", "not sig"] == 0 | cells.c2x2["not cell", "sig"] == 0 | cells.c2x2["not cell", "not sig"] == 0) {
+        cells.c2x2 <- cells.c2x2 + 1
+      }
       cells.test <- fisher.test(cells.c2x2)
       if(cells.test$estimate > 1){
         pval.disease.cell[c] <- cells.test$p.value # Store the enrichment p-values
@@ -381,8 +385,8 @@ mtx.cellspecific <- function(mtx, fname) {
       rownames(cells.stats.disease) <- cells.stats.disease$Row.names
       cells.stats.disease$Row.names <- NULL
       colnames(cells.stats.disease) <- c(names(pval.disease)[d], "OR", "cell.sig", "cell.tot", "all.sig", "all.tot")
-      cells.stats.disease <- merge(cells.stats.disease, cells.annot, by.x="row.names", by.y="cell")
-      class(cells.stats.disease$celldescr) <- "character"
+      cells.stats.disease <- merge(cells.stats.disease, cellAnnot, by.x="row.names", by.y="cell")
+      class(cells.stats.disease$description) <- "character"
       cells.stats.disease[, 2] <- formatC(cells.stats.disease[, 2], format="e", digits=2)
       cells.stats.disease[, 3] <- formatC(cells.stats.disease[, 3], format="f", digits=2)
       write.xlsx2(cells.stats.disease[ order(as.numeric(cells.stats.disease[, 3]), decreasing = TRUE), ], fname, sheetName=names(pval.disease)[d], row.names=FALSE, append=TRUE)
