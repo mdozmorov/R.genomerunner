@@ -315,18 +315,18 @@ mtx.rand <- function(mtx, randomize="row") {
 #' 
 #' @param mtx a matrix of the enrichment results. The cell type-specific enrichment analysis is performed on each column.
 #' @param fname a path to a filename to save the results. Should be with "xlsx" extension. The results for each column are saved in separate worksheets.
+#' @param pval a p-value cutoff for cell type enrichment significance. Default: 0.01
 #' @return Nothing, saves the results into the file
 #' @export
 #' @examples
 #' mtx.cellspecific(mtx, fname="results/cellspecific_Roadmap.xlsx")
 ##
-mtx.cellspecific <- function(mtx, fname) {
+mtx.cellspecific <- function(mtx, fname, pval=0.01) {
   n.diseases <- ncol(mtx) # Total number of diseases to calculate the cell type-specific p-values
   # Prepare the matrix for merging with GF annotations
   mtx <- as.data.frame(cbind(GF=rownames(mtx), mtx))
   mtx <- left_join(mtx, gfAnnot[, c("name", "cell", "factor", "description")], by=c("GF" = "name")) 
   
-  pval <- 0.01 # P-value cutoff above which count the enrichments significant
   cells <- unique(mtx$cell) # All cell types
   # Global counts
   tot.tests <- nrow(mtx) # Total number of enrichment analyses
