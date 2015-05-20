@@ -185,6 +185,89 @@ mtx.degs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fdr
   return(degs.matrix)
 }
 
+#' Defines epigenetic marks differentially annotated in each group
+#' 
+#' @param mtx an annotation matrix. Rows are epigenetic marks, columns are regions, cells are numbers of annotations they overlap. 
+#' We are asking a question, are clustered groups of regions differentially annotated? Normally, it is a transposed annotation matrix
+#' @param clust clustering definition from 'mtx.clusters'
+#' @param label a label to be appended to a file name. Default - NULL, no file created
+#' @param cutoff.pval p-value cutoff to use when testing for differential annotation. Default - 0.1
+#' @param cutoff.adjust a method to correct p-values for multiple testing. Default - "fdr
+#' @param cutoff.annot a threshold to binarize annotations. If a region overlaps an epigenetic marks more than this cutoff,
+#' it is considered annotated, and vice versa. Default - 1, i.e., if a region considered to be annotated if it overlaps
+#' an epigenetic mark at least once. For large regions that may overlap multiple times, use larger thresholds
+#'
+#' @return prints a summary of the counts of differentially annotated marks
+#' @return saves the differentially annotated marks in a file
+#' @note To save clustering of differentially annotated regions, use 'mtx.clust' object
+#' @export
+#' @examples
+#' mtx.deannot(mtx.annot, mtx.clust, label="broadPeaks", cutoff.annot=18)
+##
+mtx.deannot <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fdr", cutoff.annot=1) {
+  eset<-new("ExpressionSet", exprs=(as.matrix(mtx[ , clust$eset.labels])))
+  # Make model matrix
+  design<-model.matrix(~ 0+factor(clust$eset.groups))
+  colnames(design)<-paste("c", unique(clust$eset.groups), sep="")
+  # Create an empty square matrix to hold counts of DEGs
+  degs.matrix<-matrix(0, length(unique(clust$eset.groups)), length(unique(clust$eset.groups)))
+  colnames(degs.matrix)<-paste("c", unique(clust$eset.groups), sep="")
+  rownames(degs.matrix)<-paste("c", unique(clust$eset.groups), sep="") 
+  degs <- list() # List that holds p-values for each test
+  cnts <- vector(mode="list", length=length(colnames(design))) # List that holds counts for each test
+  for(i in 1:length(colnames(design))){ 
+    for(j in 1:length(colnames(design))){
+      # Test only unique pairs of clusters
+      if (i < j) {
+        d <- vector(mode="numeric", length=nrow(exprs(eset))) # Vector that holds p-values
+        ct.i <- vector(mode="integer", length=nrow(exprs(eset))) # Vector that holds counts for cluster i
+        ct.j <- vector(mode="integer", length=nrow(exprs(eset))) # Vector that holds counts for cluster j
+        for (z in 1:nrow(exprs(eset))) {
+          count1 <- sum(exprs(eset)[z, design[, i] == 1] >= cutoff.annot)
+          total1 <-length(exprs(eset)[z, design[, i] == 1])
+          count2 <- sum(exprs(eset)[z, design[, j] == 1] >= cutoff.annot)
+          total2 <-length(exprs(eset)[z, design[, j] == 1])
+          if (count1 == total1 & count2 == total2) {
+            d[z] <- 1 # If all is annotated, we can't do proportion test and set p-value as non-significant
+          } else {
+            # Proportion test. http://ww2.coastal.edu/kingw/statistics/R-tutorials/proport.html
+            d[z] <- prop.test(x=c(count1, count2), n=c(total1, total2), alternative="two.sided", conf.level=.95)$p.value
+          }
+          ct.i[z] <- count1 # Store counts for i cluster
+          ct.j[z] <- count2 # Store counts for i cluster
+        }
+        names(d) <- rownames(exprs(eset)) # Assign names of the GFs to the vector of p-values
+        d <- p.adjust(d, method=cutoff.adjust) # Correct for multiple testing
+        ndegs <- sum(d < cutoff.pval, na.rm=T) # The number of differentially associated regulatory datasets
+        print(paste(i, "vs.", j, ", number of degs significant at adj.p.val <", cutoff.pval, ":", ndegs))
+        # Keep the number of DEGs in the matrix
+        degs.matrix[i, j] <- ndegs
+        # Keep the p-values
+        degs <- c(degs, list(d)) # Append to list of p-values
+        names(degs)[length(degs)] <- paste("cl",i, "cl", j, sep="_") # Name the list
+        # Keep the number of counts
+        cnts[[i]] <- ct.i # Append to list of counts
+        names(cnts)[i] <- colnames(design)[i] # Name the list
+        cnts[[j]] <- ct.j # Append to list of counts
+        names(cnts)[j] <- colnames(design)[j] # Name the list
+      }
+    }
+  }
+  # Save the results
+  if (!is.null(label)) {
+    unlink(paste("results/deannot", label, ".xlsx", sep="_"))
+    # After completing all the tests, save the results
+    degs <- as.data.frame(lapply(degs, unlist))
+    cnts <- as.data.frame(lapply(cnts, unlist))
+    degs.table <- cbind(degs, cnts)
+    degs.table <- merge(degs.table, gfAnnot, by.x="row.names", by.y="name", all.x=TRUE, sort=FALSE) # Merge with the descriptions
+    write.xlsx2(degs.table, paste("results/deannot", label, ".xlsx", sep="_"), sheetName="diffAnnot", row.names=FALSE)
+  }
+  print("Counts of GFs showing differential annotations between clusters (groups of FOIs)")
+  pander(degs.matrix)
+  return(degs.matrix)
+}
+
 #' Differentia clinical parameters
 #' 
 #' A function to detect differential proportions of clinical data
