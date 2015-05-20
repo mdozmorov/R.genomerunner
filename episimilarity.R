@@ -88,7 +88,7 @@ mtx.clusters <- function(mtx.colDendrogram, height=10, minmembers=3, label=NULL)
 ##
 mtx.degfs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fdr") {
   # Limma on clusters
-  eset<-new("ExpressionSet", exprs=(as.matrix(mtx)))
+  eset<-new("ExpressionSet", exprs=(as.matrix(mtx[ , clust$eset.labels])))
   # Make model matrix
   design<-model.matrix(~ 0+factor(clust$eset.groups))
   colnames(design)<-paste("c", unique(clust$eset.groups), sep="")
@@ -150,7 +150,7 @@ mtx.degfs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fd
 ##
 mtx.degs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fdr") {
   # Limma on clusters
-  eset<-new("ExpressionSet", exprs=(as.matrix(mtx)))
+  eset<-new("ExpressionSet", exprs=(as.matrix(mtx[ , clust$eset.labels])))
   # Make model matrix
   design<-model.matrix(~ 0+factor(clust$eset.groups)) 
   colnames(design)<-paste("c", unique(clust$eset.groups), sep="")
