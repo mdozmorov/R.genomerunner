@@ -6,7 +6,7 @@
 #getV2OddsRatioMatrix(infile)
 #currently this function assumes TCGA as it crops the row names.  I can take the cropping out if you want.
 getV2OddsRatioMatrix <- function(infile){
-
+  
   ## load file
   v2 <- read.delim(infile)
   
@@ -53,7 +53,7 @@ getV2OddsRatioMatrix <- function(infile){
   } else {
     print("Error: invalid number of foi or GF. num_foi*num_GF != num_mat_rows.")
     print(paste("num_foi=", num_foi, " num_GF=", length(GF), " num_mat_rows=", mat_len, sep=""))
-    }
+  }
   
   ## Now save odds matrix and pval matrix to file
   ##write.table(t(odds_mat), file=paste(infile, ".OR", sep=""), quote=FALSE, sep="\t")
@@ -88,7 +88,7 @@ getV1OddsRatioPvalMatrix <- function(infile){
   
   # Now, load file after manually copying the header line into the file:
   v1 <- read.delim(modfile)
-
+  
   # Get a list of GFs:
   GF <- subset(v1,grepl("^Features analyzed:.*",foi_name))
   
