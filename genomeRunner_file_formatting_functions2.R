@@ -30,24 +30,16 @@ getV2OddsRatioMatrix <- function(infile){
     tmp$c = as.numeric(paste(mat$bg_obs)) - tmp$a
     tmp$b = as.numeric(paste(mat$n_fois)) - tmp$a
     tmp$d = as.numeric(paste(mat$n_bgs)) - as.numeric(paste(mat$n_fois)) - tmp$c
-    # from http://www.medcalc.org/calc/odds_ratio.php
-    # Where zeros cause problems with computation of the odds ratio or its standard error, 0.5 is added to all cells (a, b, c, d) (Pagano & Gauvreau, 2000; Deeks & Higgins, 2010).
-    tmp[(tmp$a == 0 | tmp$b == 0 | tmp$c == 0 | tmp$d == 0), ] <- tmp[(tmp$a == 0 | tmp$b == 0 | tmp$c == 0 | tmp$d == 0), ] + 0.5 # This makes calculations possible
-    # create the new odds ratio column in the data frame
-    mat$newOR = (tmp$a * tmp$d) / (tmp$b * tmp$c) 
-
-    # from https://en.wikipedia.org/wiki/Fisher%27s_exact_test
-    # asymptotic chi-square approximation is adequate if expected number of observations per cell is at least 5
-    ind <- (tmp$a < 5 | tmp$b < 5 | tmp$c < 5 | tmp$d < 5) # Indexes where any of the cells is less than 5
-    # Exclude unreliable calculations
-    mat$newOR[ ind ] <- NA 
+    ## Perform Fisher's exact test and store all the results
+    tmp1 <- apply(tmp, 1, function(x) fisher.test(matrix(unlist(x), 2, 2)))
+    # If OR confidence interval includes 1, then OR is not significant, set to 1
+    mat$newOR <- sapply(tmp1, function(x) {ifelse(x$conf.int[1] < 1 & x$conf.int[2] > 1, 1, x$estimate)})
+    mat$newOR[ is.infinite(mat$newOR) ] <- .Machine$integer.max # Set infinite ORs to maximum number
     
     # Now modify the pvalues based on this new odds ratio value.
-    mat$newPval = mat$p_val
+    mat$newPval <- sapply(tmp1, "[[", "p.value") # Store p-values
     mat$newPval[ mat$newPval < 1e-300 ] <- 1e-300 # Make 0 p-values to have some value, so they can be modified by OR
     mat$newPval[which(mat$newOR < 1)] = -1*mat$newPval[which(mat$newOR < 1)]
-    # Exclude unreliable calculations
-    mat$newPval[ ind ] <- NA 
     
     # Extract the new odds ratio and pvalues from the data frame and save to seperate files.
     odds_mat=as.data.frame(matrix(mat$newOR,nrow=num_foi,ncol=num_GF))
@@ -124,27 +116,26 @@ getV1OddsRatioPvalMatrix <- function(infile){
   
   #add data to the list and calculate odds ratio and insert column
   for(i in 1:dim(parsed_GF)[1]){
-    data[[as.character(parsed_GF$GF[i])]] <- v1[parsed_GF$dstart[i]:parsed_GF$dend[i],]
+    data[[i]] <- v1[parsed_GF$dstart[i]:parsed_GF$dend[i],]
     
     tmp <- data.frame(a=as.numeric(paste(data[[i]][,"Observed"])), c=as.numeric(paste(data[[i]][,"Expected"])) )
     tmp$b = as.numeric(paste(parsed_GF$tot[i])) - tmp$a
     tmp$d = as.numeric(paste(parsed_GF$tot[i])) - tmp$c
-    # from http://www.medcalc.org/calc/odds_ratio.php
-    # Where zeros cause problems with computation of the odds ratio or its standard error, 0.5 is added to all cells (a, b, c, d) (Pagano & Gauvreau, 2000; Deeks & Higgins, 2010).
-    tmp[(tmp$a == 0 | tmp$b == 0 | tmp$c == 0 | tmp$d == 0), ] <- tmp[(tmp$a == 0 | tmp$b == 0 | tmp$c == 0 | tmp$d == 0), ] + 0.5 # This makes calculations possible
-    # create the new odds ratio column in the data frame
-    data[[i]]$odds = (tmp$a * tmp$d) / (tmp$b * tmp$c) 
+    ## Perform Fisher's exact test and store all the results
+    tmp1 <- apply(tmp, 1, function(x) fisher.test(matrix(unlist(x), 2, 2)))
+    # If OR confidence interval includes 1, then OR is not significant, set to 1
+    data[[i]]$newOR <- sapply(tmp1, function(x) {ifelse(x$conf.int[1] < 1 & x$conf.int[2] > 1, 1, x$estimate)})
+    data[[i]]$newOR[ is.infinite(data[[i]]$newOR) ] <- .Machine$integer.max # Set infinite ORs to maximum number
     
-    # from https://en.wikipedia.org/wiki/Fisher%27s_exact_test
-    # asymptotic chi-square approximation is adequate if expected number of observations per cell is at least 5
-    ind <- (tmp$a < 5 | tmp$b < 5 | tmp$c < 5 | tmp$d < 5) # Indexes where any of the cells is less than 5
-    # Exclude unreliable calculations
-    data[[i]]$odds[ ind ] <- NA
+    # Now modify the pvalues based on this new odds ratio value.
+    data[[i]]$newPval <- sapply(tmp1, "[[", "p.value") # Store p-values
+    data[[i]]$newPval[ data[[i]]$newPval < 1e-300 ] <- 1e-300 # Make 0 p-values to have some value, so they can be modified by OR
+    data[[i]]$newPval[which(data[[i]]$newOR < 1)] = -1*data[[i]]$newPval[which(data[[i]]$newOR < 1)]
   }
   
   # Now we have all info we need to extract columns into matricies!
   # get the odds ratio data
-  oddsRatios <- as.data.frame(lapply(data, "[[", "odds"))
+  oddsRatios <- as.data.frame(lapply(data, "[[", "newOR"))
   row.names(oddsRatios) = pdf
   # write odds ratio data to file
   ## Now save odds matrix to file
@@ -153,18 +144,10 @@ getV1OddsRatioPvalMatrix <- function(infile){
   # Now get the pvalues.  They are modified to have a negative sign IF the odds ratio is less than 1.  
   # If odds ratio is NaN or Inf or -Inf or NA then nothing is done to the pvalues.  
   # this happens when the contingency table data contains zeros.
-  modPvals <- lapply(data, "[[", "p.val")
+  modPvals <- lapply(data, "[[", "newPval")
   modPvals <- lapply(modPvals, "paste")
   modPvals <- as.matrix(as.data.frame(lapply(modPvals, "as.numeric")))
-  modPvals[ modPvals < 1e-300 ] <- 1e-300 # Make 0 p-values to have some value, so they can be modified by OR
   row.names(modPvals) = pdf
-  #modify pvalues to be negative if oddsRatios are less than 1.
-  bool <- oddsRatios < 1
-  bool[!is.finite(bool)] <- FALSE
-  modPvals[bool] = -1*modPvals[bool]
-  # Set unreliable p-values to NA
-  modPvals[ is.na(oddsRatios) ] <- NA
-  
   # Now save the modified pvalues to a file
   write.table(as.data.frame((modPvals)), file=paste(dirname(infile), "matrix_PVAL.txt", sep="/"), quote=FALSE, sep="\t")
 }
