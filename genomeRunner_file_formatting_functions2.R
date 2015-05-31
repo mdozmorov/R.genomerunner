@@ -35,6 +35,7 @@ getV2OddsRatioMatrix <- function(infile){
     # If OR confidence interval includes 1, then OR is not significant, set to 1
     mat$newOR <- sapply(tmp1, function(x) {ifelse(x$conf.int[1] < 1 & x$conf.int[2] > 1, 1, x$estimate)})
     mat$newOR[ is.infinite(mat$newOR) ] <- .Machine$integer.max # Set infinite ORs to maximum number
+    mat$newOR[ mat$newOR == 0 ] <- .Machine$double.eps # Set zero ORs to minimum number
     
     # Now modify the pvalues based on this new odds ratio value.
     mat$newPval <- sapply(tmp1, "[[", "p.value") # Store p-values
@@ -126,6 +127,7 @@ getV1OddsRatioPvalMatrix <- function(infile){
     # If OR confidence interval includes 1, then OR is not significant, set to 1
     data[[i]]$newOR <- sapply(tmp1, function(x) {ifelse(x$conf.int[1] < 1 & x$conf.int[2] > 1, 1, x$estimate)})
     data[[i]]$newOR[ is.infinite(data[[i]]$newOR) ] <- .Machine$integer.max # Set infinite ORs to maximum number
+    data[[i]]$newOR[ data[[i]]$newOR == 0 ] <- .Machine$double.eps # Set zero ORs to minimum number
     
     # Now modify the pvalues based on this new odds ratio value.
     data[[i]]$newPval <- sapply(tmp1, "[[", "p.value") # Store p-values

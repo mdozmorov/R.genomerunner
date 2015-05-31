@@ -102,6 +102,7 @@ mtx.degfs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fd
       # Test only unique pairs of clusters
       if (i < j) {
         degs <- apply(exprs(eset), 1, function(x) t.test(x[design[, i] == 1], x[design[, j] == 1])$p.value)
+        #tmp <- sapply(degs, "[[", "p.value")[sapply(degs, "[[", "conf.int")[1] ]
         degs <- p.adjust(degs, method=cutoff.adjust)
         degs <- degs[degs < cutoff.pval]
         if(sum(degs < cutoff.pval) > 0) {
@@ -123,7 +124,7 @@ mtx.degfs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fd
             degs.table[, 2] <- formatC(degs.table[, 2], format="e", digits=2)
             degs.table[, 3] <- formatC(degs.table[, 3], format="f", digits=3)
             degs.table[, 4] <- formatC(degs.table[, 4], format="f", digits=3)
-            write.xlsx2(degs.table, paste("results/degfs", label, ".xlsx", sep="_"), sheetName=paste(colnames(design)[i], "vs", colnames(design)[j], sep="_"), row.names=FALSE, append=TRUE)
+            write.xlsx2(degs.table, paste("results/degfs_", label, ".xlsx", sep=""), sheetName=paste(colnames(design)[i], "vs", colnames(design)[j], sep="_"), row.names=FALSE, append=TRUE)
           }
         }
       } 
@@ -435,16 +436,17 @@ mtx.cellspecific <- function(mtx, fname, pval=0.01) {
                              tot.sig - cells.sig[c], tot.tests - tot.sig - (cells.tests[c] - cells.sig[c])),
                            dimnames=list(c("cell", "not cell"), c("sig", "not sig")),
                            ncol=2) # 2x2 contingency table
-      # Where zeros cause problems with computation of the odds ratio or its standard error, 0.5 is added to all cells (a, b, c, d) (Pagano & Gauvreau, 2000; Deeks & Higgins, 2010).
-      if(cells.c2x2["cell", "sig"] == 0 | cells.c2x2["cell", "not sig"] == 0 | cells.c2x2["not cell", "sig"] == 0 | cells.c2x2["not cell", "not sig"] == 0) {
-        cells.c2x2 <- cells.c2x2 + 1
-      }
+      # Fisher's exact
       cells.test <- fisher.test(cells.c2x2)
-      if(cells.test$estimate > 1){
+      if (cells.test$conf.int[1] < 1 & cells.test$conf.int[2] > 1) { # If odds ratio spans over 1
+        cells.test$p.value <- 1 # P-value is not significant
+        cells.test$estimate <- 1 # Odds ratio is also not significant
+      }
+      if (cells.test$estimate > 1) { # Consider enrichments only
         pval.disease.cell[c] <- cells.test$p.value # Store the enrichment p-values
       } else {
         pval.disease.cell[c] <- 1 # If depletion, it's not interesting
-      }
+      } 
       c2x2.disease.cell <- c( c2x2.disease.cell, list(c(cells.test$estimate, cells.sig[c], cells.tests[c], tot.sig, tot.tests))) # Store the numbers to construct 2x2 tables
     }
     names(pval.disease.cell) <- cells # Name the collected vectors
