@@ -54,7 +54,7 @@ library(xlsx)
 # Load term mapping
 term.mapping <- read.xlsx2("data/icd9_mapping.xlsx", sheetName="manual")
 # Load the data
-mtx <- load_gr_data("data/Roadmap_broadPeak2/matrix_PVAL.txt")
+mtx <- load_gr_data("data/Roadmap_broadPeak2/matrix_OR.txt")
 mtx <- mtx[, match(term.mapping$BED, colnames(mtx))] # Match and subset the data
 # A vector of category names, same order as the correlation matrix
 categoryNames <- term.mapping$Category[ match(colnames(mtx), term.mapping$Name) ]
@@ -96,7 +96,7 @@ Epigenomic similarity analysis groups SNP sets by correlation of their epigenomi
 
 ```{r}
 # rcorr returns a list, [[1]] - correl coeffs, [[3]] - p-values. Type - pearson/spearman
-mtx.cor <- rcorr(as.matrix(mtx), type="pearson")[[1]]
+mtx.cor <- rcorr(as.matrix(mtx), type="spearman")[[1]]
 # Optionally, try Spearman or Kendall correlation
 # mtx.cor[[1]] <- cor(as.matrix(mtx), method="kendall")
 ```
@@ -111,13 +111,15 @@ We can also evaluate clustering stability using 'pvclust' package.
 
 ```{r eval=TRUE, fig.height=7, results='hold'}
 library(pvclust)
-# library(parallel)
-# cl <- makeCluster(4, type="PSOCK")
-# result <- parPvclust(cl=cl, mtx, method.dist=dist.method, method.hclust=hclust.method, nboot=10000, iseed=1)
-# stopCluster(cl)
-# saveRDS(result, "data/pvClust_10000.Rds")
+library(parallel)
+# "euclidean", "maximum", "manhattan", "canberra", "binary" or "minkowski"
+# dist.method <- "minkowski"
+cl <- makeCluster(4, type="PSOCK")
+result <- parPvclust(cl=cl, mtx, method.dist=dist.method, method.hclust=hclust.method, nboot=1000, iseed=1)
+stopCluster(cl)
+saveRDS(result, "data/pvClust_10000.Rds")
 result <- readRDS("data/pvClust_10000.Rds")
-#dev.off()
+dev.off()
 plot(result)
 pvrect(result, alpha=0.9, type="leq", max.only = TRUE, lwd=3)
 hclustergram <- result$hclust # Make the heatmap plot whatever hclust object

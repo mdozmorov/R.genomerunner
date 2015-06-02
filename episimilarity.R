@@ -101,7 +101,7 @@ mtx.degfs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fd
     for(j in 1:length(colnames(design))){
       # Test only unique pairs of clusters
       if (i < j) {
-        degs <- apply(exprs(eset), 1, function(x) t.test(x[design[, i] == 1], x[design[, j] == 1])$p.value)
+        degs <- apply(exprs(eset), 1, function(x) wilcox.test(x[design[, i] == 1], x[design[, j] == 1])$p.value)
         #tmp <- sapply(degs, "[[", "p.value")[sapply(degs, "[[", "conf.int")[1] ]
         degs <- p.adjust(degs, method=cutoff.adjust)
         degs <- degs[degs < cutoff.pval]

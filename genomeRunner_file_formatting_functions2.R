@@ -33,7 +33,7 @@ getV2OddsRatioMatrix <- function(infile){
     ## Perform Fisher's exact test and store all the results
     tmp1 <- apply(tmp, 1, function(x) fisher.test(matrix(unlist(x), 2, 2)))
     # If OR confidence interval includes 1, then OR is not significant, set to 1
-    mat$newOR <- sapply(tmp1, function(x) {ifelse(x$conf.int[1] < 1 & x$conf.int[2] > 1, 1, x$estimate)})
+    mat$newOR <- sapply(tmp1, function(x) {ifelse(x$conf.int[1] < 1 & x$conf.int[2] > 1, 1, ifelse(x$estimate < 1, x$conf.int[2], x$conf.int[1]))})
     mat$newOR[ is.infinite(mat$newOR) ] <- .Machine$integer.max # Set infinite ORs to maximum number
     mat$newOR[ mat$newOR == 0 ] <- .Machine$double.eps # Set zero ORs to minimum number
     
@@ -125,7 +125,7 @@ getV1OddsRatioPvalMatrix <- function(infile){
     ## Perform Fisher's exact test and store all the results
     tmp1 <- apply(tmp, 1, function(x) fisher.test(matrix(unlist(x), 2, 2)))
     # If OR confidence interval includes 1, then OR is not significant, set to 1
-    data[[i]]$newOR <- sapply(tmp1, function(x) {ifelse(x$conf.int[1] < 1 & x$conf.int[2] > 1, 1, x$estimate)})
+    data[[i]]$newOR <- sapply(tmp1, function(x) {ifelse(x$conf.int[1] < 1 & x$conf.int[2] > 1, 1, ifelse(x$estimate < 1, x$conf.int[2], x$conf.int[1]))})
     data[[i]]$newOR[ is.infinite(data[[i]]$newOR) ] <- .Machine$integer.max # Set infinite ORs to maximum number
     data[[i]]$newOR[ data[[i]]$newOR == 0 ] <- .Machine$double.eps # Set zero ORs to minimum number
     
@@ -139,6 +139,7 @@ getV1OddsRatioPvalMatrix <- function(infile){
   # get the odds ratio data
   oddsRatios <- as.data.frame(lapply(data, "[[", "newOR"))
   row.names(oddsRatios) = pdf
+  colnames(oddsRatios) = parsed_GF$GF
   # write odds ratio data to file
   ## Now save odds matrix to file
   write.table(as.data.frame((oddsRatios)), file=paste(dirname(infile), "matrix_OR.txt", sep="/"), quote=FALSE, sep="\t")
@@ -150,6 +151,7 @@ getV1OddsRatioPvalMatrix <- function(infile){
   modPvals <- lapply(modPvals, "paste")
   modPvals <- as.matrix(as.data.frame(lapply(modPvals, "as.numeric")))
   row.names(modPvals) = pdf
+  colnames(modPvals) = parsed_GF$GF
   # Now save the modified pvalues to a file
   write.table(as.data.frame((modPvals)), file=paste(dirname(infile), "matrix_PVAL.txt", sep="/"), quote=FALSE, sep="\t")
 }

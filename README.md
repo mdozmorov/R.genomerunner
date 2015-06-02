@@ -5,7 +5,7 @@ Scripts for processing the enrichment analysis matrixes produced by [GenomeRunne
 
 * `Analysis.Rmd and Analysis.html` - The main tutorial for the enrichment and regulatory similarity analyses and visualization in R.
 
-* `Analysis2.Rmd and Analysis2.html` - The main tutorial with steps automated using `utils2.R` and `episimilarity.R` auxillary functions.
+* `Analysis_v2.Rmd and Analysis2.html` - The main tutorial with steps automated using `utils2.R` and `episimilarity.R` auxillary functions.
 
 * `Enrichment_analysis.Rmd and Enrichment_analysis.html` - Demonstration of the ideas for visualization of the enrichment results.
 
