@@ -96,13 +96,13 @@ mtx.degfs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fd
   degs.matrix<-matrix(0, length(unique(clust$eset.groups)), length(unique(clust$eset.groups)))
   colnames(degs.matrix)<-paste("c", unique(clust$eset.groups), sep="")
   rownames(degs.matrix)<-paste("c", unique(clust$eset.groups), sep="") 
-  unlink(paste("results/degfs", label, ".xlsx", sep="_"))
+  unlink(paste("results/degfs_", label, ".xlsx", sep=""))
   for(i in 1:length(colnames(design))){ 
     for(j in 1:length(colnames(design))){
       # Test only unique pairs of clusters
       if (i < j) {
         degs <- apply(exprs(eset), 1, function(x) wilcox.test(x[design[, i] == 1], x[design[, j] == 1])$p.value)
-        #tmp <- sapply(degs, "[[", "p.value")[sapply(degs, "[[", "conf.int")[1] ]
+        degs <- degs[ !is.na(degs) ] # Precaution against NA p-values, when both clusters have exactly the same numbers
         degs <- p.adjust(degs, method=cutoff.adjust)
         degs <- degs[degs < cutoff.pval]
         if(sum(degs < cutoff.pval) > 0) {
