@@ -95,15 +95,15 @@ Epigenomic similarity analysis groups SNP sets by comparing their epigenomic enr
 ```{r}
 # "euclidean", "maximum", "manhattan", "canberra", "binary" or "minkowski"
 dist.method <- "euclidean"
-d <- dist(t(mtx), method = dist.method) # Get distance matrix
+mtx.cor <- dist(t(mtx), method = dist.method) # Get distance matrix
 # "ward.D", "ward.D2", "single", "complete", "average" (= UPGMA), "mcquitty" (= WPGMA), "median" (= WPGMC) or "centroid" (= UPGMC)
 hclust.method <- "ward.D2"
-hclustergram <- hclust(d, method=hclust.method) # Cluster it
+hclustergram <- hclust(mtx.cor, method=hclust.method) # Cluster it
 ```
 
 We can also evaluate clustering stability using the 'pvclust' package.
 
-```{r eval=TRUE, fig.height=7, results='hold'}
+```{r eval=FALSE, fig.height=7, results='hold'}
 library(pvclust)
 library(parallel)
 cl <- makeCluster(4, type="PSOCK")
@@ -119,11 +119,11 @@ hclustergram <- result$hclust # Make the heatmap plot whatever hclust object
 
 And, we can visualize this clustering using the 'aheatmap' function from the 'NMF' package.
 
-```{r fig.height=7}
+```{r fig.height=8}
 suppressMessages(library(NMF))
 annot <- data.frame(Category=term.mapping$Category) #, Size=as.numeric(term.mapping$BEDcount))
 annotColor <- list(Category=c("red", "blue", "green", "yellow")) #, Size=c("red", "white", "blue"))
-h <- aheatmap(as.matrix(d), Rowv=as.dendrogram(hclustergram), Colv=as.dendrogram(hclustergram), color=(c("red", "yellow", "blue")), distfun=dist.method, hclustfun=hclust.method, annCol=annot, annColors = annotColor, cexCol = 1, cexRow = 1)
+h <- aheatmap(as.matrix(mtx.cor), Rowv=as.dendrogram(hclustergram), Colv=as.dendrogram(hclustergram), color=(c("red", "yellow", "blue")), distfun=dist.method, hclustfun=hclust.method, annCol=annot, annColors = annotColor, cexCol = 1, cexRow = 1)
 ```
 
 We can also estimate similarity among the epigenomic enrichment profiles using Spearman correlation coefficient
@@ -148,8 +148,8 @@ The heatmap object contains information about the clustering. This information c
 
 ```{r fig.height=6, eval=TRUE}
 # Empirically define clusters
-par(mfrow=c(1, 2))
-plot(as.hclust(h$Colv), cex=0.3) # Plot dendrogram
+par(mfrow=c(1, 2), cex=0.5)
+plot(as.dendrogram(h$Colv, hang=-1)) # Plot dendrogram
 cl_num <- 5 # Empirically set desired numter of clusters
 cols <- rainbow(cl_num) # Make colors for clusters
 rect.hclust(as.hclust(h$Colv), k=cl_num, border=cols) # Define the clusters by rectangles
