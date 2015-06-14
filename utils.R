@@ -10,7 +10,7 @@ library(Biobase)
 library(limma)
 library(pander)
 # Work paths
-gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
+gfAnnot <- tbl_df(read.table("/home/lukas/db_2.00_06-10-2015/grsnp_db/hg19/GFs_hg19_joined_cell_factor.xlsx", sep="\t", header=F))
 # Home paths
 #gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
 
