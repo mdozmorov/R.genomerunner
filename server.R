@@ -18,15 +18,17 @@ shinyServer(function(input, output) {
     hclust(as.dist(1-cor.mat), method=input$cmbClustMethod);
   })
   
+  get.dend.file <- reactive({
+    readRDS(file = "/home/lukas/heatmap.dend.rds")
+  })
+  
   output$heatmap <- renderD3heatmap({     
     cor.mat <- get.corr.matrix()
     hclustergram <- get.hclust.mat()
-    d3heatmap::d3heatmap(as.matrix(cor.mat), heatmap_options = list(Rowv=as.dendrogram(hclustergram), Colv=as.dendrogram(hclustergram)))
+    d3heatmap::d3heatmap(as.matrix(cor.mat),heatmap_options = list(Rowv=hclustergram$Rowv,Colv=hclustergram$Colv,keep.dendro=TRUE))
   })
   output$pltDend <- renderPlot({
-    clust.mat <- get.hclust.mat();
-    print(summary(clust.mat))
-    #clust.tree <- mtx.clusters(as.dendrogram(hclust.mat),height =input$sldNumGroups);
-    plot(as.dendrogram(clust.mat),horiz=T);
+    dend = get.dend.file()
+    plot(dend)
   })
 })
