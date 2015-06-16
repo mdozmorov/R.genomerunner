@@ -97,6 +97,7 @@ mtx.degfs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fd
   colnames(degs.matrix)<-paste("c", unique(clust$eset.groups), sep="")
   rownames(degs.matrix)<-paste("c", unique(clust$eset.groups), sep="") 
   unlink(paste("results/degfs_", label, ".xlsx", sep=""))
+  degfs.list <- list()
   for(i in 1:length(colnames(design))){ 
     for(j in 1:length(colnames(design))){
       # Test only unique pairs of clusters
@@ -119,11 +120,15 @@ mtx.degfs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fd
           # Keep the number of DEGs in the matrix
           degs.matrix[i, j] <- nrow(degs.pvals)
           degs.table <- merge(degs.pvals, gfAnnot, by.x="row.names", by.y="name", all.x=TRUE, sort=FALSE) # Merge with the descriptions
+          # Format columns
+          degs.table[, 2] <- formatC(degs.table[, 2], format="e", digits=2)
+          degs.table[, 3] <- formatC(degs.table[, 3], format="f", digits=3)
+          degs.table[, 4] <- formatC(degs.table[, 4], format="f", digits=3)
+          # Save the results in the list
+          degfs.list <- c(degfs.list, list(degs.table))
+          names(degfs.list)[length(degfs.list)] <- paste(colnames(design)[i], "vs", colnames(design)[j], sep="_") # Name the list after combination of clustering
+          # Save the results in the file
           if (!is.null(label)) {
-            # Format columns
-            degs.table[, 2] <- formatC(degs.table[, 2], format="e", digits=2)
-            degs.table[, 3] <- formatC(degs.table[, 3], format="f", digits=3)
-            degs.table[, 4] <- formatC(degs.table[, 4], format="f", digits=3)
             write.xlsx2(degs.table, paste("results/degfs_", label, ".xlsx", sep=""), sheetName=paste(colnames(design)[i], "vs", colnames(design)[j], sep="_"), row.names=FALSE, append=TRUE)
           }
         }
@@ -132,7 +137,7 @@ mtx.degfs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fd
   }
   print("Counts of differential regulatory elements")
   pander(degs.matrix)
-  return(degs.matrix)
+  return(degfs.list) # Return the full list of the results
 }
 
 #' Defines genes differentially expressed in each group
@@ -333,7 +338,7 @@ mtx.clinparam <- function(mtx, clust, label=NULL) {
   }
   # Save the results
   if (!is.null(label)) {
-  unlink(paste("results/clinparams", label, ".txt", sep="_"))
+    unlink(paste("results/clinparams", label, ".txt", sep="_"))
     for (comparison in 1:length(degs)) {
       if( length(degs[[comparison]][ degs[[comparison]] < cutoff.pval]) > 0 ) {
         tmp <- cbind(degs[[comparison]][ degs[[comparison]] < cutoff.pval ],

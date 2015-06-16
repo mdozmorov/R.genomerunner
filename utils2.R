@@ -36,7 +36,7 @@ granularity <- 10
 dist.method <- "euclidean"  
 hclust.method <- "ward.D2"
 # For coordinate-extracting function
-suppressMessages(library(biomaRt))
+#suppressMessages(library(biomaRt))
 # mart <- useMart("ENSEMBL_MART_ENSEMBL", dataset="hsapiens_gene_ensembl", host="feb2014.archive.ensembl.org",path="/biomart/martservice",archive=FALSE, verbose=TRUE) # Last mart containing HG19 genome annotation
 upstream <- 2000 # Definition of the promoter - 2000bp upstream
 downstream <- 500 # and 500bp downstream

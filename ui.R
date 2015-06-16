@@ -1,15 +1,16 @@
 library(shiny)
 library(d3heatmap)
 
-shinyUI(
+shinyUI( 
   tabsetPanel(
+    
     tabPanel("Heatmap",
       fluidPage(
         fluidRow(
           column(4,
                  selectInput("cmbHeatmap", label = "Select which matrix to visualize", 
-                             choices = list("P-value" = "/home/lukas/gftest/matrix_PVAL.txt", 
-                                            "Odds Ratio" = "/home/lukas/gftest/matrix_OR.txt"))),
+                             choices = list("P-value" = "matrix_PVAL.txt", 
+                                            "Odds Ratio" = "matrix_OR.txt"))),
           column(4,
                  selectInput('cmbCorType',label = "Correlation coefficient type",
                              choices = list("Pearson's" = "pearson",
@@ -36,6 +37,7 @@ shinyUI(
         plotOutput("pltDend",width = "100%", height = "500px")
       )),
     tabPanel("Epigenetic results",
-             fluidPage(h3("test")))
+             fluidPage(h3("test"))
+             )
     )
   )
