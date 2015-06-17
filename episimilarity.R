@@ -467,8 +467,8 @@ mtx.cellspecific <- function(mtx, fname, pval=0.01) {
   for(d in 1:length(pval.disease)){ # Go through each disease
     print(names(pval.disease)[d])
     print(d)
-    cells.disease <- pval.disease[[d]][ pval.disease[[d]] < pval]
-    stats.disease <- c2x2.disease[[d]][ pval.disease[[d]] < pval]
+    cells.disease <- pval.disease[[d]][ pval.disease[[d]] < 0.1]
+    stats.disease <- c2x2.disease[[d]][ pval.disease[[d]] < 0.1]
     if(length(cells.disease) > 0) {
       # cells.stats.disease <- cbind(cells.disease, ldply(stats.disease, rbind))
       cells.stats.disease <- as.data.frame(merge(as.matrix(cells.disease, ncol=1), t(as.data.frame(stats.disease)), by="row.names"))
