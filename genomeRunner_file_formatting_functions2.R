@@ -84,7 +84,7 @@ getV1OddsRatioPvalMatrix <- function(infile){
   cmd <- paste("echo -e \"foi_name\tObserved\tExpected\tDiff\tp-val\tPCC\tObs/Tot\" | cat - ",infile," > ",modfile, sep="\t")
   ## execute the command and then remove the extraneous "-e " in the file (not sure why it puts it there, doing it on terminal doesn't have this issue)
   system(cmd)
-  system(paste("cat ",modfile," | sed -e 's/^-e //' > tmp && mv tmp ",modfile, sep=""))
+  system(paste("cat ",modfile," | sed -e 's/^-e //' > tmp.txt && mv tmp.txt ",modfile, sep=""))
   
   # Now, load file after manually copying the header line into the file:
   v1 <- read.delim(modfile)
