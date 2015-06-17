@@ -108,6 +108,14 @@ load_gr_data <- function(dname, subset="none") {
 #' 
 #' @examples
 #' entrez2bed(c("3106","51752","149233","118429","864"), "coords.bed")
+#' Extracting promoters of all EntrezIDs
+#' library(org.Hs.eg.db)
+#' x <- org.Hs.egSYMBOL2EG
+#' mapped_genes <- mappedkeys(x)
+#' xx <- as.list(x[mapped_genes])
+#' all.entrez <- unlist(xx)
+#' all.entrez <- all.entrez[!is.na(all.entrez)] 
+#' entrez2bed(all.entrez, "all_entrez.bed")
 ##
 entrez2bed <- function(entrezIDs, fileName){
   coords <- getBM(attributes=c('chromosome_name','start_position', 'end_position', 'hgnc_symbol', 'strand'), filters='entrezgene', values=entrezIDs, mart=mart, uniqueRows=F)
