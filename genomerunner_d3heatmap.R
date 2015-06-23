@@ -2,7 +2,7 @@ myd3 <- function (x, cluster = !any(is.na(x)), theme = NULL, colors = "RdYlBu",
                   invert_colors = FALSE, width = NULL, height = NULL, xaxis_height = 120, 
                   yaxis_width = 120, xaxis_font_size = NULL, yaxis_font_size = NULL, 
                   brush_color = "#0000FF", show_grid = TRUE, anim_duration = 500, 
-                  heatmap_options = list()) 
+                  heatmap_options = list(),show_tip=TRUE) 
 {
   matrix <- as.matrix(x)
   rng <- range(matrix, na.rm = TRUE)
@@ -31,7 +31,7 @@ myd3 <- function (x, cluster = !any(is.na(x)), theme = NULL, colors = "RdYlBu",
   }
   options <- c(options, list(xaxis_height = xaxis_height, yaxis_width = yaxis_width, 
                              xaxis_font_size = xaxis_font_size, yaxis_font_size = yaxis_font_size, 
-                             brush_color = brush_color, show_grid = show_grid, anim_duration = anim_duration))
+                             brush_color = brush_color, show_grid = show_grid, anim_duration = anim_duration,show_tip=show_tip))
   domain <- seq.int(rng[1], rng[2], length.out = 100)
   colors <- (scales::col_numeric(colors, 1:100))(if (invert_colors) 
     100:1
