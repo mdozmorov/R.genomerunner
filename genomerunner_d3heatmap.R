@@ -2,7 +2,7 @@ myd3 <- function (x, cluster = !any(is.na(x)), theme = NULL, colors = "RdYlBu",
                   invert_colors = FALSE, width = NULL, height = NULL, xaxis_height = 120, 
                   yaxis_width = 120, xaxis_font_size = NULL, yaxis_font_size = NULL, 
                   brush_color = "#0000FF", show_grid = TRUE, anim_duration = 500, 
-                  heatmap_options = list(),show_tip=TRUE) 
+                  heatmap_options = list(),show_tip=TRUE,dendro.rds.path="heatmap.dend.rds") 
 {
   matrix <- as.matrix(x)
   rng <- range(matrix, na.rm = TRUE)
@@ -17,7 +17,7 @@ myd3 <- function (x, cluster = !any(is.na(x)), theme = NULL, colors = "RdYlBu",
     hm <- do.call(stats::heatmap, heatmap_options)
     dev.off()
     unlink(tmp)
-    saveRDS(hm$Colv, file = "/home/lukas/heatmap.dend.rds")
+    saveRDS(hm$Colv, file = dendro.rds.path)
     if (length(hm$Rowv) > 0) {
       rowDend <- dendToTree(rev(hm$Rowv))
     }
