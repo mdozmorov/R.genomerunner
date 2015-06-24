@@ -1,4 +1,3 @@
-
 #' Replacing 0 odds ratios
 #' 
 #' A function to replate odds ratios equal to zero by a minimum, or a user-specified value
@@ -28,11 +27,15 @@ set.min <- function(mtx, replaceby=min(mtx[mtx != 0])) {
 #' @examples
 #' mtx.tumor.cor <- mtx.tumor.cor %>% mtx.plot
 ##
-mtx.plot <- function(mtx, dist.method="euclidean", hclust.method="ward.D2", SideColors) {
-  par(oma=c(5,0,0,5), mar=c(10, 4.1, 4.1, 5), cex.main=0.65) # Adjust margins
+mtx.plot <- function(mtx, dist.method="euclidean", hclust.method="ward.D2", SideColors=NULL) {
+  par(oma=c(5,0,0,5), mar=c(10, 4.1, 4.1, 5), cex.main=0.5) # Adjust margins
   my.breaks <- seq(min(mtx[mtx!=min(mtx)]), max(mtx[mtx!=max(mtx)]), length.out=(2*granularity + 1))
   # my.breaks <- seq(-1, 1, , 20) # For plotting heatmap of correlation coefficients
-  h <- heatmap.2(as.matrix(mtx), trace="none", density.info="none", symbreaks = TRUE, col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=1, cexCol=1, breaks=my.breaks, main="Regulatory similarity clustering", RowSideColors=SideColors, ColSideColors=SideColors)  
+  if (is.null(SideColors)) {
+    h <- heatmap.2(as.matrix(mtx), trace="none", density.info="none", symbreaks = TRUE, col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=1, cexCol=1, breaks=my.breaks, main="Regulatory similarity clustering")
+  } else {
+    h <- heatmap.2(as.matrix(mtx), trace="none", density.info="none", symbreaks = TRUE, col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=1, cexCol=1, breaks=my.breaks, main="Regulatory similarity clustering", RowSideColors=SideColors, ColSideColors=SideColors)
+  }
 }
 
 #' Define clusters
@@ -517,8 +520,8 @@ mtx.cellspecific2 <- function(mtx, fname, pval=0.01) {
     pval.disease.cell <- vector(mode="numeric", length=length(cells)) # A vector to store disease- and cell type-specific p-values
     c2x2.disease.cell <- list() # A list to store disease- and cell type-specific 2x2 tables
     for(c in 1:length(cells)) {
-      if (length(cells.sig[[c]]) > 1) {
-        cells.test <- t.test(tot.sig, cells.sig[[c]])
+      if (length(cells.sig[[c]]) > 2) {
+        cells.test <- wilcox.test(cells.sig[[c]], tot.sig, alternative = "greater")
         pval.disease.cell[c] <- cells.test$p.value # Store the enrichment p-values
         c2x2.disease.cell[c] <- list(c(cells.tests[c], mean(cells.sig[[c]]), mean(tot.sig)))
       } else {

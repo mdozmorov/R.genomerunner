@@ -79,7 +79,7 @@ load_gr_data <- function(dname, subset="none") {
     numofsig <- 1
     cutoff <- -log10(0.1) # q-value significance cutoff
     # What remains if we remove rows/cols with nothing significant
-    dim(mtx[apply(mtx, 1, function(x) sum(abs(x) > cutoff, na.rm = TRUE)) >= numofsig, ])
+    dim(mtx[apply(mtx, 1, function(x) sum(abs(x) > cutoff, na.rm = TRUE)) >= numofsig, , drop=FALSE])
     # apply(mtx, 2, function(x) sum(abs(x)>cutoff))>=numofsig])
     # Trim the matrix
     mtx <- mtx[apply(mtx, 1, function(x) sum(abs(x) > cutoff, na.rm = TRUE)) >= numofsig, , drop=FALSE]
@@ -88,7 +88,7 @@ load_gr_data <- function(dname, subset="none") {
     ind <- apply(mtx, 2, function(x) sd(x, na.rm=TRUE)) == 0 # Indexes of such columns
     if (sum(ind) > 0) {
       set.seed(1)
-      mtx[, apply(mtx, 2, function(x) sd(x, na.rm=TRUE)) == 0, drop=FALSE] <- jitter(mtx[, apply(mtx, 2, function(x) sd(x, na.rm=TRUE)) == 0, drop=FALSE], factor=0.1)
+      mtx[, ind] <- jitter(mtx[, ind, drop=FALSE], factor=0.1)
     }
   }
   if (grepl("OR", d)) { # Process matrix of odds ratios
@@ -483,8 +483,8 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=FAL
       mtx.max <- max(abs(mtx.plot[mtx.plot != max(abs(mtx.plot), na.rm=T)]), na.rm=T) # Second to max value
       my.breaks <- c(seq(-mtx.max, 0, length.out=10), 0, seq(0, mtx.max, length.out=10)) # Breaks symmetric around 0
       h<-heatmap.2(mtx.plot, trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, 
-                   cexRow=0.8, cexCol=0.8, breaks=my.breaks,
-                   cellnote=formatC(1/10^abs(as.matrix(mtx.cast)), format="e", digits=2), notecol="black", notecex=notecex)
+                   cexRow=0.8, cexCol=0.8, 
+                   cellnote=formatC(1/10^abs(as.matrix(mtx.cast)), format="e", digits=2), notecol="black", notecex=notecex) # breaks=my.breaks,
       return(h$carpet)
     }    
   } else if (grepl("bar", toPlot)) { # If more than 1 column, we can also plot barplots
