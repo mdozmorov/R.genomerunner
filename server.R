@@ -8,6 +8,7 @@ library(colorRamps)
 
 results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test1/"
 genomerunner.mode <- FALSE
+coloring.num = 50
 shinyServer(function(input, output,session) {
   
   # Parse the GET query string
@@ -23,28 +24,36 @@ shinyServer(function(input, output,session) {
   # enrichment ------------------------------------------------------------------
   get.matrix <- reactive({
     # populate the enrichment table combobox
-    file.names.enrichment <- file_path_sans_ext(
-      list.files(paste(results.dir,"enrichment/")))
-    updateSelectInput(session,"cmbEnrichment","Select which epigenetic table to render",choices = file.names.enrichment)
+    file.names.enrichment <- file_path_sans_ext(list.files(paste(results.dir,"enrichment/",sep="")))
+    updateSelectInput(session,"cmbEnrichTable","Select which epigenetic table to render",choices = file.names.enrichment)
     mtx <- read.csv(paste(get.results.dir(), input$cmbEnrichHeatmap,sep=""),sep="\t")
     #!!! do we scale?
     # mtx <- scale(mtx) 
   })
   
-  output$heatmapEnrich <- renderD3heatmap({      
+  output$heatmapEnrich <- renderD3heatmap({
     mat <- get.matrix()
-    color<-colorRampPalette(c("blue", "yellow", "red"))
-    d3heatmap::d3heatmap(as.matrix(mat),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbEnrichClust)}, keep.dendro=TRUE), colors = color(50),show_tip=FALSE)
+    coloring<-colorRampPalette(c("blue", "yellow", "red"))
+    updateNumericInput(session = session,"numEnrichFilterUpper",label=paste("Filter by threshold: Upper value (max=",max(mat),")"),min = min(mat),max = max(mat),value = max(mat))
+    updateNumericInput(session = session,"numEnrichFilterLower",label=paste("Filter by threshold: Lower value (min=",min(mat),")"),min = min(mat),max = max(mat),value = min(mat))
+    d3heatmap::d3heatmap(as.matrix(mat),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbEnrichClust)}), colors = coloring(coloring.num), show_tip=FALSE)
+  })
+  
+  output$legendEnrich <- renderPlot({
+    mtx <- get.matrix()
+    coloring<-colorRampPalette(c("blue", "yellow", "red"))
+    color.range = seq(min(mtx),max(mtx), (max(mtx)-min(mtx))/coloring.num )
+    plot(color.range,rep(1,coloring.num+1),col=coloring(coloring.num+1),pch=15,cex=10,main="Heatmap Legend",ylab="",xlab="")
   })
   
   output$tblEnrichment <-renderDataTable({      
     
-    enrichment.data <- read.csv(past(results.dir,"enrichment/",input$cmbEnrichment,".txt"),sep="\t")
+    enrichment.data <- read.csv(paste(results.dir,"enrichment/",input$cmbEnrichTable,".txt",sep = ""),sep="\t")
     #convert values to numeric form for sorting purposes
     for(x in list(2,4)){
       enrichment.data[[x]] <- as.numeric(enrichment.data[[x]])
     }
-    mtx.deg[[input$cmbEpisimTable]]
+    enrichment.data
   })
   
   
@@ -63,7 +72,15 @@ shinyServer(function(input, output,session) {
   output$heatmapEpisim <- renderD3heatmap({     
     cor.mat <- get.corr.matrix()
     hclustergram <- get.cor.hclust.dendrogram()
-    d3heatmap::d3heatmap(as.matrix(cor.mat),heatmap_options = list(Rowv=hclustergram,Colv=hclustergram,keep.dendro=TRUE))
+    coloring<-colorRampPalette(c("blue", "yellow", "red"))
+    d3heatmap::d3heatmap(as.matrix(cor.mat),heatmap_options = list(Rowv=hclustergram,Colv=hclustergram,keep.dendro=TRUE),colors = coloring(coloring.num))
+  })
+  
+  output$legendEpisim <- renderPlot({
+    mtx <- get.corr.matrix()
+    coloring<-colorRampPalette(c("blue", "yellow", "red"))
+    color.range = seq(min(mtx),max(mtx), (max(mtx)-min(mtx))/coloring.num )
+    plot(color.range,rep(1,coloring.num+1),col=coloring(coloring.num+1),pch=15,cex=10,main="Heatmap Legend",ylab="",xlab="")
   })
   
   output$tblEpigenetics <-renderDataTable({
