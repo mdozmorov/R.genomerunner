@@ -4,6 +4,21 @@ library(DT)
 
 shinyUI(
   tabsetPanel(
+    tabPanel("Enrichment analysis barplot",
+             fluidRow(
+               column(4,
+                      numericInput("numBarplotThreshold","Filter by threshold: lower limit",min = 0,max=1,value = 0.05)),
+               column(4,
+                      selectInput("cmbEnrichHeatmap", label = "Select which matrix to visualize", 
+                                  choices = list("P-value" = "matrix_PVAL.txt", 
+                                                 "Odds Ratio" = "matrix_OR.txt"))),
+               column(4,
+                      sliderInput("sldNumFeatures",label = "Number of top results to plot",min=1,max=100,value=30))
+                     
+               ),
+              plotOutput("pltEnrichUp",width="100%",height = "350px"),
+              plotOutput("pltEnrichDown", width="100%", height= "350px")
+             ),
     tabPanel("Enrichment analysis heatmap",
              fluidRow(
                column(4,
@@ -14,6 +29,8 @@ shinyUI(
                                   choices = list("P-value" = "matrix_PVAL.txt", 
                                                  "Odds Ratio" = "matrix_OR.txt"))),
                column(4,
+                      conditionalPanel(condition="check.single_gf == true",
+                                       sliderInput("sldNumFeatures",label = "Number of top results to plot",min=1,max=1000,value=30)),
                       selectInput("cmbEnrichClust",label = "Clustering method (hclust)", 
                                   choices = list("ward.D",
                                                  "ward.D2",
@@ -25,8 +42,12 @@ shinyUI(
                                                  "centroid")
                       )
                )),
-             d3heatmapOutput("heatmapEnrich", width = "100%", height = "600px"),
-             plotOutput("legendEnrich",width="300px",height="200px")
+            
+            conditionalPanel(condition="check.single_gf == false",
+                             d3heatmapOutput("heatmapEnrich", width = "100%", height = "600px"),
+                             plotOutput("legendEnrich",width="300px",height="200px")
+            )
+             
     ), 
     tabPanel("Enrichment analysis tables",
                 selectInput("cmbEnrichTable","Select which enrichment table to render",choices=list("Enrichment results not ready")),

@@ -58,11 +58,11 @@ load_gr_data <- function(dname, subset="none") {
   # mtx<-do.call("rbind", lapply(dname, function(fn) as.matrix(read.table(paste(fn, "matrix.txt", sep=""), sep="\t", header=T, row.names=1))))
   mtx.list <- list()
   for (d in dname) {
-    mtx.list <- c(mtx.list, list(as.matrix(read.table(d, sep="\t", header=T, row.names=1, stringsAsFactors=F, check.names=FALSE))))
+    mtx.list <- c(mtx.list, list(as.matrix(read.table(d, sep="\t", header=T, row.names=1, stringsAsFactors=F, check.names=FALSE), drop=FALSE)))
   }
   # rbind matching column names
   # https://stackoverflow.com/questions/16962576/how-can-i-rbind-vectors-matching-their-column-names
-  mtx <- do.call("rbind", lapply(mtx.list, function(x) x[, match(colnames(mtx.list[[1]]), colnames(x)) ]))
+  mtx <- do.call("rbind", lapply(mtx.list, function(x) x[, match(colnames(mtx.list[[1]]), colnames(x)), drop = FALSE ]))
   class(mtx) <- "numeric" # Convert to numbers
   if (subset != "none") {
     mtx <- mtx[grep(paste(subset, collapse="|"), rownames(mtx), ignore.case=T), ] # filter GF list
@@ -74,19 +74,22 @@ load_gr_data <- function(dname, subset="none") {
   # mtx<-mtx[grep("snp", rownames(mtx), ignore.case=T, invert=T), ]
   if (grepl("PVAL", d)) { # Process matrix of raw p-values
     mtx <- mtx.transform(mtx) # -log10 transform p-values
-    mtx <- mtx[ apply(mtx, 1, function(x) sum(!is.na(x))) > 0, apply(mtx, 2, function(x) sum(!is.na(x))) > 0] # Keep rows/columns with at least one number
+    mtx <- mtx[ apply(mtx, 1, function(x) sum(!is.na(x))) > 0, apply(mtx, 2, function(x) sum(!is.na(x))) > 0, drop=FALSE] # Keep rows/columns with at least one number
     # Define minimum number of times a row/col should have values above the cutoffs
     numofsig <- 1
-    cutoff <- -log10(0.1) # q-value significance cutoff
+    cutoff <- -log10(1) # q-value significance cutoff
     # What remains if we remove rows/cols with nothing significant
-    dim(mtx[apply(mtx, 1, function(x) sum(abs(x) > cutoff, na.rm = TRUE)) >= numofsig, ])
+    dim(mtx[apply(mtx, 1, function(x) sum(abs(x) > cutoff, na.rm = TRUE)) >= numofsig, , drop=FALSE])
     # apply(mtx, 2, function(x) sum(abs(x)>cutoff))>=numofsig])
     # Trim the matrix
-    mtx <- mtx[apply(mtx, 1, function(x) sum(abs(x) > cutoff, na.rm = TRUE)) >= numofsig, ]
+    mtx <- mtx[apply(mtx, 1, function(x) sum(abs(x) > cutoff, na.rm = TRUE)) >= numofsig, , drop=FALSE]
     # apply(mtx, 2, function(x) sum(abs(x)>cutoff))>=numofsig]
     # If there are columns with SD=0, add jitter to it
-    set.seed(1)
-    mtx[, apply(mtx, 2, function(x) sd(x, na.rm=TRUE)) == 0] <- jitter(mtx[, apply(mtx, 2, function(x) sd(x, na.rm=TRUE)) == 0], factor=0.1)
+    ind <- apply(mtx, 2, function(x) sd(x, na.rm=TRUE)) == 0 # Indexes of such columns
+    if (sum(ind) > 0) {
+      set.seed(1)
+      mtx[, ind] <- jitter(mtx[, ind, drop=FALSE], factor=0.1)
+    }
   }
   if (grepl("OR", d)) { # Process matrix of odds ratios
     mtx <- log2(mtx)

@@ -6,12 +6,11 @@ library(dendextendRcpp) # required for extracting the height from the dendrogram
 library(tools)
 library(colorRamps)
 
-#results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/gwas2bed/autoimmune/R.GR.autoimmune/data.gr/2Roadmap_DNase_narrowPeak/"
-results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/DNAse_hotspotbroadall/"
-# results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/encTfbs/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2_single_col/"
 genomerunner.mode <- FALSE
 coloring.num = 50
 shinyServer(function(input, output,session) {
+  
   
   # Parse the GET query string
   get.results.dir <- reactive({
@@ -27,19 +26,19 @@ shinyServer(function(input, output,session) {
   get.matrix <- reactive({
     # populate the enrichment table combobox
     file.names.enrichment <- file_path_sans_ext(list.files(paste(get.results.dir(),"enrichment/",sep="")))
-    # REMOVE 
-    #updateSelectInput(session,"cmbEnrichTable","Select which epigenetic table to render",choices = file.names.enrichment)
-    mtx <- read.csv(paste(get.results.dir(), input$cmbEnrichHeatmap,sep=""),sep="\t")
-    #!!! do we scale?
-    # mtx <- scale(mtx) 
+    mtx <- load_gr_data(paste(get.results.dir(), input$cmbEnrichHeatmap,sep=""))
+
   })
   
   output$heatmapEnrich <- renderD3heatmap({
     mat <- get.matrix()
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
-    updateNumericInput(session = session,"numEnrichFilterUpper",label=paste("Filter by threshold: Upper value (max=",max(mat),")"),min = min(mat),max = max(mat),value = max(mat))
-    updateNumericInput(session = session,"numEnrichFilterLower",label=paste("Filter by threshold: Lower value (min=",min(mat),")"),min = min(mat),max = max(mat),value = min(mat))
-    d3heatmap::d3heatmap(as.matrix(mat),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbEnrichClust)}), colors = coloring(coloring.num), show_tip=FALSE,dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""))
+  
+    if(!check.single_gf()){
+      d3heatmap::d3heatmap(as.matrix(mat),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbEnrichClust)}), colors = coloring(coloring.num), show_tip=FALSE,dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""))
+    }else{
+      NULL
+    }
   })
   
   output$legendEnrich <- renderPlot({
@@ -59,11 +58,100 @@ shinyServer(function(input, output,session) {
     enrichment.data
   })
   
+  ## enrichment up and down plots for single column
+  get.bar.plot.data <- reactive({
+    mtx <- get.matrix() # Make data frame, to allow row names
+    ##rownames(mtx) <- mtx$GF; mtx <- mtx[, -1] # Make row names
+    # Summarize the values by cell type and factor
+    pmax <- function(x) { x[order(abs(x), decreasing=T)][1] } # Get absolute maximum p-value, keeping sign
+    ##mtx <- mtx %>% dplyr::select(-description) %>% group_by(cell, factor) 
+    mtx <- melt(mtx, id.vars=c("cell", "factor"), , variable.name = "experiment", value.name = "pvalue")
+    mtx <- mtx %>% group_by(cell, factor, experiment) %>% dplyr::summarise(pmax = pmax(pvalue))
+    mtx <- dcast(mtx, cell + factor ~ experiment, value.var="pmax")
+    mtx <- cbind(dplyr::select(mtx, 3:ncol(mtx)), dplyr::select(mtx, cell, factor))
+  })
+  
+  check.single_gf <- reactive({
+    # Check if there is only one column in the matrix.  If so, we will plot a bar plots intead of heatmap
+    mtx <-get.matrix()
+    if(ncol(mtx)==1){
+      def.value = 30
+      if (nrow(mtx)<30){def.value = nrow(mtx)}
+      updateSliderInput(session,"sldNumFeatures",min = 1,max = nrow(mtx),value = def.value)
+      return(TRUE)
+    }else{
+      return(FALSE)
+    }
+  })
+  
+  
+  output$pltEnrichUp <- renderPlot({
+    if (check.single_gf() != TRUE){
+      return(plot.new())
+    }
+    updown.split = switch (input$cmbEnrichHeatmap,"matrix_PVAL.txt" = 0, "matrix_OR.txt" = 1) 
+    mtx <-  data.frame(get.matrix())
+    mtx.up <- subset(mtx,mtx[1] > updown.split)
+    # filter out results that do not meet pvalue threshold
+    log10.pval = -log10(input$numBarplotThreshold)
+    if (input$cmbEnrichHeatmap == "matrix_PVAL.txt"){
+      mtx.up <- subset(mtx.up, mtx.up[1] > log10.pval, drop=F)
+      }
+    if (nrow(mtx.up)==0){
+      # plot raw text
+      par(mar = c(0,0,0,0))
+      plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
+      text(x = 0.5, y = 0.5, paste("Nothing overrepresented to plot."),  cex = 1.6, col = "black")
+      box()
+      return()
+    }
+    # sort the results
+    mtx.up.sorted <- mtx.up[order(mtx.up[1],decreasing = T),,drop=FALSE]
+    
+    barplot(as.matrix(t(head(mtx.up.sorted,input$sldNumFeatures))), beside=T,col = "red3",
+            space=c(0.2,1), cex.names=0.8, las=2, names.arg=head(rownames(mtx.up.sorted),input$sldNumFeatures),ylab="-log10(p-value)",main="Enriched epigenomic associations")
+    abline(a=0,b=0)
+    
+    #barplot1(head(mtx.up.sorted,input$sldNumFeatures),names.args = head(rownames(mtx.up.sorted),input$sldNumFeatures))
+    #names.args.up[names.args.up == "NA:NA"] <- make.names(unlist(lapply(mtx.sorted.up, rownames)), unique=T)[names.args.up == "NA:NA"]
+    #names.args.dn[names.args.dn == "NA:NA"] <- make.names(unlist(lapply(mtx.sorted.dn, rownames)), unique=T)[names.args.dn == "NA:NA"]
+    #bottom <- 8
+    # Plot barplots
+    #if (!grepl("dn", toPlot) & (nrow(mtx.barplot.up) > 0)) { barplot1(mtx.barplot.up[, seq(1:length(colnum)), drop=F], "topright", bottom=bottom, names.args=names.args.up, pval=pval) }
+  })
+  
+  output$pltEnrichDown <- renderPlot({
+    if (check.single_gf() != TRUE){
+      return(plot.new())
+    }
+    updown.split = switch (input$cmbEnrichHeatmap,"matrix_PVAL.txt" = 0, "matrix_OR.txt" = 1) 
+    mtx <-  data.frame(get.matrix())
+    mtx.down <- subset(mtx,mtx[1] < updown.split)
+    # filter out results that do not meet pvalue threshold
+    log10.pval = -log10(input$numBarplotThreshold)
+    if (input$cmbEnrichHeatmap == "matrix_PVAL.txt"){
+      mtx.down <- subset(mtx.down, mtx.down[1] < -log10.pval, drop=F)
+    }
+    if (nrow(mtx.down)==0){
+      # plot raw text
+      par(mar = c(0,0,0,0))
+      plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
+      text(x = 0.5, y = 0.5, paste("Nothing underrepresented to plot."),  cex = 1.6, col = "black")
+      box()
+      return()
+    }
+    mtx.down.sorted <- mtx.down[order(mtx.down[1],decreasing = F),,drop=FALSE]
+    barplot(as.matrix(t(head(mtx.down.sorted,input$sldNumFeatures))), beside=T,col = "green4",
+            space=c(0.2,1), cex.names=0.8, las=2, names.arg=head(rownames(mtx.down.sorted),input$sldNumFeatures),ylab="-log10(p-value)\nnegative = underrepresentation",main = "Depleted epigenomic associations")
+    abline(a=0,b=0)
+    #barplot(head(mtx.down.sorted,input$sldNumFeatures),names.args = head(rownames(mtx.down.sorted),input$sldNumFeatures))
+  })
   
   # episimilarity ---------------------------------------------------------------
   get.corr.matrix <- reactive({
     mtx <- load_gr_data(paste(get.results.dir(), input$cmbEpisimHeatmap,sep=""))
     mtx <- scale(mtx)
+    
     rcorr(as.matrix(mtx), type=input$cmbEpisimCorType)[[1]]
   })
   
