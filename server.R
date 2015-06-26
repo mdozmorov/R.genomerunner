@@ -6,7 +6,7 @@ library(dendextendRcpp) # required for extracting the height from the dendrogram
 library(tools)
 library(colorRamps)
 
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2_single_col/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test1/"
 genomerunner.mode <- FALSE
 coloring.num = 50
 shinyServer(function(input, output,session) {
@@ -27,7 +27,6 @@ shinyServer(function(input, output,session) {
     # populate the enrichment table combobox
     file.names.enrichment <- file_path_sans_ext(list.files(paste(get.results.dir(),"enrichment/",sep="")))
     mtx <- load_gr_data(paste(get.results.dir(), input$cmbEnrichHeatmap,sep=""))
-
   })
   
   output$heatmapEnrich <- renderD3heatmap({
@@ -58,22 +57,16 @@ shinyServer(function(input, output,session) {
     enrichment.data
   })
   
-  ## enrichment up and down plots for single column
-  get.bar.plot.data <- reactive({
-    mtx <- get.matrix() # Make data frame, to allow row names
-    ##rownames(mtx) <- mtx$GF; mtx <- mtx[, -1] # Make row names
-    # Summarize the values by cell type and factor
-    pmax <- function(x) { x[order(abs(x), decreasing=T)][1] } # Get absolute maximum p-value, keeping sign
-    ##mtx <- mtx %>% dplyr::select(-description) %>% group_by(cell, factor) 
-    mtx <- melt(mtx, id.vars=c("cell", "factor"), , variable.name = "experiment", value.name = "pvalue")
-    mtx <- mtx %>% group_by(cell, factor, experiment) %>% dplyr::summarise(pmax = pmax(pvalue))
-    mtx <- dcast(mtx, cell + factor ~ experiment, value.var="pmax")
-    mtx <- cbind(dplyr::select(mtx, 3:ncol(mtx)), dplyr::select(mtx, cell, factor))
+  ## enrichment up and down plots for single column --------------------------------------------------------------
+  get.barplot.matrix <- reactive({
+    # populate the enrichment table combobox
+    file.names.enrichment <- file_path_sans_ext(list.files(paste(get.results.dir(),"enrichment/",sep="")))
+    mtx <- load_gr_data(paste(get.results.dir(), input$cmbEnrichBarplot,sep=""))
   })
   
   check.single_gf <- reactive({
     # Check if there is only one column in the matrix.  If so, we will plot a bar plots intead of heatmap
-    mtx <-get.matrix()
+    mtx <- get.barplot.matrix()
     if(ncol(mtx)==1){
       def.value = 30
       if (nrow(mtx)<30){def.value = nrow(mtx)}
@@ -89,12 +82,12 @@ shinyServer(function(input, output,session) {
     if (check.single_gf() != TRUE){
       return(plot.new())
     }
-    updown.split = switch (input$cmbEnrichHeatmap,"matrix_PVAL.txt" = 0, "matrix_OR.txt" = 1) 
-    mtx <-  data.frame(get.matrix())
+    updown.split =  0
+    mtx <-  data.frame( get.barplot.matrix())
     mtx.up <- subset(mtx,mtx[1] > updown.split)
     # filter out results that do not meet pvalue threshold
     log10.pval = -log10(input$numBarplotThreshold)
-    if (input$cmbEnrichHeatmap == "matrix_PVAL.txt"){
+    if (input$cmbEnrichBarplot == "matrix_PVAL.txt"){
       mtx.up <- subset(mtx.up, mtx.up[1] > log10.pval, drop=F)
       }
     if (nrow(mtx.up)==0){
@@ -105,11 +98,28 @@ shinyServer(function(input, output,session) {
       box()
       return()
     }
-    # sort the results
-    mtx.up.sorted <- mtx.up[order(mtx.up[1],decreasing = T),,drop=FALSE]
+    if (input$cmbEnrichBarplot == "matrix_PVAL.txt"){
+      # do the pvalue adjustment 
+     #  mtx.up <- p.adjust(mtx.up,method = input$cmbEnrichBarPlotPvalAdjust)
+    }
     
+    if (input$cmbEnrichBarplot == "matrix_PVAL.txt"){
+      
+      # do the pvalue adjustment 
+      mtx.up.adjust <- apply(1/10^(abs(mtx.up)), 2, function(x) {p.adjust(x,  method = input$cmbEnrichBarPlotPvalAdjust)})
+      mtx.up.adjust <- as.matrix(mtx.up.adjust)
+      rownames(mtx.up.adjust) <- rownames(mtx.up); colnames(mtx.up.adjust) <- colnames(mtx.up);
+      mtx.up <- mtx.transform(mtx.up.adjust);
+    }
+    
+    
+    # sort the results
+    mtx.up.sorted <- mtx.up[order(mtx.up,decreasing = T),,drop=FALSE]
+    if(input$cmbEnrichBarplot == "matrix_PVAL.txt"){
+      y.label = "-log10(p-value)"
+    }else{y.label="log2(odds-ratio)"}
     barplot(as.matrix(t(head(mtx.up.sorted,input$sldNumFeatures))), beside=T,col = "red3",
-            space=c(0.2,1), cex.names=0.8, las=2, names.arg=head(rownames(mtx.up.sorted),input$sldNumFeatures),ylab="-log10(p-value)",main="Enriched epigenomic associations")
+            space=c(0.2,1), cex.names=0.8, las=2, names.arg=head(rownames(mtx.up.sorted),input$sldNumFeatures),ylab=y.label,main="Enriched epigenomic associations")
     abline(a=0,b=0)
     
     #barplot1(head(mtx.up.sorted,input$sldNumFeatures),names.args = head(rownames(mtx.up.sorted),input$sldNumFeatures))
@@ -124,12 +134,14 @@ shinyServer(function(input, output,session) {
     if (check.single_gf() != TRUE){
       return(plot.new())
     }
-    updown.split = switch (input$cmbEnrichHeatmap,"matrix_PVAL.txt" = 0, "matrix_OR.txt" = 1) 
-    mtx <-  data.frame(get.matrix())
+    
+    updown.split = 0
+    mtx <-  data.frame(get.barplot.matrix())
     mtx.down <- subset(mtx,mtx[1] < updown.split)
+    
     # filter out results that do not meet pvalue threshold
     log10.pval = -log10(input$numBarplotThreshold)
-    if (input$cmbEnrichHeatmap == "matrix_PVAL.txt"){
+    if (input$cmbEnrichBarplot == "matrix_PVAL.txt"){
       mtx.down <- subset(mtx.down, mtx.down[1] < -log10.pval, drop=F)
     }
     if (nrow(mtx.down)==0){
@@ -139,10 +151,22 @@ shinyServer(function(input, output,session) {
       text(x = 0.5, y = 0.5, paste("Nothing underrepresented to plot."),  cex = 1.6, col = "black")
       box()
       return()
+    }   
+    
+    if (input$cmbEnrichBarplot == "matrix_PVAL.txt"){
+
+      # do the pvalue adjustment 
+      mtx.down.adjust <- apply(1/10^(abs(mtx.down)), 2, function(x) {p.adjust(x,  method = input$cmbEnrichBarPlotPvalAdjust)})
+      mtx.down.adjust <- -as.matrix(mtx.down.adjust) # apply negative bc everything is downregulated here
+      rownames(mtx.down.adjust) <- rownames(mtx.down); colnames(mtx.down.adjust) <- colnames(mtx.down);
+      mtx.down <- mtx.transform(mtx.down.adjust);
     }
-    mtx.down.sorted <- mtx.down[order(mtx.down[1],decreasing = F),,drop=FALSE]
+    mtx.down.sorted <- mtx.down[order(mtx.down,decreasing = F),,drop=FALSE]
+    if(input$cmbEnrichBarplot == "matrix_PVAL.txt"){
+      y.label = "-log10(p-value)\nnegative = underrepresentation"
+    }else{y.label="log2(odds-ratio)\nnegative = underrepresentation"}
     barplot(as.matrix(t(head(mtx.down.sorted,input$sldNumFeatures))), beside=T,col = "green4",
-            space=c(0.2,1), cex.names=0.8, las=2, names.arg=head(rownames(mtx.down.sorted),input$sldNumFeatures),ylab="-log10(p-value)\nnegative = underrepresentation",main = "Depleted epigenomic associations")
+            space=c(0.2,1), cex.names=0.8, las=2, names.arg=head(rownames(mtx.down.sorted),input$sldNumFeatures),ylab=y.label,main = "Depleted epigenomic associations")
     abline(a=0,b=0)
     #barplot(head(mtx.down.sorted,input$sldNumFeatures),names.args = head(rownames(mtx.down.sorted),input$sldNumFeatures))
   })

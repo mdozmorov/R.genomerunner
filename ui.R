@@ -3,22 +3,27 @@ library(d3heatmap)
 library(DT)
 
 shinyUI(
-  tabsetPanel(
+  
+  tabsetPanel("tabsMain",
     tabPanel("Enrichment analysis barplot",
-             fluidRow(
-               column(4,
-                      numericInput("numBarplotThreshold","Filter by threshold: lower limit",min = 0,max=1,value = 0.05)),
-               column(4,
-                      selectInput("cmbEnrichHeatmap", label = "Select which matrix to visualize", 
-                                  choices = list("P-value" = "matrix_PVAL.txt", 
-                                                 "Odds Ratio" = "matrix_OR.txt"))),
-               column(4,
-                      sliderInput("sldNumFeatures",label = "Number of top results to plot",min=1,max=100,value=30))
-                     
+               fluidRow(
+                 column(6,
+                        selectInput("cmbEnrichBarplot", label = "Select which matrix to visualize", 
+                                    choices = list("P-value" = "matrix_PVAL.txt", 
+                                                   "Odds Ratio" = "matrix_OR.txt")),
+                        conditionalPanel("input.cmbEnrichBarplot=='matrix_PVAL.txt'",
+                          selectInput("cmbEnrichBarPlotPvalAdjust",label = "Select which P-value comparison correction",
+                                      choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY")))
+                        ),
+                 column(6,
+                   conditionalPanel("input.cmbEnrichBarplot=='matrix_OR.txt'",
+                          sliderInput("sldNumFeatures",label = "Number of top results to plot",min=1,max=100,value=30)),
+                   conditionalPanel("input.cmbEnrichBarplot=='matrix_PVAL.txt'",
+                          numericInput("numBarplotThreshold","Filter by threshold: lower limit",min = 0,max=1,value = 0.05)))
+                 ),
+                plotOutput("pltEnrichUp",width="100%",height = "350px"),
+                plotOutput("pltEnrichDown", width="100%", height= "350px")
                ),
-              plotOutput("pltEnrichUp",width="100%",height = "350px"),
-              plotOutput("pltEnrichDown", width="100%", height= "350px")
-             ),
     tabPanel("Enrichment analysis heatmap",
              fluidRow(
                column(4,
