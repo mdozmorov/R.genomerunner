@@ -55,45 +55,34 @@ downstream <- 500 # and 500bp downstream
 #' mtx <- load_gr_data(c("data/ENCODE_Tfbs/matrix_PVAL.txt", "data/ENCODE_Histone/matrix_PVAL.txt"), subset=c("Tfbs", "Histone"))
 ##
 load_gr_data <- function(dname, subset="none") {
-  # mtx<-do.call("rbind", lapply(dname, function(fn) as.matrix(read.table(paste(fn, "matrix.txt", sep=""), sep="\t", header=T, row.names=1))))
+  # Load matrix(es) from a (vector of) file(s) located at dname
   mtx.list <- list()
   for (d in dname) {
     mtx.list <- c(mtx.list, list(as.matrix(read.table(d, sep="\t", header=T, row.names=1, stringsAsFactors=F, check.names=FALSE), drop=FALSE)))
   }
-  # rbind matching column names
+  # rbind matrixes, matching column names
   # https://stackoverflow.com/questions/16962576/how-can-i-rbind-vectors-matching-their-column-names
   mtx <- do.call("rbind", lapply(mtx.list, function(x) x[, match(colnames(mtx.list[[1]]), colnames(x)), drop = FALSE ]))
   class(mtx) <- "numeric" # Convert to numbers
+  # filter GF list, if specified
   if (subset != "none") {
-    mtx <- mtx[grep(paste(subset, collapse="|"), rownames(mtx), ignore.case=T), ] # filter GF list
+    mtx <- mtx[grep(paste(subset, collapse="|"), rownames(mtx), ignore.case=T), ] 
   }
-  # Exploratory: check quantiles and remove diseaases showing no enrichments
-  # mtx.sumstat <- as.data.frame(apply(mtx, 2, quantile)) # Get quantiles
-  # mtx <- mtx[ , apply(mtx.sumstat, 2, function(x) sum(abs(x)) != 5)] # Remove those that have all "1" or "-1"
-  # Optional: filter unused genomic features
-  # mtx<-mtx[grep("snp", rownames(mtx), ignore.case=T, invert=T), ]
-  if (grepl("PVAL", d)) { # Process matrix of raw p-values
+  # Transform PVAL and OR matrixes accordingly
+  if (grepl("PVAL", d)) { 
     mtx <- mtx.transform(mtx) # -log10 transform p-values
-    mtx <- mtx[ apply(mtx, 1, function(x) sum(!is.na(x))) > 0, apply(mtx, 2, function(x) sum(!is.na(x))) > 0, drop=FALSE] # Keep rows/columns with at least one number
-    # Define minimum number of times a row/col should have values above the cutoffs
-    numofsig <- 1
-    cutoff <- -log10(0.1) # q-value significance cutoff
-    # What remains if we remove rows/cols with nothing significant
-    dim(mtx[apply(mtx, 1, function(x) sum(abs(x) > cutoff, na.rm = TRUE)) >= numofsig, , drop=FALSE])
-    # apply(mtx, 2, function(x) sum(abs(x)>cutoff))>=numofsig])
-    # Trim the matrix
-    mtx <- mtx[apply(mtx, 1, function(x) sum(abs(x) > cutoff, na.rm = TRUE)) >= numofsig, , drop=FALSE]
-    # apply(mtx, 2, function(x) sum(abs(x)>cutoff))>=numofsig]
-    # If there are columns with SD=0, add jitter to it
-    ind <- apply(mtx, 2, function(x) sd(x, na.rm=TRUE)) == 0 # Indexes of such columns
-    if (sum(ind) > 0) {
-      set.seed(1)
-      mtx[, ind] <- jitter(mtx[, ind, drop=FALSE], factor=0.1)
-    }
   }
-  if (grepl("OR", d)) { # Process matrix of odds ratios
-    mtx <- log2(mtx)
-    mtx <- mtx[ apply(mtx, 1, function(x) sum(!is.na(x))) > 0, apply(mtx, 2, function(x) sum(!is.na(x))) > 0] # Keep rows/columns with at least one number
+  if (grepl("OR", d)) {
+    mtx <- log2(mtx) # log2 transform odds ratios
+  }
+  # Trim the matrix
+  mtx <- mtx[ apply(mtx, 1, function(x) sum(!is.na(x))) > 0, apply(mtx, 2, function(x) sum(!is.na(x))) > 0, drop=FALSE] # Remove rows/columns with all NAs
+  mtx <- mtx[ !(apply(mtx, 1, function(x) sum(x == 0) == nrow(mtx))), , drop=F] # If all values in a row are 0, remove these rows
+  # If there are columns with SD=0, add jitter to it. Needed for pair-wise column correlation analysis (epigenomic similarity analysis)
+  ind <- apply(mtx, 2, function(x) sd(x, na.rm=TRUE)) == 0 # Indexes of such columns
+  if (sum(ind) > 0) {
+    set.seed(1)
+    mtx[, ind] <- jitter(mtx[, ind, drop=FALSE], factor=0.1)
   }
   return(as.matrix(mtx)) # Return (processed) data
 }
