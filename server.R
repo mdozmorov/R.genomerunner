@@ -49,12 +49,24 @@ shinyServer(function(input, output,session) {
   
   output$tblEnrichment <-renderDataTable({      
     
-    enrichment.data <- read.csv(paste(get.results.dir(),"enrichment/",input$cmbEnrichTable,".txt",sep = ""),sep="\t")
-    #convert values to numeric form for sorting purposes
-    for(x in list(2,4)){
-      enrichment.data[[x]] <- as.numeric(enrichment.data[[x]])
+    mtx <- read.csv(paste(get.results.dir(),input$cmbEnrichBarplot,sep = ""),sep="\t")
+    if (input$cmbEnrichBarplot == "matrix_PVAL.txt"){
+      mtx.adjust <- apply(mtx, 2, function(x) p.adjust(abs(x), method = input$cmbEnrichBarPlotPvalAdjust))
+      mtx.sign <- ifelse(sign(mtx) < 0, "Underrepresented", "Overrepresented")
+      
+      mtx.table <- cbind(abs(mtx), 
+                         mtx.sign, 
+                         mtx.adjust)
+      colnames(mtx.table) <- c("P.value","Direction","P.adj")
+      return(mtx.table)
+    }else{ 
+      # for odds ratio
+      mtx.sign <- ifelse(sign(mtx) < 1, "Underrepresented", "Overrepresented")
+      mtx.table <- cbind(abs(mtx),
+                         mtx.sign)
+      colnames(mtx.table) <- c("Odds.ratio","Direction")
+      return(mtx.table)
     }
-    enrichment.data
   })
   
   ## enrichment up and down plots for single column --------------------------------------------------------------
