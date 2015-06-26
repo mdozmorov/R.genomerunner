@@ -6,7 +6,7 @@ library(dendextendRcpp) # required for extracting the height from the dendrogram
 library(tools)
 library(colorRamps)
 
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test1/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2_single_col/"
 genomerunner.mode <- FALSE
 coloring.num = 50
 shinyServer(function(input, output,session) {
@@ -118,6 +118,7 @@ shinyServer(function(input, output,session) {
     if(input$cmbEnrichBarplot == "matrix_PVAL.txt"){
       y.label = "-log10(p-value)"
     }else{y.label="log2(odds-ratio)"}
+    par(mar = c(5,5,4.1,2.1))
     barplot(as.matrix(t(head(mtx.up.sorted,input$sldNumFeatures))), beside=T,col = "red3",
             space=c(0.2,1), cex.names=0.8, las=2, names.arg=head(rownames(mtx.up.sorted),input$sldNumFeatures),ylab=y.label,main="Enriched epigenomic associations")
     abline(a=0,b=0)
@@ -165,6 +166,7 @@ shinyServer(function(input, output,session) {
     if(input$cmbEnrichBarplot == "matrix_PVAL.txt"){
       y.label = "-log10(p-value)\nnegative = underrepresentation"
     }else{y.label="log2(odds-ratio)\nnegative = underrepresentation"}
+    par(mar = c(5,5,4.1,2.1))
     barplot(as.matrix(t(head(mtx.down.sorted,input$sldNumFeatures))), beside=T,col = "green4",
             space=c(0.2,1), cex.names=0.8, las=2, names.arg=head(rownames(mtx.down.sorted),input$sldNumFeatures),ylab=y.label,main = "Depleted epigenomic associations")
     abline(a=0,b=0)
@@ -231,5 +233,129 @@ shinyServer(function(input, output,session) {
     
     rect.hclust(as.hclust(dend), k=cl_num, border=cols) # Define the clusters by rectangles
     
+  })
+  
+  # Create a different UI depending if there are multiple GF in the results
+  output$mainpage <-renderUI({
+    mtx <- load_gr_data(paste(get.results.dir(), "matrix_PVAL.txt",sep="")) # manually load matrix since controls are not loaded yet
+    single.gf = TRUE
+    if (ncol(mtx)>1){single.gf = FALSE}
+    if (single.gf == FALSE){
+      tabsetPanel("tabsMultiple",
+                  tabPanel("Enrichment analysis barplot",
+                           fluidRow(
+                             column(6,
+                                    selectInput("cmbEnrichBarplot", label = "Select which matrix to visualize", 
+                                                choices = list("P-value" = "matrix_PVAL.txt", 
+                                                               "Odds Ratio" = "matrix_OR.txt")),
+                                    conditionalPanel("input.cmbEnrichBarplot=='matrix_PVAL.txt'",
+                                                     selectInput("cmbEnrichBarPlotPvalAdjust",label = "Select which P-value comparison correction",
+                                                                 choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY")))
+                             ),
+                             column(6,
+                                    conditionalPanel("input.cmbEnrichBarplot=='matrix_OR.txt'",
+                                                     sliderInput("sldNumFeatures",label = "Number of top results to plot",min=1,max=100,value=30)),
+                                    conditionalPanel("input.cmbEnrichBarplot=='matrix_PVAL.txt'",
+                                                     numericInput("numBarplotThreshold","Filter by threshold: lower limit",min = 0,max=1,value = 0.05)))
+                           ),
+                           plotOutput("pltEnrichUp",width="100%",height = "350px"),
+                           plotOutput("pltEnrichDown", width="100%", height= "350px")
+                  ),
+                  tabPanel("Enrichment analysis heatmap",
+                           fluidRow(
+                             column(4,
+                                    numericInput("numEnrichFilterLower","Filter by threshold: lower limit",min = 2,max=10,value = 3),
+                                    numericInput("numEnrichFilterUpper","Filter by threshold: upper limit",min = 2,max=10,value = 3)),
+                             column(4,
+                                    selectInput("cmbEnrichHeatmap", label = "Select which matrix to visualize", 
+                                                choices = list("P-value" = "matrix_PVAL.txt", 
+                                                               "Odds Ratio" = "matrix_OR.txt"))),
+                             column(4,
+                                    conditionalPanel(condition="check.single_gf == true",
+                                                     sliderInput("sldNumFeatures",label = "Number of top results to plot",min=1,max=1000,value=30)),
+                                    selectInput("cmbEnrichClust",label = "Clustering method (hclust)", 
+                                                choices = list("ward.D",
+                                                               "ward.D2",
+                                                               "single",
+                                                               "complete",
+                                                               "average",
+                                                               "mcquitty",
+                                                               "median",
+                                                               "centroid")
+                                    )
+                             )),
+                           
+                           conditionalPanel(condition="check.single_gf == false",
+                                            d3heatmapOutput("heatmapEnrich", width = "100%", height = "600px"),
+                                            plotOutput("legendEnrich",width="300px",height="200px")
+                           )
+                           
+                  ), 
+                  tabPanel("Enrichment analysis tables",
+                           selectInput("cmbEnrichTable","Select which enrichment table to render",choices=list("Enrichment results not ready")),
+                           DT::dataTableOutput("tblEnrichment")),
+                  tabPanel("Epigenetic similarity analysis heatmap",
+                           fluidPage(
+                             fluidRow(
+                               column(4,
+                                      selectInput("cmbEpisimHeatmap", label = "Select which matrix to visualize", 
+                                                  choices = list("P-value" = "matrix_PVAL.txt", 
+                                                                 "Odds Ratio" = "matrix_OR.txt"))),
+                               column(4,
+                                      selectInput('cmbEpisimCorType',label = "Correlation coefficient type",
+                                                  choices = list("Pearson's" = "pearson",
+                                                                 "Spearman's" = "spearman"))
+                               ),
+                               
+                               column(4,
+                                      selectInput("cmbEpisimClustMethod",label = "Clustering method (hclust)", 
+                                                  choices = list("ward.D",
+                                                                 "ward.D2",
+                                                                 "single",
+                                                                 "complete",
+                                                                 "average",
+                                                                 "mcquitty",
+                                                                 "median",
+                                                                 "centroid")
+                                      )
+                               )),
+                             d3heatmapOutput("heatmapEpisim", width = "100%", height = "600px"),
+                             plotOutput("legendEpisim",width="300px",height="200px"),
+                             fluidRow(
+                               column(12,
+                                      sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 3))
+                             ),
+                             plotOutput("pltDend",width = "100%", height = "500px")
+                           )),
+                  tabPanel("Epigenetic similarity analysis tables",
+                           selectInput("cmbEpisimTable","Select which epigenetic table to render",choices=list("Epigenetic results not ready")),
+                           DT::dataTableOutput("tblEpigenetics"))
+      )
+    } else{ # this UI is created when only a single GF result is returned
+      tabsetPanel("tabsSingleGF",
+                  tabPanel("Enrichment analysis barplot",
+                           fluidRow(
+                             column(6,
+                                    selectInput("cmbEnrichBarplot", label = "Select which matrix to visualize", 
+                                                choices = list("P-value" = "matrix_PVAL.txt", 
+                                                               "Odds Ratio" = "matrix_OR.txt")),
+                                    conditionalPanel("input.cmbEnrichBarplot=='matrix_PVAL.txt'",
+                                                     selectInput("cmbEnrichBarPlotPvalAdjust",label = "Select which P-value comparison correction",
+                                                                 choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY")))
+                             ),
+                             column(6,
+                                    conditionalPanel("input.cmbEnrichBarplot=='matrix_OR.txt'",
+                                                     sliderInput("sldNumFeatures",label = "Number of top results to plot",min=1,max=100,value=30)),
+                                    conditionalPanel("input.cmbEnrichBarplot=='matrix_PVAL.txt'",
+                                                     numericInput("numBarplotThreshold","Filter by threshold: lower limit",min = 0,max=1,value = 0.05)))
+                           ),
+                           plotOutput("pltEnrichUp",width="100%",height = "350px"),
+                           plotOutput("pltEnrichDown", width="100%", height= "350px")
+                  ),
+                  tabPanel("Enrichment analysis tables",
+                           selectInput("cmbEnrichTable","Select which enrichment table to render",choices=list("Enrichment results not ready")),
+                           DT::dataTableOutput("tblEnrichment"))
+      )
+    }
   })
 })
