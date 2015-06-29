@@ -6,7 +6,12 @@ library(dendextendRcpp) # required for extracting the height from the dendrogram
 library(tools)
 library(colorRamps)
 
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2_single_col/"
+# # Lukas paths
+# results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2_single_col/"
+# Mikhail paths
+results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/DNAse_hotspotbroadall/"
+
+
 genomerunner.mode <- FALSE
 coloring.num = 50
 shinyServer(function(input, output,session) {
