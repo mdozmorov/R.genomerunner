@@ -9,7 +9,7 @@ library(colorRamps)
 # # Lukas paths
 # results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2_single_col/"
 # Mikhail paths
-results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/DNAse_hotspotbroadall/"
+results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/chromStates18/"
 
 
 genomerunner.mode <- FALSE
@@ -135,9 +135,9 @@ shinyServer(function(input, output,session) {
     if(input$cmbEnrichBarplot == "matrix_PVAL.txt"){
       y.label = "-log10(p-value)"
     }else{y.label="log2(odds-ratio)"}
-    par(mar = c(5,5,4.1,2.1))
+    par(mar = c(10,5,4.1,2.1))
     barplot(as.matrix(t(head(mtx.up.sorted,input$sldNumFeatures))), beside=T,col = "red3",
-            space=c(0.2,1), cex.names=0.8, las=2, names.arg=head(rownames(mtx.up.sorted),input$sldNumFeatures),ylab=y.label,main="Enriched epigenomic associations")
+            space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),input$sldNumFeatures),ylab=y.label,main="Enriched epigenomic associations")
     abline(a=0,b=0)
     
     #barplot1(head(mtx.up.sorted,input$sldNumFeatures),names.args = head(rownames(mtx.up.sorted),input$sldNumFeatures))
@@ -183,9 +183,9 @@ shinyServer(function(input, output,session) {
     if(input$cmbEnrichBarplot == "matrix_PVAL.txt"){
       y.label = "-log10(p-value)\nnegative = underrepresentation"
     }else{y.label="log2(odds-ratio)\nnegative = underrepresentation"}
-    par(mar = c(5,5,4.1,2.1))
+    par(mar = c(10,5,4.1,2.1))
     barplot(as.matrix(t(head(mtx.down.sorted,input$sldNumFeatures))), beside=T,col = "green4",
-            space=c(0.2,1), cex.names=0.8, las=2, names.arg=head(rownames(mtx.down.sorted),input$sldNumFeatures),ylab=y.label,main = "Depleted epigenomic associations")
+            space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),input$sldNumFeatures),ylab=y.label,main = "Depleted epigenomic associations")
     abline(a=0,b=0)
     #barplot(head(mtx.down.sorted,input$sldNumFeatures),names.args = head(rownames(mtx.down.sorted),input$sldNumFeatures))
   })
@@ -262,18 +262,18 @@ shinyServer(function(input, output,session) {
                   tabPanel("Enrichment analysis barplot",
                            fluidRow(
                              column(6,
-                                    selectInput("cmbEnrichBarplot", label = "Select which matrix to visualize", 
-                                                choices = list("P-value" = "matrix_PVAL.txt", 
-                                                               "Odds Ratio" = "matrix_OR.txt")),
+                                    selectInput("cmbEnrichBarplot", label = "Results to visualize", 
+                                                choices = list("P-values" = "matrix_PVAL.txt", 
+                                                               "Odds Ratios" = "matrix_OR.txt")),
                                     conditionalPanel("input.cmbEnrichBarplot=='matrix_PVAL.txt'",
-                                                     selectInput("cmbEnrichBarPlotPvalAdjust",label = "Select which P-value comparison correction",
+                                                     selectInput("cmbEnrichBarPlotPvalAdjust",label = "P-value multiple testing correction method",
                                                                  choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY")))
                              ),
                              column(6,
                                     conditionalPanel("input.cmbEnrichBarplot=='matrix_OR.txt'",
                                                      sliderInput("sldNumFeatures",label = "Number of top results to plot",min=1,max=100,value=30)),
                                     conditionalPanel("input.cmbEnrichBarplot=='matrix_PVAL.txt'",
-                                                     numericInput("numBarplotThreshold","Filter by threshold: lower limit",min = 0,max=1,value = 0.05)))
+                                                     numericInput("numBarplotThreshold","Filter results by the p-value threshold",min = 0,max = 1,value = 1,step = 0.01)))
                            ),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
                            plotOutput("pltEnrichDown", width="100%", height= "350px")
@@ -284,9 +284,9 @@ shinyServer(function(input, output,session) {
                                     numericInput("numEnrichFilterLower","Filter by threshold: lower limit",min = 2,max=10,value = 3),
                                     numericInput("numEnrichFilterUpper","Filter by threshold: upper limit",min = 2,max=10,value = 3)),
                              column(4,
-                                    selectInput("cmbEnrichHeatmap", label = "Select which matrix to visualize", 
-                                                choices = list("P-value" = "matrix_PVAL.txt", 
-                                                               "Odds Ratio" = "matrix_OR.txt"))),
+                                    selectInput("cmbEnrichHeatmap", label = "Results to visualize", 
+                                                choices = list("P-values" = "matrix_PVAL.txt", 
+                                                               "Odds Ratios" = "matrix_OR.txt"))),
                              column(4,
                                     conditionalPanel(condition="check.single_gf == true",
                                                      sliderInput("sldNumFeatures",label = "Number of top results to plot",min=1,max=1000,value=30)),
@@ -315,9 +315,9 @@ shinyServer(function(input, output,session) {
                            fluidPage(
                              fluidRow(
                                column(4,
-                                      selectInput("cmbEpisimHeatmap", label = "Select which matrix to visualize", 
-                                                  choices = list("P-value" = "matrix_PVAL.txt", 
-                                                                 "Odds Ratio" = "matrix_OR.txt"))),
+                                      selectInput("cmbEpisimHeatmap", label = "Results to visualize", 
+                                                  choices = list("P-values" = "matrix_PVAL.txt", 
+                                                                 "Odds Ratios" = "matrix_OR.txt"))),
                                column(4,
                                       selectInput('cmbEpisimCorType',label = "Correlation coefficient type",
                                                   choices = list("Pearson's" = "pearson",
@@ -353,18 +353,18 @@ shinyServer(function(input, output,session) {
                   tabPanel("Enrichment analysis barplot",
                            fluidRow(
                              column(6,
-                                    selectInput("cmbEnrichBarplot", label = "Select which matrix to visualize", 
-                                                choices = list("P-value" = "matrix_PVAL.txt", 
-                                                               "Odds Ratio" = "matrix_OR.txt")),
+                                    selectInput("cmbEnrichBarplot", label = "Results to visualize", 
+                                                choices = list("P-values" = "matrix_PVAL.txt", 
+                                                               "Odds Ratios" = "matrix_OR.txt")),
                                     conditionalPanel("input.cmbEnrichBarplot=='matrix_PVAL.txt'",
-                                                     selectInput("cmbEnrichBarPlotPvalAdjust",label = "Select which P-value comparison correction",
+                                                     selectInput("cmbEnrichBarPlotPvalAdjust",label = "P-value multiple testing correction method",
                                                                  choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY")))
                              ),
                              column(6,
                                     conditionalPanel("input.cmbEnrichBarplot=='matrix_OR.txt'",
                                                      sliderInput("sldNumFeatures",label = "Number of top results to plot",min=1,max=100,value=30)),
                                     conditionalPanel("input.cmbEnrichBarplot=='matrix_PVAL.txt'",
-                                                     numericInput("numBarplotThreshold","Filter by threshold: lower limit",min = 0,max=1,value = 0.05)))
+                                                     numericInput("numBarplotThreshold","Filter results by the p-value threshold",min = 0,max = 1,value = 1,step = 0.01)))
                            ),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
                            plotOutput("pltEnrichDown", width="100%", height= "350px")
