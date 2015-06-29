@@ -12,17 +12,13 @@ library(pander)
 library(colorRamps)
 library(genefilter)
 library(xlsx)
-source("/home/lukas/R.genomerunner/genomeRunner_file_formatting_functions2.R")
-# Work paths
-gfAnnot <- read.xlsx2("/home/lukas/db_2.00_06-10-2015/grsnp_db/hg19/GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
-#gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
-#gfAnnot$V1 <- make.names(gfAnnot$V1)
-#cellAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/ENCODE_cells.txt", sep="\t", header=T, fill=T, quote="\""))
-# Home paths
-#gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=T))
-# Windows paths
-#gfAnnot <- tbl_df(read.table("F:/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
-#cellAnnot <- tbl_df(read.table("F:/Work/GenomeRunner/genomerunner_database/hg19/ENCODE_cells.txt", sep="\t", header=T, fill=T, quote="\""))
+# # Lukas paths
+# source("/home/lukas/R.genomerunner/genomeRunner_file_formatting_functions2.R")
+# gfAnnot <- read.xlsx2("/home/lukas/db_2.00_06-10-2015/grsnp_db/hg19/GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
+# Mikhail paths
+source("/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/genomeRunner_file_formatting_functions2.R")
+gfAnnot <- read.xlsx2("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
+
 cellAnnot <- aggregate(gfAnnot$celldescr, list(gfAnnot$cell), unique)
 colnames(cellAnnot) <- c("cell", "description")
 cellAnnot <- cellAnnot[ cellAnnot$cell != "", ] # Remove empty cells
