@@ -177,6 +177,7 @@ mtx.cor.crossprod <- function(dataz, quantile=0.05) {
 ## ----------------------------------------------------------------------------------
 ## Convert a matrix of -log10-transformed p-values (with "-" indicating depletion) into raw linear scale
 mtx.untransform<-function(x){
+  if (nrow(x) == 0) return(x)
   tmp<- 1/10^abs(x) # -log10 transformation without sign
   for (i in 1:nrow(x)){
     for (j in 1:ncol(x)){
