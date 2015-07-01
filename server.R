@@ -52,8 +52,8 @@ shinyServer(function(input, output,session) {
     plot(color.range,rep(1,coloring.num+1),col=coloring(coloring.num+1),pch=15,cex=10,main="Heatmap Legend",ylab="",xlab="")
   })
   
-  output$tblEnrichmentSingle <-renderDataTable({      
-    
+  # generate the enrichment table and appends the gf.name information columns
+  get.single.enrichment.table <- reactive({
     mtx <- read.csv(paste(get.results.dir(),input$cmbEnrichBarplot,sep = ""),sep="\t")
     if (input$cmbEnrichBarplot == "matrix_PVAL.txt"){
       mtx.adjust <- apply(mtx, 2, function(x) p.adjust(abs(x), method = input$cmbEnrichBarPlotPvalAdjust))
@@ -72,10 +72,27 @@ shinyServer(function(input, output,session) {
     }
     mtx.table = cbind(GF.Name = rownames(mtx.table),mtx.table) # make the GF.name a column instead of just the rowname so we can left_join
     rownames(mtx.table) <- NULL
+    # gfAnnot is loaded in utils2
     mtx.table <- left_join(mtx.table,gfAnnot,by=c("GF.Name"="name"))
     mtx.table <- subset(mtx.table, select = -c(description,ind))
+    
     return(mtx.table)
   })
+  
+  output$tblEnrichmentSingle <-renderDataTable({
+    get.single.enrichment.table()
+  })
+  
+  output$downloadEnrichSingleTable <- downloadHandler(
+    filename = function() { 
+      return("Enrichment_table.txt")
+    },
+    content = function(file) {
+      write.table(x = get.single.enrichment.table(),file =  file ,sep = "\t",quote = F,row.names = F)
+    }
+  )
+  
+  outputOptions(output, "downloadEnrichSingleTable", suspendWhenHidden=FALSE)
   
   ## enrichment up and down plots for single column --------------------------------------------------------------
   get.barplot.matrix <- reactive({
@@ -373,6 +390,9 @@ shinyServer(function(input, output,session) {
                            plotOutput("pltEnrichDown", width="100%", height= "350px")
                   ),
                   tabPanel("Enrichment analysis tables",
+                           br(),br(),
+                           downloadButton('downloadEnrichSingleTable', 'Download table in tab-separated format'),
+                           br(),br(),
                            DT::dataTableOutput("tblEnrichmentSingle"))
       )
     }
