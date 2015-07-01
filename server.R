@@ -52,7 +52,7 @@ shinyServer(function(input, output,session) {
     plot(color.range,rep(1,coloring.num+1),col=coloring(coloring.num+1),pch=15,cex=10,main="Heatmap Legend",ylab="",xlab="")
   })
   
-  output$tblEnrichment <-renderDataTable({      
+  output$tblEnrichmentSingle <-renderDataTable({      
     
     mtx <- read.csv(paste(get.results.dir(),input$cmbEnrichBarplot,sep = ""),sep="\t")
     if (input$cmbEnrichBarplot == "matrix_PVAL.txt"){
@@ -63,15 +63,18 @@ shinyServer(function(input, output,session) {
                          mtx.sign, 
                          mtx.adjust)
       colnames(mtx.table) <- c("P.value","Direction","P.adj")
-      return(mtx.table)
     }else{ 
       # for odds ratio
       mtx.sign <- ifelse(sign(mtx) < 1, "Underrepresented", "Overrepresented")
       mtx.table <- cbind(abs(mtx),
                          mtx.sign)
       colnames(mtx.table) <- c("Odds.ratio","Direction")
-      return(mtx.table)
     }
+    mtx.table = cbind(GF.Name = rownames(mtx.table),mtx.table) # make the GF.name a column instead of just the rowname so we can left_join
+    rownames(mtx.table) <- NULL
+    mtx.table <- left_join(mtx.table,gfAnnot,by=c("GF.Name"="name"))
+    mtx.table <- subset(mtx.table, select = -c(description,ind))
+    return(mtx.table)
   })
   
   ## enrichment up and down plots for single column --------------------------------------------------------------
@@ -370,7 +373,7 @@ shinyServer(function(input, output,session) {
                            plotOutput("pltEnrichDown", width="100%", height= "350px")
                   ),
                   tabPanel("Enrichment analysis tables",
-                           DT::dataTableOutput("tblEnrichment"))
+                           DT::dataTableOutput("tblEnrichmentSingle"))
       )
     }
   })
