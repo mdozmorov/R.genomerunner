@@ -7,9 +7,9 @@ library(tools)
 library(colorRamps)
 
 # # Lukas paths
-# results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2_single_col/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2_single_col/"
 # Mikhail paths
-results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/chromStates18/"
+#results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/chromStates18/"
 
 
 genomerunner.mode <- FALSE
@@ -370,7 +370,6 @@ shinyServer(function(input, output,session) {
                            plotOutput("pltEnrichDown", width="100%", height= "350px")
                   ),
                   tabPanel("Enrichment analysis tables",
-                           selectInput("cmbEnrichTable","Select which enrichment table to render",choices=list("Enrichment results not ready")),
                            DT::dataTableOutput("tblEnrichment"))
       )
     }
