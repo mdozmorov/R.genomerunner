@@ -7,9 +7,10 @@ library(tools)
 library(colorRamps)
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2_single_col/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test1/"
 # Mikhail paths
 #results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/chromStates18/"
+#results.dir = ""
 
 
 genomerunner.mode <- FALSE
@@ -19,6 +20,9 @@ shinyServer(function(input, output,session) {
   
   # Parse the GET query string
   get.results.dir <- reactive({
+    if (!is.null(input$fileMatrix)){ # if a file is uploaded, we return the temporary folder location where shiny stores it
+      return(input$fileMarix$datapath)
+    }
     if (genomerunner.mode){
       query <- parseQueryString(session$clientData$url_search)
       return(paste(results.dir, query$id,"/",sep = ""))
@@ -29,9 +33,29 @@ shinyServer(function(input, output,session) {
   
   # enrichment ------------------------------------------------------------------
   get.matrix <- reactive({
-    # populate the enrichment table combobox
-    file.names.enrichment <- file_path_sans_ext(list.files(paste(get.results.dir(),"enrichment/",sep="")))
-    mtx <- load_gr_data(paste(get.results.dir(), input$cmbEnrichHeatmap,sep=""))
+    # populate the enrichment table combobox with the file that exist
+    mtx.file.pval = paste(get.results.dir(), "matrix_PVAL.txt",sep="")
+    mtx.file.or = paste(get.results.dir(), "matrix_OR.txt",sep="")
+    in.file <- input$fileMatrix;
+    mtx.file.exist = list()
+    # runs when the user uploads a file
+    if (!is.null(in.file)){
+      if(in.file$name == 'matrix_PVAL.txt'){
+        mtx.file.exist = list("P-value" = "matrix_PVAL.txt")
+      }else if (in.file$name == 'matrix_OR.txt') {
+        mtx.file.exist = list("Odds Ratios" = "matrix_OR.txt")
+      } else {
+        return(NULL)
+      }
+      updateSelectInput(inputId = "cmbEnrichBarplot",choices = mtx.file.exist)
+      return(load_gr_data(paste(in.file$datapath,in.file$name,sep="/")))
+    }
+    # runs in the case no file is uploaded
+    if (!is.null(in.file.OR$datapath)) { mtx.file.exists = append(mtx.file.exists,list())}
+    if (file.exists(mtx.file.pval)) {mtx.file.exists <- append(mtx.file.exists,list("P-value" = "matrix_PVAL.txt"))}
+    if (file.exists(mtx.file.or)) {mtx.file.exist <- append(mtx.file.exists,list("Odds Ratios" = "matrix_OR.txt"))}
+    updateSelectInput(inputId = "cmbEnrichBarplot",choices = mtx.file.exist)
+    return(load_gr_data(mtx.file))
   })
   
   output$heatmapEnrich <- renderD3heatmap({
@@ -96,7 +120,16 @@ shinyServer(function(input, output,session) {
   
   ## enrichment up and down plots for single column --------------------------------------------------------------
   get.barplot.matrix <- reactive({
-    # populate the enrichment table combobox
+    # populate the enrichment table combobox with the file that exist
+    mtx.file.pval = paste(get.results.dir(), "matrix_PVAL.txt",sep="")
+    mtx.file.or = paste(get.results.dir(), "matrix_OR.txt",sep="")
+    mtx.file.exist = c()
+    in.file.OR <- input$fileMatrixOR; in.file.PVAL <- input$fileMatrixPVAL
+    if (!is.null(in.file.OR$datapath)){ mtx.file.or = in.file.OR$datapath }
+    if (!is.null(in.file.OR$datapath)) { mtx.file.pval = in.file.PVAL$datapath}
+    if (file.exists(mtx.file.pval)) { mtx.file.exist <- c(mtx.file.pval,mtx.file.exist)}
+    if (file.exists(mtx.file.or)) {mtx.file.exist <- c(mtx.file.or, mtx.file.exist)}
+    
     file.names.enrichment <- file_path_sans_ext(list.files(paste(get.results.dir(),"enrichment/",sep="")))
     mtx <- load_gr_data(paste(get.results.dir(), input$cmbEnrichBarplot,sep=""))
   })
@@ -371,6 +404,11 @@ shinyServer(function(input, output,session) {
     } else{ # this UI is created when only a single GF result is returned
       tabsetPanel("tabsSingleGF",
                   tabPanel("Enrichment analysis barplot",
+                           fileInput('fileMatrix', "Upload matrix_PVAL.txt or matrix_OR.txt file",
+                                     accept = c(
+                                       '.txt'
+                                     )
+                           ),
                            fluidRow(
                              column(6,
                                     selectInput("cmbEnrichBarplot", label = "Results to visualize", 
