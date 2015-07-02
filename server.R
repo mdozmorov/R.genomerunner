@@ -45,7 +45,7 @@ shinyServer(function(input, output,session) {
     mtx <- get.matrix()
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
     color.range = seq(min(mtx),max(mtx), (max(mtx)-min(mtx))/coloring.num )
-    plot(color.range,rep(1,coloring.num+1),col=coloring(coloring.num+1),pch=15,cex=10,main="Heatmap Legend",ylab="",xlab="")
+    plot(color.range,rep(1,coloring.num+1),col=coloring(coloring.num+1),pch=15,cex=10,main="Heatmap Legend",ylab="",xlab="",yaxt="n")
   })
   
   # generate the enrichment table and appends the gf.name information columns
@@ -122,9 +122,20 @@ shinyServer(function(input, output,session) {
     mtx.up <- subset(mtx[selectedFOI],mtx[selectedFOI] > updown.split)
     # filter out results that do not meet pvalue threshold
     log10.pval = -log10(input$numBarplotThreshold)
+    
+    if (nrow(mtx.up)==0){
+      # plot raw text
+      par(mar = c(0,0,0,0))
+      plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
+      text(x = 0.5, y = 0.5, paste("Nothing underrepresented to plot."),  cex = 1.6, col = "black")
+      box()
+      return()
+    }   
+    
     if (input$cmbMatrix == "matrix_PVAL.txt"){
       mtx.up <- subset(mtx.up[selectedFOI], mtx.up[selectedFOI] > log10.pval, drop=F)
-      }
+    }
+    
     if (nrow(mtx.up)==0){
       # plot raw text
       par(mar = c(0,0,0,0))
@@ -171,10 +182,20 @@ shinyServer(function(input, output,session) {
     
     updown.split = 0
     mtx <-  data.frame(get.barplot.matrix())
-    mtx.down <- subset(mtx[selectedFOI],mtx[selectedFOI] < updown.split)
+    mtx.down <- subset(mtx[selectedFOI],mtx[selectedFOI] < updown.split,drop = F)
     
     # filter out results that do not meet pvalue threshold
     log10.pval = -log10(input$numBarplotThreshold)
+    
+    if (nrow(mtx.down)==0){
+      # plot raw text
+      par(mar = c(0,0,0,0))
+      plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
+      text(x = 0.5, y = 0.5, paste("Nothing underrepresented to plot."),  cex = 1.6, col = "black")
+      box()
+      return()
+    }   
+    
     if (input$cmbMatrix == "matrix_PVAL.txt"){
       mtx.down <- subset(mtx.down[selectedFOI], mtx.down[selectedFOI] < -log10.pval, drop=F)
     }
@@ -230,7 +251,7 @@ shinyServer(function(input, output,session) {
     mtx <- get.corr.matrix()
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
     color.range = seq(min(mtx),max(mtx), (max(mtx)-min(mtx))/coloring.num )
-    plot(color.range,rep(1,coloring.num+1),col=coloring(coloring.num+1),pch=15,cex=10,main="Heatmap Legend",ylab="",xlab="")
+    plot(color.range,rep(1,coloring.num+1),col=coloring(coloring.num+1),pch=15,cex=10,main="Heatmap Legend",ylab="",xlab="",yaxt="n")
   })
   
   output$tblEpigenetics <-renderDataTable({
@@ -257,11 +278,11 @@ shinyServer(function(input, output,session) {
     mtx.clust <- dend %>% mtx.clusters(height=hcut, minmembers=3)
     # write.table(as.data.frame(mtx.clust), "/home/lukas/clustering_all.txt", sep="\t", row.names=FALSE, quote=FALSE)
     mtx = load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep="")) # load the original matrix
-    mtx.deg <- mtx.degfs(mtx[, mtx.clust$eset.labels], mtx.clust, label="broadPeak2")
-    
-    updateSelectInput(session,"cmbEpigenetics","Select which epigenetic table to render",choices = names(mtx.deg))
-    mtx.deg.path = paste(get.results.dir(),"mtx.deg.episim.RDS",sep = "/")
-    saveRDS(mtx.deg,file=mtx.deg.path)
+#     mtx.deg <- mtx.degfs(mtx[, mtx.clust$eset.labels], mtx.clust, label="broadPeak2")
+#     
+#     updateSelectInput(session,"cmbEpigenetics","Select which epigenetic table to render",choices = names(mtx.deg))
+#     mtx.deg.path = paste(get.results.dir(),"mtx.deg.episim.RDS",sep = "/")
+#     saveRDS(mtx.deg,file=mtx.deg.path)
     # create the tabs
     
     rect.hclust(as.hclust(dend), k=cl_num, border=cols) # Define the clusters by rectangles
@@ -298,7 +319,7 @@ shinyServer(function(input, output,session) {
                                     )
                              )),
                             d3heatmapOutput("heatmapEnrich", width = "100%", height = "600px"),
-                            plotOutput("legendEnrich",width="300px",height="200px")
+                            plotOutput("legendEnrich",width="300px",height="150px")
                   ), 
                   tabPanel("Enrichment analysis barplot",
                            selectInput("cmbFOI", "Select which SNP set to visualize", choices = colnames(mtx)),
@@ -341,13 +362,19 @@ shinyServer(function(input, output,session) {
                                                                  "centroid")
                                       )
                                )),
-                             d3heatmapOutput("heatmapEpisim", width = "100%", height = "600px"),
-                             plotOutput("legendEpisim",width="300px",height="200px"),
                              fluidRow(
-                               column(12,
-                                      sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 3))
-                             ),
-                             plotOutput("pltDend",width = "100%", height = "500px")
+                               column(6,
+                                 d3heatmapOutput("heatmapEpisim", width = "100%", height = "600px"),
+                                 plotOutput("legendEpisim",width="300px",height="150px")
+                               ),
+                               column(6, 
+                                 fluidRow(
+                                 column(12,
+                                        sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 3))
+                                  ),
+                                  plotOutput("pltDend",width = "100%", height = "500px")
+                               )
+                             )
                            )),
                   tabPanel("Epigenetic similarity analysis tables",
                            selectInput("cmbEpisimTable","Select which epigenetic table to render",choices=list("Epigenetic results not ready")),
