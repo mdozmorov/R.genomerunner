@@ -5,9 +5,10 @@ library(d3heatmap)
 library(dendextendRcpp) # required for extracting the height from the dendrogram
 library(tools)
 library(colorRamps)
+library(shinyBS)
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2_single_col/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
 # Mikhail paths
 #results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/chromStates18/"
 
@@ -101,9 +102,6 @@ shinyServer(function(input, output,session) {
     # Check if there is only one column in the matrix.  If so, we will plot a bar plots intead of heatmap
     mtx <- get.barplot.matrix()
     if(ncol(mtx)==1){
-      def.value = 30
-      if (nrow(mtx)<30){def.value = nrow(mtx)}
-      updateSliderInput(session,"sldNumFeatures",min = 1,max = nrow(mtx),value = def.value)
       return(TRUE)
     }else{
       return(FALSE)
@@ -120,22 +118,7 @@ shinyServer(function(input, output,session) {
     
     updown.split =  0
     mtx.up <- subset(mtx[selectedFOI],mtx[selectedFOI] > updown.split)
-    # filter out results that do not meet pvalue threshold
-    log10.pval = -log10(input$numThreshold)
-    
-    if (nrow(mtx.up)==0){
-      # plot raw text
-      par(mar = c(0,0,0,0))
-      plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
-      text(x = 0.5, y = 0.5, paste("Nothing underrepresented to plot."),  cex = 1.6, col = "black")
-      box()
-      return()
-    }   
-    
-    if (input$cmbMatrix == "matrix_PVAL.txt"){
-      mtx.up <- subset(mtx.up[selectedFOI], mtx.up[selectedFOI] > log10.pval, drop=F)
-    }
-    
+   
     if (nrow(mtx.up)==0){
       # plot raw text
       par(mar = c(0,0,0,0))
@@ -183,22 +166,7 @@ shinyServer(function(input, output,session) {
     updown.split = 0
     mtx <-  data.frame(get.barplot.matrix())
     mtx.down <- subset(mtx[selectedFOI],mtx[selectedFOI] < updown.split,drop = F)
-    
-    # filter out results that do not meet pvalue threshold
-    log10.pval = -log10(input$numThreshold)
-    
-    if (nrow(mtx.down)==0){
-      # plot raw text
-      par(mar = c(0,0,0,0))
-      plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
-      text(x = 0.5, y = 0.5, paste("Nothing underrepresented to plot."),  cex = 1.6, col = "black")
-      box()
-      return()
-    }   
-    
-    if (input$cmbMatrix == "matrix_PVAL.txt"){
-      mtx.down <- subset(mtx.down[selectedFOI], mtx.down[selectedFOI] < -log10.pval, drop=F)
-    }
+  
     if (nrow(mtx.down)==0){
       # plot raw text
       par(mar = c(0,0,0,0))
@@ -345,14 +313,11 @@ shinyServer(function(input, output,session) {
     if (ncol(mtx)>1){single.gf = FALSE}
     if (single.gf == FALSE){
       sidebarPanel(width = 4,h3("Global Settings"),
-                   selectInput("cmbMatrix", label = "Results to visualize", 
+                  selectInput("cmbMatrix", label = "Results to visualize", 
                                choices = list("P-values" = "matrix_PVAL.txt", 
                                               "Odds Ratios" = "matrix_OR.txt")),
+                  bsTooltip("cmbMatrix", "Select P-value or Odds ratio", placement = "top", trigger = "hover"),
                    selectInput("cmbFOI", "Select which SNP set to visualize", choices = colnames(mtx)),
-                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
-                                    numericInput("numThreshold","Filter results by the p-value threshold",min = 0,max = 1,value = 1,step = 0.01)),
-                   conditionalPanel("input.cmbMatrix=='matrix_OR.txt'",
-                                    sliderInput("sldNumFeatures",label = "Number of top results to plot",min=1,max=100,value=30)),
                    conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
                                     selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
                                                 choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))),
@@ -381,9 +346,8 @@ shinyServer(function(input, output,session) {
                    selectInput("cmbFOI", "Select which SNP set to visualize", choices = colnames(mtx)),
                    conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
                                     selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
-                                                choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))),
-                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
-                                    numericInput("numThreshold","Filter results by the p-value threshold",min = 0,max = 1,value = 1,step = 0.01)))
+                                                choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY")))
+                  )
     }
   })
 })
