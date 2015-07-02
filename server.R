@@ -50,20 +50,25 @@ shinyServer(function(input, output,session) {
   })
   
   # generate the enrichment table and appends the gf.name information columns
-  get.single.enrichment.table <- reactive({
+  get.enrichment.table <- reactive({
     mtx <- read.csv(paste(get.results.dir(),input$cmbMatrix,sep = ""),sep="\t")
+    selectedFOI <- 1
+    if (check.single_gf() != TRUE){
+      selectedFOI <-input$cmbFOI
+    }
+    
     if (input$cmbMatrix == "matrix_PVAL.txt"){
-      mtx.adjust <- apply(mtx, 2, function(x) p.adjust(abs(x), method = input$cmbPvalAdjustMethod))
-      mtx.sign <- ifelse(sign(mtx) < 0, "Underrepresented", "Overrepresented")
+      mtx.adjust <- apply(mtx[selectedFOI], 2, function(x) p.adjust(abs(x), method = input$cmbPvalAdjustMethod))
+      mtx.sign <- ifelse(sign(mtx[selectedFOI]) < 0, "Underrepresented", "Overrepresented")
       
-      mtx.table <- cbind(abs(mtx), 
+      mtx.table <- cbind(abs(mtx[selectedFOI]), 
                          mtx.sign, 
                          mtx.adjust)
       colnames(mtx.table) <- c("P.value","Direction","P.adj")
     }else{ 
       # for odds ratio
-      mtx.sign <- ifelse(sign(mtx) < 1, "Underrepresented", "Overrepresented")
-      mtx.table <- cbind(abs(mtx),
+      mtx.sign <- ifelse(sign(mtx[selectedFOI]) < 1, "Underrepresented", "Overrepresented")
+      mtx.table <- cbind(abs(mtx[selectedFOI]),
                          mtx.sign)
       colnames(mtx.table) <- c("Odds.ratio","Direction")
     }
@@ -76,16 +81,17 @@ shinyServer(function(input, output,session) {
     return(mtx.table)
   })
   
-  output$tblEnrichmentSingle <-renderDataTable({
-    get.single.enrichment.table()
-  })
+  output$tblEnrichment <-renderDataTable({
+    get.enrichment.table()
+  }, options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
+                     pageLength = 50))
   
   output$downloadEnrichSingleTable <- downloadHandler(
     filename = function() { 
       return("Enrichment_table.txt")
     },
     content = function(file) {
-      write.table(x = get.single.enrichment.table(),file =  file ,sep = "\t",quote = F,row.names = F)
+      write.table(x = get.enrichment.table(),file =  file ,sep = "\t",quote = F,row.names = F)
     }
   )
   
@@ -222,15 +228,48 @@ shinyServer(function(input, output,session) {
     plot(color.range,rep(1,coloring.num+1),col=coloring(coloring.num+1),pch=15,cex=10,main="Heatmap Legend",ylab="",xlab="",yaxt="n")
   })
   
-  output$tblEpigenetics <-renderDataTable({
-    mtx.deg <- readRDS(file=paste(get.results.dir(),"mtx.deg.episim.RDS",sep = "/"))
+  # this function is cut out from the tblEpigenetics renderer. It is a long calculation that is only run when # of clusters changes
+  calculate.clust <- reactive({
+    cor.mat <- get.corr.matrix() # this line ensure that dendrogram is redrawn when heatmap is
+    hclustergram <- get.cor.hclust.dendrogram() # ensures that dendrogram is redrawn when hclust method is changed
     
+    dend = readRDS(file = paste(get.results.dir(), "heatmap.dend.rds",sep=""))
+    cl_num <- input$sldEpisimNumClust # Empirically set desired numter of clusters
+    hcut <- heights_per_k.dendrogram(dend)[cl_num] # extract the height to cut based on # of groups
+    # get the cluster labels
+    mtx.clust <- dend %>% mtx.clusters(height=hcut, minmembers=3)
+    mtx = load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep="")) # load the original matrix
+    
+    mtx.deg <- mtx.degfs(mtx[, mtx.clust$eset.labels], mtx.clust, label="broadPeak2")
+    
+    updateSelectInput(session,"cmbEpigenetics","Select which epigenetic table to render",choices = names(mtx.deg))
+    mtx.deg.path = paste(get.results.dir(),"mtx.deg.episim.RDS",sep = "")
+    saveRDS(mtx.deg,file=mtx.deg.path)
+    return(mtx.deg)
+  })
+  
+  output$tblEpigenetics <-renderDataTable({
+    mtx.deg <- calculate.clust()
+    # check if any results were returned
+    if (is.null(names(mtx.deg))){ 
+      return(data.frame(NoResult="There is nothing signficant to show"))
+    }
+    selectedCor = names(mtx.deg)[1]
+    # save last selected value
+    if (input$cmbEpigenetics != "Results not ready yet.") {
+      if (input$cmbEpigenetics %in% names(mtx.deg)){
+        selectedCor = input$cmbEpigenetics
+      }
+      updateSelectInput(session,"cmbEpigenetics",choices=names(mtx.deg),selected = selectedCor)
+    }
+    print(names(mtx.deg))
     #convert values to numeric form for sorting purposes
     for(x in list("adj.p.val",3,4)){
-      mtx.deg[[input$cmbEpisimTable]][[x]] <- as.numeric(mtx.deg[[input$cmbEpisimTable]][[x]])
+      mtx.deg[[selectedCor]][[x]] <- as.numeric(mtx.deg[[selectedCor]][[x]])
     }
-    mtx.deg[[input$cmbEpisimTable]]
-  })
+    mtx.deg[[selectedCor]]
+  },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
+                      pageLength = 50))
   
   output$pltDend <- renderPlot({ 
     cor.mat <- get.corr.matrix() # this line ensure that dendrogram is redrawn when heatmap is
@@ -246,11 +285,7 @@ shinyServer(function(input, output,session) {
     mtx.clust <- dend %>% mtx.clusters(height=hcut, minmembers=3)
     # write.table(as.data.frame(mtx.clust), "/home/lukas/clustering_all.txt", sep="\t", row.names=FALSE, quote=FALSE)
     mtx = load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep="")) # load the original matrix
-#     mtx.deg <- mtx.degfs(mtx[, mtx.clust$eset.labels], mtx.clust, label="broadPeak2")
-#     
-#     updateSelectInput(session,"cmbEpigenetics","Select which epigenetic table to render",choices = names(mtx.deg))
-#     mtx.deg.path = paste(get.results.dir(),"mtx.deg.episim.RDS",sep = "/")
-#     saveRDS(mtx.deg,file=mtx.deg.path)
+
     # create the tabs
     
     rect.hclust(as.hclust(dend), k=cl_num, border=cols) # Define the clusters by rectangles
@@ -274,7 +309,6 @@ shinyServer(function(input, output,session) {
                            plotOutput("pltEnrichDown", width="100%", height= "350px")
                   ),
                   tabPanel("Enrichment analysis tables",
-                           selectInput("cmbEnrichTable","Select which enrichment table to render",choices=list("Enrichment results not ready")),
                            DT::dataTableOutput("tblEnrichment")),
                   tabPanel("Epigenetic similarity analysis heatmap",
                            fluidPage(
@@ -289,7 +323,7 @@ shinyServer(function(input, output,session) {
                              )
                            )),
                   tabPanel("Epigenetic similarity analysis tables",
-                           selectInput("cmbEpisimTable","Select which epigenetic table to render",choices=list("Epigenetic results not ready")),
+                           selectInput("cmbEpigenetics", "Select which epigenetic analysis to show", choices = list("Results not ready yet.")),
                            DT::dataTableOutput("tblEpigenetics"))
       )
     } else{ # this UI is created when only a single GF result is returned
@@ -302,7 +336,7 @@ shinyServer(function(input, output,session) {
                            br(),br(),
                            downloadButton('downloadEnrichSingleTable', 'Download table in tab-separated format'),
                            br(),br(),
-                           DT::dataTableOutput("tblEnrichmentSingle"))
+                           DT::dataTableOutput("tblEnrichment"))
       )
     }
   })
@@ -338,7 +372,7 @@ shinyServer(function(input, output,session) {
                    hr(),h3("Epigenetic similarity"),
                    sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 3)
               )
-    }else{
+    }else{ # this is for a single column result file
       sidebarPanel(h3("Global Settings"), hr(),
                    selectInput("cmbMatrix", label = "Results to visualize", 
                                choices = list("P-values" = "matrix_PVAL.txt", 
