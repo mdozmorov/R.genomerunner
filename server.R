@@ -7,7 +7,7 @@ library(tools)
 library(colorRamps)
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2_single_col/"
 # Mikhail paths
 #results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/chromStates18/"
 
@@ -161,8 +161,8 @@ shinyServer(function(input, output,session) {
       y.label = "-log10(p-value)"
     }else{y.label="log2(odds-ratio)"}
     par(mar = c(10,5,4.1,2.1))
-    barplot(as.matrix(t(head(mtx.up.sorted,input$sldNumFeatures))), beside=T,col = "red3",
-            space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),input$sldNumFeatures),ylab=y.label,main="Enriched epigenomic associations")
+    barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
+            space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),ylab=y.label,main="Enriched epigenomic associations")
     abline(a=0,b=0)
     
     #barplot1(head(mtx.up.sorted,input$sldNumFeatures),names.args = head(rownames(mtx.up.sorted),input$sldNumFeatures))
@@ -221,8 +221,8 @@ shinyServer(function(input, output,session) {
       y.label = "-log10(p-value)\nnegative = underrepresentation"
     }else{y.label="log2(odds-ratio)\nnegative = underrepresentation"}
     par(mar = c(10,5,4.1,2.1))
-    barplot(as.matrix(t(head(mtx.down.sorted,input$sldNumFeatures))), beside=T,col = "green4",
-            space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),input$sldNumFeatures),ylab=y.label,main = "Depleted epigenomic associations")
+    barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
+            space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),ylab=y.label,main = "Depleted epigenomic associations")
     abline(a=0,b=0)
     #barplot(head(mtx.down.sorted,input$sldNumFeatures),names.args = head(rownames(mtx.down.sorted),input$sldNumFeatures))
   })
@@ -344,7 +344,7 @@ shinyServer(function(input, output,session) {
     single.gf = TRUE
     if (ncol(mtx)>1){single.gf = FALSE}
     if (single.gf == FALSE){
-      sidebarPanel(h3("Global Settings"),
+      sidebarPanel(width = 4,h3("Global Settings"),
                    selectInput("cmbMatrix", label = "Results to visualize", 
                                choices = list("P-values" = "matrix_PVAL.txt", 
                                               "Odds Ratios" = "matrix_OR.txt")),
@@ -379,6 +379,9 @@ shinyServer(function(input, output,session) {
                                choices = list("P-values" = "matrix_PVAL.txt", 
                                               "Odds Ratios" = "matrix_OR.txt")),
                    selectInput("cmbFOI", "Select which SNP set to visualize", choices = colnames(mtx)),
+                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
+                                    selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
+                                                choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))),
                    conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
                                     numericInput("numThreshold","Filter results by the p-value threshold",min = 0,max = 1,value = 1,step = 0.01)))
     }
