@@ -486,3 +486,76 @@ mtx.cellspecific <- function(mtx, fname, pval=0.01) {
     }
   }
 }
+
+# This version compares distributions of the overall and cell-specific -log10 p-values
+mtx.cellspecific2 <- function(mtx, fname, pval=0.01) {
+  n.diseases <- ncol(mtx) # Total number of diseases to calculate the cell type-specific p-values
+  # Prepare the matrix for merging with GF annotations
+  mtx <- as.data.frame(cbind(GF=rownames(mtx), mtx))
+  mtx <- left_join(mtx, gfAnnot[, c("name", "cell", "factor", "description")], by=c("GF" = "name")) 
+  
+  cells <- unique(mtx$cell) # All cell types
+  # Global counts
+  tot.tests <- nrow(mtx) # Total number of enrichment analyses
+  cells.tests <- vector(mode="numeric", length=length(cells)) # Number of analyses per cell type
+  for(c in 1:length(cells)) {
+    cells.tests[c] <- length(mtx$cell[ mtx$cell == cells[c]]) # Number of analyses per cell type
+  }
+  names(cells.tests) <- cells
+  
+  # Disease-specific counts
+  pval.disease <- list() # for p-values
+  c2x2.disease <- list() # for 2x2 tables
+  for(i in 2:(n.diseases + 1)){ # Disease positions are now shifted by 1
+    tot.sig <- as.numeric(mtx[, i])  # Disease-specific total number of significant results
+    cells.sig <- vector(mode="list", length=length(cells)) # Disease-specific & cell type-specific number of significant results
+    for(c in 1:length(cells)) {
+      mtx.sel <- as.numeric(mtx[ mtx$cell == cells[c], i ]) # Disease- and cell type-specific vector
+      cells.sig[c] <- list(mtx.sel) # How many are significant
+    }
+    
+    pval.disease.cell <- vector(mode="numeric", length=length(cells)) # A vector to store disease- and cell type-specific p-values
+    c2x2.disease.cell <- list() # A list to store disease- and cell type-specific 2x2 tables
+    for(c in 1:length(cells)) {
+      if (length(cells.sig[[c]]) > 2) {
+        cells.test <- wilcox.test(cells.sig[[c]], tot.sig, alternative = "greater")
+        pval.disease.cell[c] <- cells.test$p.value # Store the enrichment p-values
+        c2x2.disease.cell[c] <- list(c(cells.tests[c], mean(cells.sig[[c]]), mean(tot.sig)))
+      } else {
+        pval.disease.cell[c] <- 1
+        c2x2.disease.cell[c] <- list(c(0, 0))
+      }
+    }
+    names(pval.disease.cell) <- cells # Name the collected vectors
+    names(c2x2.disease.cell) <- cells # as cell names
+    pval.disease <- c(pval.disease, list(pval.disease.cell)) # Store them
+    c2x2.disease <- c(c2x2.disease, list(c2x2.disease.cell)) # in disease-specific lists
+  }
+  names(pval.disease) <- colnames(mtx)[2:(n.diseases + 1)] # Name the disease-specific lists
+  names(c2x2.disease) <- colnames(mtx)[2:(n.diseases + 1)] # by the names of the diseases
+  
+  unlink(fname)
+  # View most significant cell lines
+  for(d in 1:length(pval.disease)){ # Go through each disease
+    print(names(pval.disease)[d])
+    print(d)
+    cells.disease <- pval.disease[[d]][ pval.disease[[d]] < pval]
+    stats.disease <- c2x2.disease[[d]][ pval.disease[[d]] < pval]
+    if(length(cells.disease) > 0) {
+      # cells.stats.disease <- cbind(cells.disease, ldply(stats.disease, rbind))
+      cells.stats.disease <- as.data.frame(merge(as.matrix(cells.disease, ncol=1), t(as.data.frame(stats.disease)), by="row.names"))
+      rownames(cells.stats.disease) <- cells.stats.disease$Row.names
+      cells.stats.disease$Row.names <- NULL
+      colnames(cells.stats.disease) <- c(names(pval.disease)[d], "NumOfTests", "AvCell", "AvTot")
+      cells.stats.disease <- merge(cells.stats.disease, cellAnnot, by.x="row.names", by.y="cell")
+      class(cells.stats.disease$description) <- "character"
+      cells.stats.disease[, 2] <- formatC(cells.stats.disease[, 2], format="e", digits=2)
+      cells.stats.disease[, 4] <- formatC(cells.stats.disease[, 4], format="f", digits=2)
+      cells.stats.disease[, 5] <- formatC(cells.stats.disease[, 5], format="f", digits=2)
+      write.xlsx2(cells.stats.disease[ order(as.numeric(cells.stats.disease[, 2]), decreasing = FALSE), ], fname, sheetName=names(pval.disease)[d], row.names=FALSE, append=TRUE)
+    } else {
+      #write.xlsx2(names(pval.disease)[d], fname,  sheetName=names(pval.disease)[d], row.names=FALSE, append=TRUE)
+      write.xlsx2("No cell type-specific enrichments", fname, sheetName=names(pval.disease)[d], row.names=FALSE, append=TRUE)
+    }
+  }
+}
