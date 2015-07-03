@@ -5,11 +5,12 @@ library(d3heatmap)
 library(dendextendRcpp) # required for extracting the height from the dendrogram
 library(tools)
 library(colorRamps)
+library(shinyBS)
 
 # # Lukas paths
-# results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2_single_col/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
 # Mikhail paths
-results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/chromStates18/"
+#results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/chromStates18/"
 
 
 genomerunner.mode <- FALSE
@@ -31,82 +32,99 @@ shinyServer(function(input, output,session) {
   get.matrix <- reactive({
     # populate the enrichment table combobox
     file.names.enrichment <- file_path_sans_ext(list.files(paste(get.results.dir(),"enrichment/",sep="")))
-    mtx <- load_gr_data(paste(get.results.dir(), input$cmbEnrichHeatmap,sep=""))
+    mtx <- load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep=""))
   })
   
   output$heatmapEnrich <- renderD3heatmap({
     mat <- get.matrix()
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
-  
-    if(!check.single_gf()){
-      d3heatmap::d3heatmap(as.matrix(mat),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbEnrichClust)}), colors = coloring(coloring.num), show_tip=FALSE,dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""))
-    }else{
-      NULL
-    }
+    d3heatmap::d3heatmap(as.matrix(mat),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}), colors = coloring(coloring.num), show_tip=FALSE,dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""))
+
   })
   
   output$legendEnrich <- renderPlot({
     mtx <- get.matrix()
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
     color.range = seq(min(mtx),max(mtx), (max(mtx)-min(mtx))/coloring.num )
-    plot(color.range,rep(1,coloring.num+1),col=coloring(coloring.num+1),pch=15,cex=10,main="Heatmap Legend",ylab="",xlab="")
+    plot(color.range,rep(1,coloring.num+1),col=coloring(coloring.num+1),pch=15,cex=10,main="Heatmap Legend",ylab="",xlab="",yaxt="n")
   })
   
-  output$tblEnrichment <-renderDataTable({      
+  # generate the enrichment table and appends the gf.name information columns
+  get.enrichment.table <- reactive({
+    mtx <- read.csv(paste(get.results.dir(),input$cmbMatrix,sep = ""),sep="\t")
+    selectedFOI <- 1
+    if (check.single_gf() != TRUE){
+      selectedFOI <-input$cmbFOI
+    }
     
-    mtx <- read.csv(paste(get.results.dir(),input$cmbEnrichBarplot,sep = ""),sep="\t")
-    if (input$cmbEnrichBarplot == "matrix_PVAL.txt"){
-      mtx.adjust <- apply(mtx, 2, function(x) p.adjust(abs(x), method = input$cmbEnrichBarPlotPvalAdjust))
-      mtx.sign <- ifelse(sign(mtx) < 0, "Underrepresented", "Overrepresented")
+    if (input$cmbMatrix == "matrix_PVAL.txt"){
+      mtx.adjust <- apply(mtx[selectedFOI], 2, function(x) p.adjust(abs(x), method = input$cmbPvalAdjustMethod))
+      mtx.sign <- ifelse(sign(mtx[selectedFOI]) < 0, "Underrepresented", "Overrepresented")
       
-      mtx.table <- cbind(abs(mtx), 
+      mtx.table <- cbind(abs(mtx[selectedFOI]), 
                          mtx.sign, 
                          mtx.adjust)
       colnames(mtx.table) <- c("P.value","Direction","P.adj")
-      return(mtx.table)
     }else{ 
       # for odds ratio
-      mtx.sign <- ifelse(sign(mtx) < 1, "Underrepresented", "Overrepresented")
-      mtx.table <- cbind(abs(mtx),
+      mtx.sign <- ifelse(sign(mtx[selectedFOI]) < 1, "Underrepresented", "Overrepresented")
+      mtx.table <- cbind(abs(mtx[selectedFOI]),
                          mtx.sign)
       colnames(mtx.table) <- c("Odds.ratio","Direction")
-      return(mtx.table)
     }
+    mtx.table = cbind(GF.Name = rownames(mtx.table),mtx.table) # make the GF.name a column instead of just the rowname so we can left_join
+    rownames(mtx.table) <- NULL
+    # gfAnnot is loaded in utils2
+    mtx.table <- left_join(mtx.table,gfAnnot,by=c("GF.Name"="name"))
+    mtx.table <- subset(mtx.table, select = -c(description,ind))
+    
+    return(mtx.table)
   })
+  
+  output$tblEnrichment <-renderDataTable({
+    get.enrichment.table()
+  }, options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
+                     pageLength = 50))
+  
+  output$downloadEnrichSingleTable <- downloadHandler(
+    filename = function() { 
+      return("Enrichment_table.txt")
+    },
+    content = function(file) {
+      write.table(x = get.enrichment.table(),file =  file ,sep = "\t",quote = F,row.names = F)
+    }
+  )
+  
+  outputOptions(output, "downloadEnrichSingleTable", suspendWhenHidden=FALSE)
   
   ## enrichment up and down plots for single column --------------------------------------------------------------
   get.barplot.matrix <- reactive({
     # populate the enrichment table combobox
     file.names.enrichment <- file_path_sans_ext(list.files(paste(get.results.dir(),"enrichment/",sep="")))
-    mtx <- load_gr_data(paste(get.results.dir(), input$cmbEnrichBarplot,sep=""))
+    mtx <- load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep=""))
   })
   
   check.single_gf <- reactive({
     # Check if there is only one column in the matrix.  If so, we will plot a bar plots intead of heatmap
     mtx <- get.barplot.matrix()
     if(ncol(mtx)==1){
-      def.value = 30
-      if (nrow(mtx)<30){def.value = nrow(mtx)}
-      updateSliderInput(session,"sldNumFeatures",min = 1,max = nrow(mtx),value = def.value)
       return(TRUE)
     }else{
       return(FALSE)
     }
   })
   
-  
+  # the same barplot is used for single FOI results and multiple FOI results
   output$pltEnrichUp <- renderPlot({
-    if (check.single_gf() != TRUE){
-      return(plot.new())
-    }
-    updown.split =  0
     mtx <-  data.frame( get.barplot.matrix())
-    mtx.up <- subset(mtx,mtx[1] > updown.split)
-    # filter out results that do not meet pvalue threshold
-    log10.pval = -log10(input$numBarplotThreshold)
-    if (input$cmbEnrichBarplot == "matrix_PVAL.txt"){
-      mtx.up <- subset(mtx.up, mtx.up[1] > log10.pval, drop=F)
-      }
+    selectedFOI <- 1
+    if (check.single_gf() != TRUE){
+      selectedFOI <-input$cmbFOI
+    }
+    
+    updown.split =  0
+    mtx.up <- subset(mtx[selectedFOI],mtx[selectedFOI] > updown.split)
+   
     if (nrow(mtx.up)==0){
       # plot raw text
       par(mar = c(0,0,0,0))
@@ -115,15 +133,11 @@ shinyServer(function(input, output,session) {
       box()
       return()
     }
-    if (input$cmbEnrichBarplot == "matrix_PVAL.txt"){
-      # do the pvalue adjustment 
-     #  mtx.up <- p.adjust(mtx.up,method = input$cmbEnrichBarPlotPvalAdjust)
-    }
     
-    if (input$cmbEnrichBarplot == "matrix_PVAL.txt"){
+    if (input$cmbMatrix == "matrix_PVAL.txt"){
       
       # do the pvalue adjustment 
-      mtx.up.adjust <- apply(1/10^(abs(mtx.up)), 2, function(x) {p.adjust(x,  method = input$cmbEnrichBarPlotPvalAdjust)})
+      mtx.up.adjust <- apply(1/10^(abs(mtx.up)), 2, function(x) {p.adjust(x,  method = input$cmbPvalAdjustMethod)})
       mtx.up.adjust <- as.matrix(mtx.up.adjust)
       rownames(mtx.up.adjust) <- rownames(mtx.up); colnames(mtx.up.adjust) <- colnames(mtx.up);
       mtx.up <- mtx.transform(mtx.up.adjust);
@@ -132,12 +146,12 @@ shinyServer(function(input, output,session) {
     
     # sort the results
     mtx.up.sorted <- mtx.up[order(mtx.up,decreasing = T),,drop=FALSE]
-    if(input$cmbEnrichBarplot == "matrix_PVAL.txt"){
+    if(input$cmbMatrix == "matrix_PVAL.txt"){
       y.label = "-log10(p-value)"
     }else{y.label="log2(odds-ratio)"}
     par(mar = c(10,5,4.1,2.1))
-    barplot(as.matrix(t(head(mtx.up.sorted,input$sldNumFeatures))), beside=T,col = "red3",
-            space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),input$sldNumFeatures),ylab=y.label,main="Enriched epigenomic associations")
+    barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
+            space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),ylab=y.label,main="Enriched epigenomic associations")
     abline(a=0,b=0)
     
     #barplot1(head(mtx.up.sorted,input$sldNumFeatures),names.args = head(rownames(mtx.up.sorted),input$sldNumFeatures))
@@ -149,19 +163,16 @@ shinyServer(function(input, output,session) {
   })
   
   output$pltEnrichDown <- renderPlot({
+    mtx <-  data.frame( get.barplot.matrix())
+    selectedFOI <- 1
     if (check.single_gf() != TRUE){
-      return(plot.new())
+      selectedFOI <-input$cmbFOI
     }
     
     updown.split = 0
     mtx <-  data.frame(get.barplot.matrix())
-    mtx.down <- subset(mtx,mtx[1] < updown.split)
-    
-    # filter out results that do not meet pvalue threshold
-    log10.pval = -log10(input$numBarplotThreshold)
-    if (input$cmbEnrichBarplot == "matrix_PVAL.txt"){
-      mtx.down <- subset(mtx.down, mtx.down[1] < -log10.pval, drop=F)
-    }
+    mtx.down <- subset(mtx[selectedFOI],mtx[selectedFOI] < updown.split,drop = F)
+  
     if (nrow(mtx.down)==0){
       # plot raw text
       par(mar = c(0,0,0,0))
@@ -171,28 +182,28 @@ shinyServer(function(input, output,session) {
       return()
     }   
     
-    if (input$cmbEnrichBarplot == "matrix_PVAL.txt"){
+    if (input$cmbMatrix == "matrix_PVAL.txt"){
 
       # do the pvalue adjustment 
-      mtx.down.adjust <- apply(1/10^(abs(mtx.down)), 2, function(x) {p.adjust(x,  method = input$cmbEnrichBarPlotPvalAdjust)})
+      mtx.down.adjust <- apply(1/10^(abs(mtx.down)), 2, function(x) {p.adjust(x,  method = input$cmbPvalAdjustMethod)})
       mtx.down.adjust <- -as.matrix(mtx.down.adjust) # apply negative bc everything is downregulated here
       rownames(mtx.down.adjust) <- rownames(mtx.down); colnames(mtx.down.adjust) <- colnames(mtx.down);
       mtx.down <- mtx.transform(mtx.down.adjust);
     }
     mtx.down.sorted <- mtx.down[order(mtx.down,decreasing = F),,drop=FALSE]
-    if(input$cmbEnrichBarplot == "matrix_PVAL.txt"){
+    if(input$cmbMatrix == "matrix_PVAL.txt"){
       y.label = "-log10(p-value)\nnegative = underrepresentation"
     }else{y.label="log2(odds-ratio)\nnegative = underrepresentation"}
     par(mar = c(10,5,4.1,2.1))
-    barplot(as.matrix(t(head(mtx.down.sorted,input$sldNumFeatures))), beside=T,col = "green4",
-            space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),input$sldNumFeatures),ylab=y.label,main = "Depleted epigenomic associations")
+    barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
+            space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),ylab=y.label,main = "Depleted epigenomic associations")
     abline(a=0,b=0)
     #barplot(head(mtx.down.sorted,input$sldNumFeatures),names.args = head(rownames(mtx.down.sorted),input$sldNumFeatures))
   })
   
   # episimilarity ---------------------------------------------------------------
   get.corr.matrix <- reactive({
-    mtx <- load_gr_data(paste(get.results.dir(), input$cmbEpisimHeatmap,sep=""))
+    mtx <- load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep=""))
     mtx <- scale(mtx)
     
     rcorr(as.matrix(mtx), type=input$cmbEpisimCorType)[[1]]
@@ -200,7 +211,7 @@ shinyServer(function(input, output,session) {
   
   get.cor.hclust.dendrogram <- reactive({
     cor.mat <- get.corr.matrix() 
-    as.dendrogram(hclust(as.dist(1-cor.mat), method=input$cmbEpisimClustMethod))
+    as.dendrogram(hclust(as.dist(1-cor.mat), method=input$cmbClustMethod))
   })
   
   output$heatmapEpisim <- renderD3heatmap({     
@@ -214,18 +225,51 @@ shinyServer(function(input, output,session) {
     mtx <- get.corr.matrix()
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
     color.range = seq(min(mtx),max(mtx), (max(mtx)-min(mtx))/coloring.num )
-    plot(color.range,rep(1,coloring.num+1),col=coloring(coloring.num+1),pch=15,cex=10,main="Heatmap Legend",ylab="",xlab="")
+    plot(color.range,rep(1,coloring.num+1),col=coloring(coloring.num+1),pch=15,cex=10,main="Heatmap Legend",ylab="",xlab="",yaxt="n")
+  })
+  
+  # this function is cut out from the tblEpigenetics renderer. It is a long calculation that is only run when # of clusters changes
+  calculate.clust <- reactive({
+    cor.mat <- get.corr.matrix() # this line ensure that dendrogram is redrawn when heatmap is
+    hclustergram <- get.cor.hclust.dendrogram() # ensures that dendrogram is redrawn when hclust method is changed
+    
+    dend = readRDS(file = paste(get.results.dir(), "heatmap.dend.rds",sep=""))
+    cl_num <- input$sldEpisimNumClust # Empirically set desired numter of clusters
+    hcut <- heights_per_k.dendrogram(dend)[cl_num] # extract the height to cut based on # of groups
+    # get the cluster labels
+    mtx.clust <- dend %>% mtx.clusters(height=hcut, minmembers=3)
+    mtx = load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep="")) # load the original matrix
+    
+    mtx.deg <- mtx.degfs(mtx[, mtx.clust$eset.labels], mtx.clust, label="broadPeak2")
+    
+    updateSelectInput(session,"cmbEpigenetics","Select which epigenetic table to render",choices = names(mtx.deg))
+    mtx.deg.path = paste(get.results.dir(),"mtx.deg.episim.RDS",sep = "")
+    saveRDS(mtx.deg,file=mtx.deg.path)
+    return(mtx.deg)
   })
   
   output$tblEpigenetics <-renderDataTable({
-    mtx.deg <- readRDS(file=paste(get.results.dir(),"mtx.deg.episim.RDS",sep = "/"))
-    
+    mtx.deg <- calculate.clust()
+    # check if any results were returned
+    if (is.null(names(mtx.deg))){ 
+      return(data.frame(NoResult="There is nothing signficant to show"))
+    }
+    selectedCor = names(mtx.deg)[1]
+    # save last selected value
+    if (input$cmbEpigenetics != "Results not ready yet.") {
+      if (input$cmbEpigenetics %in% names(mtx.deg)){
+        selectedCor = input$cmbEpigenetics
+      }
+      updateSelectInput(session,"cmbEpigenetics",choices=names(mtx.deg),selected = selectedCor)
+    }
+    print(names(mtx.deg))
     #convert values to numeric form for sorting purposes
     for(x in list("adj.p.val",3,4)){
-      mtx.deg[[input$cmbEpisimTable]][[x]] <- as.numeric(mtx.deg[[input$cmbEpisimTable]][[x]])
+      mtx.deg[[selectedCor]][[x]] <- as.numeric(mtx.deg[[selectedCor]][[x]])
     }
-    mtx.deg[[input$cmbEpisimTable]]
-  })
+    mtx.deg[[selectedCor]]
+  },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
+                      pageLength = 50))
   
   output$pltDend <- renderPlot({ 
     cor.mat <- get.corr.matrix() # this line ensure that dendrogram is redrawn when heatmap is
@@ -240,12 +284,8 @@ shinyServer(function(input, output,session) {
     # get the cluster labels
     mtx.clust <- dend %>% mtx.clusters(height=hcut, minmembers=3)
     # write.table(as.data.frame(mtx.clust), "/home/lukas/clustering_all.txt", sep="\t", row.names=FALSE, quote=FALSE)
-    mtx = load_gr_data(paste(get.results.dir(), input$cmbEpisimHeatmap,sep="")) # load the original matrix
-    mtx.deg <- mtx.degfs(mtx[, mtx.clust$eset.labels], mtx.clust, label="broadPeak2")
-    
-    updateSelectInput(session,"cmbEpigenetics","Select which epigenetic table to render",choices = names(mtx.deg))
-    mtx.deg.path = paste(get.results.dir(),"mtx.deg.episim.RDS",sep = "/")
-    saveRDS(mtx.deg,file=mtx.deg.path)
+    mtx = load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep="")) # load the original matrix
+
     # create the tabs
     
     rect.hclust(as.hclust(dend), k=cl_num, border=cols) # Define the clusters by rectangles
@@ -255,124 +295,93 @@ shinyServer(function(input, output,session) {
   # Create a different UI depending if there are multiple GF in the results
   output$mainpage <-renderUI({
     mtx <- load_gr_data(paste(get.results.dir(), "matrix_PVAL.txt",sep="")) # manually load matrix since controls are not loaded yet
+    
     single.gf = TRUE
     if (ncol(mtx)>1){single.gf = FALSE}
     if (single.gf == FALSE){
       tabsetPanel("tabsMultiple",
+                  tabPanel("Enrichment analysis heatmap",
+                            d3heatmapOutput("heatmapEnrich", width = "100%", height = "600px"),
+                            plotOutput("legendEnrich",width="300px",height="150px")
+                  ), 
                   tabPanel("Enrichment analysis barplot",
-                           fluidRow(
-                             column(6,
-                                    selectInput("cmbEnrichBarplot", label = "Results to visualize", 
-                                                choices = list("P-values" = "matrix_PVAL.txt", 
-                                                               "Odds Ratios" = "matrix_OR.txt")),
-                                    conditionalPanel("input.cmbEnrichBarplot=='matrix_PVAL.txt'",
-                                                     selectInput("cmbEnrichBarPlotPvalAdjust",label = "P-value multiple testing correction method",
-                                                                 choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY")))
-                             ),
-                             column(6,
-                                    conditionalPanel("input.cmbEnrichBarplot=='matrix_OR.txt'",
-                                                     sliderInput("sldNumFeatures",label = "Number of top results to plot",min=1,max=100,value=30)),
-                                    conditionalPanel("input.cmbEnrichBarplot=='matrix_PVAL.txt'",
-                                                     numericInput("numBarplotThreshold","Filter results by the p-value threshold",min = 0,max = 1,value = 1,step = 0.01)))
-                           ),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
                            plotOutput("pltEnrichDown", width="100%", height= "350px")
                   ),
-                  tabPanel("Enrichment analysis heatmap",
-                           fluidRow(
-                             column(4,
-                                    numericInput("numEnrichFilterLower","Filter by threshold: lower limit",min = 2,max=10,value = 3),
-                                    numericInput("numEnrichFilterUpper","Filter by threshold: upper limit",min = 2,max=10,value = 3)),
-                             column(4,
-                                    selectInput("cmbEnrichHeatmap", label = "Results to visualize", 
-                                                choices = list("P-values" = "matrix_PVAL.txt", 
-                                                               "Odds Ratios" = "matrix_OR.txt"))),
-                             column(4,
-                                    conditionalPanel(condition="check.single_gf == true",
-                                                     sliderInput("sldNumFeatures",label = "Number of top results to plot",min=1,max=1000,value=30)),
-                                    selectInput("cmbEnrichClust",label = "Clustering method (hclust)", 
-                                                choices = list("ward.D",
-                                                               "ward.D2",
-                                                               "single",
-                                                               "complete",
-                                                               "average",
-                                                               "mcquitty",
-                                                               "median",
-                                                               "centroid")
-                                    )
-                             )),
-                           
-                           conditionalPanel(condition="check.single_gf == false",
-                                            d3heatmapOutput("heatmapEnrich", width = "100%", height = "600px"),
-                                            plotOutput("legendEnrich",width="300px",height="200px")
-                           )
-                           
-                  ), 
                   tabPanel("Enrichment analysis tables",
-                           selectInput("cmbEnrichTable","Select which enrichment table to render",choices=list("Enrichment results not ready")),
                            DT::dataTableOutput("tblEnrichment")),
                   tabPanel("Epigenetic similarity analysis heatmap",
                            fluidPage(
                              fluidRow(
-                               column(4,
-                                      selectInput("cmbEpisimHeatmap", label = "Results to visualize", 
-                                                  choices = list("P-values" = "matrix_PVAL.txt", 
-                                                                 "Odds Ratios" = "matrix_OR.txt"))),
-                               column(4,
-                                      selectInput('cmbEpisimCorType',label = "Correlation coefficient type",
-                                                  choices = list("Pearson's" = "pearson",
-                                                                 "Spearman's" = "spearman"))
+                               column(6,
+                                 d3heatmapOutput("heatmapEpisim", width = "100%", height = "600px"),
+                                 plotOutput("legendEpisim",width="300px",height="150px")
                                ),
-                               
-                               column(4,
-                                      selectInput("cmbEpisimClustMethod",label = "Clustering method (hclust)", 
-                                                  choices = list("ward.D",
-                                                                 "ward.D2",
-                                                                 "single",
-                                                                 "complete",
-                                                                 "average",
-                                                                 "mcquitty",
-                                                                 "median",
-                                                                 "centroid")
-                                      )
-                               )),
-                             d3heatmapOutput("heatmapEpisim", width = "100%", height = "600px"),
-                             plotOutput("legendEpisim",width="300px",height="200px"),
-                             fluidRow(
-                               column(12,
-                                      sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 3))
-                             ),
-                             plotOutput("pltDend",width = "100%", height = "500px")
+                               column(6, 
+                                  plotOutput("pltDend",width = "100%", height = "500px")
+                               )
+                             )
                            )),
                   tabPanel("Epigenetic similarity analysis tables",
-                           selectInput("cmbEpisimTable","Select which epigenetic table to render",choices=list("Epigenetic results not ready")),
+                           selectInput("cmbEpigenetics", "Select which epigenetic analysis to show", choices = list("Results not ready yet.")),
                            DT::dataTableOutput("tblEpigenetics"))
       )
     } else{ # this UI is created when only a single GF result is returned
       tabsetPanel("tabsSingleGF",
                   tabPanel("Enrichment analysis barplot",
-                           fluidRow(
-                             column(6,
-                                    selectInput("cmbEnrichBarplot", label = "Results to visualize", 
-                                                choices = list("P-values" = "matrix_PVAL.txt", 
-                                                               "Odds Ratios" = "matrix_OR.txt")),
-                                    conditionalPanel("input.cmbEnrichBarplot=='matrix_PVAL.txt'",
-                                                     selectInput("cmbEnrichBarPlotPvalAdjust",label = "P-value multiple testing correction method",
-                                                                 choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY")))
-                             ),
-                             column(6,
-                                    conditionalPanel("input.cmbEnrichBarplot=='matrix_OR.txt'",
-                                                     sliderInput("sldNumFeatures",label = "Number of top results to plot",min=1,max=100,value=30)),
-                                    conditionalPanel("input.cmbEnrichBarplot=='matrix_PVAL.txt'",
-                                                     numericInput("numBarplotThreshold","Filter results by the p-value threshold",min = 0,max = 1,value = 1,step = 0.01)))
-                           ),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
                            plotOutput("pltEnrichDown", width="100%", height= "350px")
                   ),
                   tabPanel("Enrichment analysis tables",
-                           selectInput("cmbEnrichTable","Select which enrichment table to render",choices=list("Enrichment results not ready")),
+                           br(),br(),
+                           downloadButton('downloadEnrichSingleTable', 'Download table in tab-separated format'),
+                           br(),br(),
                            DT::dataTableOutput("tblEnrichment"))
       )
+    }
+  })
+  output$sidebar <- renderUI({
+    mtx <- load_gr_data(paste(get.results.dir(), "matrix_PVAL.txt",sep="")) # manually load matrix since controls are not loaded yet
+    
+    single.gf = TRUE
+    if (ncol(mtx)>1){single.gf = FALSE}
+    if (single.gf == FALSE){
+      sidebarPanel(width = 4,h3("Global Settings"),
+                  selectInput("cmbMatrix", label = "Results to visualize", 
+                               choices = list("P-values" = "matrix_PVAL.txt", 
+                                              "Odds Ratios" = "matrix_OR.txt")),
+                  bsTooltip("cmbMatrix", "Select P-value or Odds ratio", placement = "top", trigger = "hover"),
+                   selectInput("cmbFOI", "Select which SNP set to visualize", choices = colnames(mtx)),
+                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
+                                    selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
+                                                choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))),
+                   hr(),h3("Heatmap Settings"),
+                   selectInput("cmbClustMethod",label = "Clustering method (hclust)", 
+                               choices = list("ward.D",
+                                              "ward.D2",
+                                              "single",
+                                              "complete",
+                                              "average",
+                                              "mcquitty",
+                                              "median",
+                                              "centroid")
+                   ),
+                   selectInput('cmbEpisimCorType',label = "Correlation coefficient type",
+                               choices = list("Pearson's" = "pearson",
+                                              "Spearman's" = "spearman")),
+                   hr(),h3("Epigenetic similarity"),
+                   sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 3)
+              )
+    }else{ # this is for a single column result file
+      sidebarPanel(h3("Global Settings"), hr(),
+                   selectInput("cmbMatrix", label = "Results to visualize", 
+                               choices = list("P-values" = "matrix_PVAL.txt", 
+                                              "Odds Ratios" = "matrix_OR.txt")),
+                   selectInput("cmbFOI", "Select which SNP set to visualize", choices = colnames(mtx)),
+                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
+                                    selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
+                                                choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY")))
+                  )
     }
   })
 })
