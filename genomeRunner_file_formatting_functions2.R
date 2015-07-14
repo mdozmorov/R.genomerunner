@@ -58,8 +58,10 @@ getV2OddsRatioMatrix <- function(infile){
   ## Now save odds matrix and pval matrix to file
   ##write.table(t(odds_mat), file=paste(infile, ".OR", sep=""), quote=FALSE, sep="\t")
   write.table(as.data.frame(t(odds_mat)), file=paste(dirname(infile), "matrix_OR.txt", sep="/"), quote=FALSE, sep="\t")
-  
   write.table(as.data.frame(t(pval_mat)), file=paste(dirname(infile), "matrix_PVAL.txt", sep="/"), quote=FALSE, sep="\t")
+  # Combine P-values and odds ratios
+  comb_mat <- mtx.untransform(log2(odds_mat) * mtx.transform(pval_mat))
+  write.table(as.data.frame(t(comb_mat)), file=paste(dirname(infile), "matrix_COMB.txt", sep="/"), quote=FALSE, sep="\t")
 }
 
 
