@@ -409,35 +409,30 @@ mtx.trim.numofnas <- function(mtx.cast, numofnas=1) {
 ## colnum=1; factor="none"; cell="none"; isLog10=FALSE; adjust="fdr"; pval=0.1; numtofilt=1; toPlot="bar"; fileName=NULL
 
 showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=FALSE, adjust="fdr", pval=0.1, numtofilt=1, toPlot="bar", fileName=NULL) {
-  mtx <- tbl_df(read.table(fname, sep="\t", fill=T, header=F, stringsAsFactors=F)) # No header and row.names
-  cols <- mtx[1, ] # Keep header
-  # Subsetting by factor
-  if (factor != "none") {
-    mtx <- mtx[grep(factor[1], mtx$V1), c(1, colnum + 1)] # Subset by factor and column 
-    if (length(factor) > 1) {
-      for (i in 2:length(factor)) {
-        mtx <- mtx[grep(factor[i], mtx$V1), ] # Subset by factor, keep columns
-      }  
-    }
-  } else {
-    mtx <- mtx[-1, c(1, colnum + 1)] # Do not subset
+  mtx <- read.table(fname, sep="\t", fill=T, header=T, stringsAsFactors=F)
+  mtx <- mtx[ , colnum] # Select columns
+  total.colnum <- ncol(mtx) # Keep total number of columns
+  mtx <- data.frame(GF=rownames(mtx), mtx) # Attach GF names
+  # Join with annotations
+  mtx <- left_join(mtx, gfAnnot[, c("name", "cell", "factor", "description")], by=c("GF" = "name"))
+  if(factor != "none") {
+    mtx <- mtx[ mtx$factor %in% factor, , drop=F]
   }
-  # Subsetting by cell
-  if (cell != "none") {
-    mtx <- mtx[grepl(paste(cell, collapse="|"), mtx$V1), ]
+  if(cell != "none") {
+    mtx <- mtx[ mtx$cell %in% cell, , drop=F]
   }
+  unique.cells <- unique(mtx$cell) # Keep unique cell types
+  
   # Adjust for multiple testing and -log10 transform, if needed
-  for (i in 1:length(colnum)) {
-    if(is.logical(isLog10)){ # If p-values are provided, which is defined by TRUE or FALSE isLog10, adjust accordingly
-      mtx[, i + 1] <- mtx.adjust.1(as.numeric(unlist(mtx[, i + 1])), adjust=adjust, isLog10=isLog10)
+  for (i in 1:total.colnum) { # Process each column
+    if(is.logical(isLog10)) {
+      for (c in unique.cells) { # Adjust for multiple testing on per-cell-type basis
+        mtx[ mtx$cell == c, i + 1] <- mtx.adjust.1(as.numeric(unlist(mtx[ mtx$cell == c, i + 1])), adjust=adjust, isLog10 = isLog10)
+      }    
     } else { # If odds ratios, which is defined by isLog10 equal to non-logical value like "OR", simply keep the numerical values. Remember OR ranges 0-1 for underrepresentation and 1-Inf for overrepresentation
       mtx[, i + 1] <- as.numeric(unlist(mtx[, i + 1]))
     }
   }
-  # Join with annotations
-  mtx <- left_join(mtx, gfAnnot[, c("name", "cell", "factor", "description")], by=c("V1" = "name"))
-  # Assign columns
-  colnames(mtx) <- c("GF", make.names(cols[colnum ]), "cell", "factor", "description") # Rename columns  
   # Save the matrix, if needed
   if (!is.null(fileName)) { 
     write.table(mtx, fileName, sep="\t", row.names=F)
