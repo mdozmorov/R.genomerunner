@@ -8,7 +8,7 @@ library(colorRamps)
 library(shinyBS)
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2_single_col/"
 # Mikhail paths
 #results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/chromStates18/"
 
@@ -142,8 +142,13 @@ shinyServer(function(input, output,session) {
       y.label = "-log10(p-value)"
     }else{y.label="log2(odds-ratio)"}
     par(mar = c(10,5,4.1,2.1))
-    barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
-            space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),ylab=y.label,main="Enriched epigenomic associations")
+    if (nrow(mtx.up) < 3){
+      barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
+              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),ylab=y.label,main="Enriched epigenomic associations",xlim=c(0,10*nrow(mtx.up)))
+    } else{
+      barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
+              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),ylab=y.label,main="Enriched epigenomic associations")
+    }
     abline(a=0,b=0)
     
     #barplot1(head(mtx.up.sorted,input$sldNumFeatures),names.args = head(rownames(mtx.up.sorted),input$sldNumFeatures))
@@ -184,8 +189,13 @@ shinyServer(function(input, output,session) {
       y.label = "-log10(p-value)\nnegative = underrepresentation"
     }else{y.label="log2(odds-ratio)\nnegative = underrepresentation"}
     par(mar = c(10,5,4.1,2.1))
-    barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
-            space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),ylab=y.label,main = "Depleted epigenomic associations")
+    if (nrow(mtx.down) < 3){
+      barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
+              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),ylab=y.label,main = "Depleted epigenomic associations",xlim=c(0,10*nrow(mtx.down)))
+    }else{
+      barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
+              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),ylab=y.label,main = "Depleted epigenomic associations")
+    }
     abline(a=0,b=0)
     #barplot(head(mtx.down.sorted,input$sldNumFeatures),names.args = head(rownames(mtx.down.sorted),input$sldNumFeatures))
   })
