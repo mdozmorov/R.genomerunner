@@ -20,6 +20,10 @@ set.min <- function(mtx, replaceby=min(mtx[mtx != 0])) {
 #' A function to plot clustered enrichment heatmap
 #' 
 #' @param mtx a square correlation matrix
+#' @param dist.method distance method, default - "euclidean"
+#' @param hclust.method clustering method, default - "ward.D2"
+#' @param SideColors a vector of side colors to plot, default - NULL
+#' @param cellnote whether to visualize numbers in cells. "f" - floating number format, e.g., 1.23. Default - none"
 #'
 #' @return plot clustered heatmap
 #' @return complete heatmap.2 object
@@ -27,15 +31,16 @@ set.min <- function(mtx, replaceby=min(mtx[mtx != 0])) {
 #' @examples
 #' mtx.tumor.cor <- mtx.tumor.cor %>% mtx.plot
 ##
-mtx.plot <- function(mtx, dist.method="euclidean", hclust.method="ward.D2", SideColors=NULL) {
+mtx.plot <- function(mtx, dist.method="euclidean", hclust.method="ward.D2", SideColors=NULL, cellnote="none") {
   par(oma=c(5,0,0,5), mar=c(10, 4.1, 4.1, 5), cex.main=0.5) # Adjust margins
   my.breaks <- seq(min(mtx[mtx!=min(mtx)]), max(mtx[mtx!=max(mtx)]), length.out=(2*granularity + 1))
   # my.breaks <- seq(-1, 1, , 20) # For plotting heatmap of correlation coefficients
-  if (is.null(SideColors)) {
-    h <- heatmap.2(as.matrix(mtx), trace="none", density.info="none", symbreaks = TRUE, col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=1, cexCol=1, breaks=my.breaks, main="Regulatory similarity clustering")
-  } else {
-    h <- heatmap.2(as.matrix(mtx), trace="none", density.info="none", symbreaks = TRUE, col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=1, cexCol=1, breaks=my.breaks, main="Regulatory similarity clustering", RowSideColors=SideColors, ColSideColors=SideColors)
-  }
+  my.pars <- list(x = mtx, trace = "none", density.info="none", symbreaks = TRUE, col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, cexRow=1, cexCol=1, breaks=my.breaks, main="Regulatory similarity clustering") # Core parameters
+  # Add other parameters, if proviced
+  if(!is.null(SideColors)) my.pars <- c(my.pars, list(RowSideColors=SideColors), list(ColSideColors=SideColors))
+  if(cellnote == "f") my.pars <- c(my.pars, list(cellnote=formatC(mtx, format="f", digits=2)), list(notecex=1.2), list(notecol='black'))
+  # Plot the heatmap
+  do.call("heatmap.2", my.pars)
 }
 
 #' Define clusters
