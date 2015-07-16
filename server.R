@@ -35,15 +35,21 @@ shinyServer(function(input, output,session) {
     mtx <- load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep=""))
   })
   
+  get.adjust.matrix <- reactive({
+    mtx <- get.matrix()
+    mtx.adjust <- mtx.transform(apply(mtx.untransform(mtx), 2, function(x) p.adjust(abs(x), method = input$cmbPvalAdjustMethod)))
+    mtx.adjust <- sign(mtx)*mtx.adjust
+  })
+  
   output$heatmapEnrich <- renderD3heatmap({
-    mat <- get.matrix()
+    mtx <- get.adjust.matrix()
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
-    d3heatmap::d3heatmap(as.matrix(mat),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}), colors = coloring(coloring.num), show_tip=FALSE,dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""))
+    d3heatmap::d3heatmap(as.matrix(mtx),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}), colors = coloring(coloring.num), show_tip=FALSE,dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""))
 
   })
   
   output$legendEnrich <- renderPlot({
-    mtx <- get.matrix()
+    mtx <- get.adjust.matrix()
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
     color.range = seq(min(mtx),max(mtx), (max(mtx)-min(mtx))/coloring.num )
     plot(color.range,rep(1,coloring.num+1),col=coloring(coloring.num+1),pch=15,cex=10,main="Heatmap Legend",ylab="",xlab="",yaxt="n")
@@ -53,10 +59,7 @@ shinyServer(function(input, output,session) {
   get.enrichment.table <- reactive({
     mtx <- read.csv(paste(get.results.dir(),input$cmbMatrix,sep = ""),sep="\t")
     selectedFOI <- 1
-    if (check.single_gf() != TRUE){
-      selectedFOI <-input$cmbFOI
-    }
-    
+    selectedFOI <-input$cmbFOI
     if (input$cmbMatrix == "matrix_PVAL.txt"){
       mtx.adjust <- apply(mtx[selectedFOI], 2, function(x) p.adjust(abs(x), method = input$cmbPvalAdjustMethod))
       mtx.sign <- ifelse(sign(mtx[selectedFOI]) < 0, "Underrepresented", "Overrepresented")
@@ -103,24 +106,13 @@ shinyServer(function(input, output,session) {
     file.names.enrichment <- file_path_sans_ext(list.files(paste(get.results.dir(),"enrichment/",sep="")))
     mtx <- load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep=""))
   })
-  
-  check.single_gf <- reactive({
-    # Check if there is only one column or row in the matrix.  If so, we will plot a bar plots intead of heatmap
-    mtx <- get.barplot.matrix()
-    if(ncol(mtx)==1 || nrow(mtx) == 1){
-      return(TRUE)
-    }else{
-      return(FALSE)
-    }
-  })
+
   
   # the same barplot is used for single FOI results and multiple FOI results
   output$pltEnrichUp <- renderPlot({
     mtx <-  data.frame( get.barplot.matrix())
     selectedFOI <- 1
-    if (check.single_gf() != TRUE){
-      selectedFOI <-input$cmbFOI
-    }
+    selectedFOI <-input$cmbFOI
     
     updown.split =  0
     mtx.up <- subset(mtx[selectedFOI],mtx[selectedFOI] > updown.split)
@@ -165,10 +157,7 @@ shinyServer(function(input, output,session) {
   output$pltEnrichDown <- renderPlot({
     mtx <-  data.frame( get.barplot.matrix())
     selectedFOI <- 1
-    if (check.single_gf() != TRUE){
-      selectedFOI <-input$cmbFOI
-    }
-    
+    selectedFOI <-input$cmbFOI
     updown.split = 0
     mtx <-  data.frame(get.barplot.matrix())
     mtx.down <- subset(mtx[selectedFOI],mtx[selectedFOI] < updown.split,drop = F)
@@ -308,9 +297,9 @@ shinyServer(function(input, output,session) {
   output$mainpage <-renderUI({
     mtx <- load_gr_data(paste(get.results.dir(), "matrix_PVAL.txt",sep="")) # manually load matrix since controls are not loaded yet
     
-    single.gf = TRUE
-    if (ncol(mtx)>1){single.gf = FALSE}
-    if (single.gf == FALSE){
+    single.feature = TRUE;
+    if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
+    if (single.feature == FALSE){
       tabsetPanel("tabsMultiple",
                   tabPanel("Enrichment analysis heatmap",
                             d3heatmapOutput("heatmapEnrich", width = "100%", height = "600px"),
@@ -361,9 +350,9 @@ shinyServer(function(input, output,session) {
   output$sidebar <- renderUI({
     mtx <- load_gr_data(paste(get.results.dir(), "matrix_PVAL.txt",sep="")) # manually load matrix since controls are not loaded yet
     
-    single.gf = TRUE
-    if (ncol(mtx)>1){single.gf = FALSE}
-    if (single.gf == FALSE){
+    single.feature = TRUE
+    if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
+    if (single.feature == FALSE){
       sidebarPanel(width = 4,h3("Global Settings"),
                   selectInput("cmbMatrix", label = "Results to visualize", 
                                choices = list("P-values" = "matrix_PVAL.txt", 
@@ -397,8 +386,10 @@ shinyServer(function(input, output,session) {
                                               "Odds Ratios" = "matrix_OR.txt")),
                    selectInput("cmbFOI", "Select which SNP set to visualize", choices = colnames(mtx)),
                    conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
+                                    if(nrow(mtx)>1){
                                     selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
-                                                choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY")))
+                                                choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))}
+                                      )
                   )
     }
   })
