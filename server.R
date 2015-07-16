@@ -8,7 +8,7 @@ library(colorRamps)
 library(shinyBS)
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/broken_dend/"
 # Mikhail paths
 #results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/chromStates18/"
 
@@ -272,7 +272,7 @@ shinyServer(function(input, output,session) {
   })
   
   output$tblEpigenetics <-renderDataTable({
-   get.epigenetics.table()
+   validate(need(try(get.epigenetics.table()),"Try a different clustering method."))
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
                       pageLength = 50))
   
@@ -300,9 +300,8 @@ shinyServer(function(input, output,session) {
     # write.table(as.data.frame(mtx.clust), "/home/lukas/clustering_all.txt", sep="\t", row.names=FALSE, quote=FALSE)
     mtx = load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep="")) # load the original matrix
 
-    # create the tabs
-    
-    rect.hclust(as.hclust(dend), k=cl_num, border=cols) # Define the clusters by rectangles
+    # Define the clusters by rectangles
+    validate(need(try(rect.hclust( as.hclust(dend), k=cl_num, border=cols)),"Try a different clustering method."))
     
   })
   
