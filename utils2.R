@@ -74,11 +74,13 @@ load_gr_data <- function(dname, subset="none") {
   # Trim the matrix
   mtx <- mtx[ apply(mtx, 1, function(x) sum(!is.na(x))) > 0, apply(mtx, 2, function(x) sum(!is.na(x))) > 0, drop=FALSE] # Remove rows/columns with all NAs
   mtx <- mtx[ !(apply(mtx, 1, function(x) sum(x == 0) == ncol(mtx))), , drop=F] # If all values in a row are 0, remove these rows
-  # If there are columns with SD=0, add jitter to it. Needed for pair-wise column correlation analysis (epigenomic similarity analysis)
-  ind <- apply(mtx, 2, function(x) sd(x, na.rm=TRUE)) == 0 # Indexes of such columns
-  if (sum(ind) > 0) {
-    set.seed(1)
-    mtx[, ind] <- jitter(mtx[, ind, drop=FALSE], factor=0.1)
+  # If there are columns with SD=0, add jitter to it. Needed for pair-wise column correlation analysis (epigenomic similarity analysis). Only valid if there's more than 1 row
+  if (nrow(mtx) > 1) {
+    ind <- apply(mtx, 2, function(x) sd(x, na.rm=TRUE)) == 0 # Indexes of such columns
+    if (sum(ind) > 0) {
+      set.seed(1)
+      mtx[, ind] <- jitter(mtx[, ind, drop=FALSE], factor=0.1)
+    }
   }
   return(as.matrix(mtx)) # Return (processed) data
 }
@@ -461,8 +463,8 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=FAL
       mtx.max <- max(abs(mtx.plot[mtx.plot != max(abs(mtx.plot), na.rm=T)]), na.rm=T) # Second to max value
       my.breaks <- c(seq(-mtx.max, 0, length.out=10), 0, seq(0, mtx.max, length.out=10)) # Breaks symmetric around 0
       h<-heatmap.2(mtx.plot, trace="none", density.info="none", col=color, distfun=function(x){dist(x, method=dist.method)}, hclustfun=function(x){hclust(x, method=hclust.method)}, 
-                   cexRow=0.8, cexCol=0.8, breaks=my.breaks,
-                   cellnote=formatC(1/10^abs(as.matrix(mtx.cast)), format="e", digits=2), notecol="black", notecex=notecex)
+                   cexRow=0.8, cexCol=0.8, 
+                   cellnote=formatC(1/10^abs(as.matrix(mtx.cast)), format="e", digits=2), notecol="black", notecex=notecex) # breaks=my.breaks,
       return(h$carpet)
     }    
   } else if (grepl("bar", toPlot)) { # If more than 1 column, we can also plot barplots
