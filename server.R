@@ -52,7 +52,7 @@ shinyServer(function(input, output,session) {
     mtx <- get.adjust.matrix()
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
     color.range = seq(min(mtx),max(mtx), (max(mtx)-min(mtx))/coloring.num )
-    plot(color.range,rep(1,coloring.num+1),col=coloring(coloring.num+1),pch=15,cex=10,main="Depletion/Enrichment",ylab="",xlab="",yaxt="n")
+    plot(color.range,rep(1,coloring.num+1),col=coloring(coloring.num+1),pch=15,cex=10,main="Depletion/Enrichment Significance",ylab="",xlab="",yaxt="n")
   })
   
   # generate the enrichment table and appends the gf.name information columns
