@@ -12,17 +12,13 @@ library(pander)
 library(colorRamps)
 library(genefilter)
 library(xlsx)
-source("/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/genomeRunner_file_formatting_functions2.R")
-# Work paths
-gfAnnot <- read.xlsx2("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
-#gfAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
-#gfAnnot$V1 <- make.names(gfAnnot$V1)
-#cellAnnot <- tbl_df(read.table("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/ENCODE_cells.txt", sep="\t", header=T, fill=T, quote="\""))
-# Home paths
-#gfAnnot <- tbl_df(read.table("/Users/mikhaildozmorov/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=T))
-# Windows paths
-#gfAnnot <- tbl_df(read.table("F:/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.txt", sep="\t", header=F))
-#cellAnnot <- tbl_df(read.table("F:/Work/GenomeRunner/genomerunner_database/hg19/ENCODE_cells.txt", sep="\t", header=T, fill=T, quote="\""))
+# # Lukas paths
+ source("/home/lukas/R.genomerunner/genomeRunner_file_formatting_functions2.R")
+ gfAnnot <- read.xlsx2("/home/lukas/db_2.00_06-10-2015/grsnp_db/hg19/GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
+# Mikhail paths
+#source("/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/genomeRunner_file_formatting_functions2.R")
+#gfAnnot <- read.xlsx2("/Users/mikhail/Documents/Work/GenomeRunner/genomerunner_database/hg19/GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
+
 cellAnnot <- aggregate(gfAnnot$celldescr, list(gfAnnot$cell), unique)
 colnames(cellAnnot) <- c("cell", "description")
 cellAnnot <- cellAnnot[ cellAnnot$cell != "", ] # Remove empty cells
@@ -36,7 +32,7 @@ granularity <- 10
 dist.method <- "euclidean"  
 hclust.method <- "ward.D2"
 # For coordinate-extracting function
-suppressMessages(library(biomaRt))
+#suppressMessages(library(biomaRt))
 # mart <- useMart("ENSEMBL_MART_ENSEMBL", dataset="hsapiens_gene_ensembl", host="feb2014.archive.ensembl.org",path="/biomart/martservice",archive=FALSE, verbose=TRUE) # Last mart containing HG19 genome annotation
 upstream <- 2000 # Definition of the promoter - 2000bp upstream
 downstream <- 500 # and 500bp downstream
@@ -77,12 +73,14 @@ load_gr_data <- function(dname, subset="none") {
   }
   # Trim the matrix
   mtx <- mtx[ apply(mtx, 1, function(x) sum(!is.na(x))) > 0, apply(mtx, 2, function(x) sum(!is.na(x))) > 0, drop=FALSE] # Remove rows/columns with all NAs
-  mtx <- mtx[ !(apply(mtx, 1, function(x) sum(x == 0) == nrow(mtx))), , drop=F] # If all values in a row are 0, remove these rows
-  # If there are columns with SD=0, add jitter to it. Needed for pair-wise column correlation analysis (epigenomic similarity analysis)
-  ind <- apply(mtx, 2, function(x) sd(x, na.rm=TRUE)) == 0 # Indexes of such columns
-  if (sum(ind) > 0) {
-    set.seed(1)
-    mtx[, ind] <- jitter(mtx[, ind, drop=FALSE], factor=0.1)
+  mtx <- mtx[ !(apply(mtx, 1, function(x) sum(x == 0) == ncol(mtx))), , drop=F] # If all values in a row are 0, remove these rows
+  # If there are columns with SD=0, add jitter to it. Needed for pair-wise column correlation analysis (epigenomic similarity analysis). Only valid if there's more than 1 row
+  if (nrow(mtx) > 1) {
+    ind <- apply(mtx, 2, function(x) sd(x, na.rm=TRUE)) == 0 # Indexes of such columns
+    if (sum(ind) > 0) {
+      set.seed(1)
+      mtx[, ind] <- jitter(mtx[, ind, drop=FALSE], factor=0.1)
+    }
   }
   return(as.matrix(mtx)) # Return (processed) data
 }
@@ -100,14 +98,6 @@ load_gr_data <- function(dname, subset="none") {
 #' 
 #' @examples
 #' entrez2bed(c("3106","51752","149233","118429","864"), "coords.bed")
-#' Extracting promoters of all EntrezIDs
-#' library(org.Hs.eg.db)
-#' x <- org.Hs.egSYMBOL2EG
-#' mapped_genes <- mappedkeys(x)
-#' xx <- as.list(x[mapped_genes])
-#' all.entrez <- unlist(xx)
-#' all.entrez <- all.entrez[!is.na(all.entrez)] 
-#' entrez2bed(all.entrez, "all_entrez.bed")
 ##
 entrez2bed <- function(entrezIDs, fileName){
   coords <- getBM(attributes=c('chromosome_name','start_position', 'end_position', 'hgnc_symbol', 'strand'), filters='entrezgene', values=entrezIDs, mart=mart, uniqueRows=F)
@@ -409,30 +399,35 @@ mtx.trim.numofnas <- function(mtx.cast, numofnas=1) {
 ## colnum=1; factor="none"; cell="none"; isLog10=FALSE; adjust="fdr"; pval=0.1; numtofilt=1; toPlot="bar"; fileName=NULL
 
 showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=FALSE, adjust="fdr", pval=0.1, numtofilt=1, toPlot="bar", fileName=NULL) {
-  mtx <- read.table(fname, sep="\t", fill=T, header=T, stringsAsFactors=F)
-  mtx <- mtx[ , colnum] # Select columns
-  total.colnum <- ncol(mtx) # Keep total number of columns
-  mtx <- data.frame(GF=rownames(mtx), mtx) # Attach GF names
-  # Join with annotations
-  mtx <- left_join(mtx, gfAnnot[, c("name", "cell", "factor", "description")], by=c("GF" = "name"))
-  if(factor != "none") {
-    mtx <- mtx[ mtx$factor %in% factor, , drop=F]
+  mtx <- tbl_df(read.table(fname, sep="\t", fill=T, header=F, stringsAsFactors=F)) # No header and row.names
+  cols <- mtx[1, ] # Keep header
+  # Subsetting by factor
+  if (factor != "none") {
+    mtx <- mtx[grep(factor[1], mtx$V1), c(1, colnum + 1)] # Subset by factor and column 
+    if (length(factor) > 1) {
+      for (i in 2:length(factor)) {
+        mtx <- mtx[grep(factor[i], mtx$V1), ] # Subset by factor, keep columns
+      }  
+    }
+  } else {
+    mtx <- mtx[-1, c(1, colnum + 1)] # Do not subset
   }
-  if(cell != "none") {
-    mtx <- mtx[ mtx$cell %in% cell, , drop=F]
+  # Subsetting by cell
+  if (cell != "none") {
+    mtx <- mtx[grepl(paste(cell, collapse="|"), mtx$V1), ]
   }
-  unique.cells <- unique(mtx$cell) # Keep unique cell types
-  
   # Adjust for multiple testing and -log10 transform, if needed
-  for (i in 1:total.colnum) { # Process each column
-    if(is.logical(isLog10)) {
-      for (c in unique.cells) { # Adjust for multiple testing on per-cell-type basis
-        mtx[ mtx$cell == c, i + 1] <- mtx.adjust.1(as.numeric(unlist(mtx[ mtx$cell == c, i + 1])), adjust=adjust, isLog10 = isLog10)
-      }    
+  for (i in 1:length(colnum)) {
+    if(is.logical(isLog10)){ # If p-values are provided, which is defined by TRUE or FALSE isLog10, adjust accordingly
+      mtx[, i + 1] <- mtx.adjust.1(as.numeric(unlist(mtx[, i + 1])), adjust=adjust, isLog10=isLog10)
     } else { # If odds ratios, which is defined by isLog10 equal to non-logical value like "OR", simply keep the numerical values. Remember OR ranges 0-1 for underrepresentation and 1-Inf for overrepresentation
       mtx[, i + 1] <- as.numeric(unlist(mtx[, i + 1]))
     }
   }
+  # Join with annotations
+  mtx <- left_join(mtx, gfAnnot[, c("name", "cell", "factor", "description")], by=c("V1" = "name"))
+  # Assign columns
+  colnames(mtx) <- c("GF", make.names(cols[colnum ]), "cell", "factor", "description") # Rename columns  
   # Save the matrix, if needed
   if (!is.null(fileName)) { 
     write.table(mtx, fileName, sep="\t", row.names=F)
