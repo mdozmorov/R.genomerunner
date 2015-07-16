@@ -8,7 +8,7 @@ library(colorRamps)
 library(shinyBS)
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/broken_dend/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
 # Mikhail paths
 #results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/chromStates18/"
 
@@ -105,9 +105,9 @@ shinyServer(function(input, output,session) {
   })
   
   check.single_gf <- reactive({
-    # Check if there is only one column in the matrix.  If so, we will plot a bar plots intead of heatmap
+    # Check if there is only one column or row in the matrix.  If so, we will plot a bar plots intead of heatmap
     mtx <- get.barplot.matrix()
-    if(ncol(mtx)==1){
+    if(ncol(mtx)==1 || nrow(mtx) == 1){
       return(TRUE)
     }else{
       return(FALSE)
@@ -239,8 +239,7 @@ shinyServer(function(input, output,session) {
     # get the cluster labels
     mtx.clust <- dend %>% mtx.clusters(height=hcut, minmembers=3)
     mtx = load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep="")) # load the original matrix
-    
-    mtx.deg <- mtx.degfs(mtx[, mtx.clust$eset.labels], mtx.clust, label="broadPeak2")
+    mtx.deg <- suppressWarnings(mtx.degfs(mtx[, mtx.clust$eset.labels], mtx.clust, label="broadPeak2"))
     
     updateSelectInput(session,"cmbEpigenetics","Select which epigenetic table to render",choices = names(mtx.deg))
     mtx.deg.path = paste(get.results.dir(),"mtx.deg.episim.RDS",sep = "")
@@ -262,7 +261,6 @@ shinyServer(function(input, output,session) {
       }
       updateSelectInput(session,"cmbEpigenetics",choices=names(mtx.deg),selected = selectedCor)
     }
-    print(names(mtx.deg))
     #convert values to numeric form for sorting purposes
     for(x in list("adj.p.val",3,4)){
       mtx.deg[[selectedCor]][[x]] <- as.numeric(mtx.deg[[selectedCor]][[x]])
@@ -273,6 +271,7 @@ shinyServer(function(input, output,session) {
   
   output$tblEpigenetics <-renderDataTable({
    validate(need(try(get.epigenetics.table()),"Try a different clustering method."))
+    get.epigenetics.table()
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
                       pageLength = 50))
   
