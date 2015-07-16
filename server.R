@@ -8,7 +8,7 @@ library(colorRamps)
 library(shinyBS)
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/broken_dend/"
 # Mikhail paths
 #results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/chromStates18/"
 
@@ -76,7 +76,7 @@ shinyServer(function(input, output,session) {
     rownames(mtx.table) <- NULL
     # gfAnnot is loaded in utils2
     mtx.table <- left_join(mtx.table,gfAnnot,by=c("GF.Name"="name"))
-    mtx.table <- subset(mtx.table, select = -c(description,ind))
+    mtx.table <- subset(mtx.table, select = -c(ind))
     
     return(mtx.table)
   })
@@ -86,7 +86,7 @@ shinyServer(function(input, output,session) {
   }, options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
                      pageLength = 50))
   
-  output$downloadEnrichSingleTable <- downloadHandler(
+  output$downloadEnrichTable <- downloadHandler(
     filename = function() { 
       return("Enrichment_table.txt")
     },
@@ -95,7 +95,7 @@ shinyServer(function(input, output,session) {
     }
   )
   
-  outputOptions(output, "downloadEnrichSingleTable", suspendWhenHidden=FALSE)
+  outputOptions(output, "downloadEnrichTable", suspendWhenHidden=FALSE)
   
   ## enrichment up and down plots for single column --------------------------------------------------------------
   get.barplot.matrix <- reactive({
@@ -248,7 +248,7 @@ shinyServer(function(input, output,session) {
     return(mtx.deg)
   })
   
-  output$tblEpigenetics <-renderDataTable({
+  get.epigenetics.table <- reactive({
     mtx.deg <- calculate.clust()
     # check if any results were returned
     if (is.null(names(mtx.deg))){ 
@@ -267,9 +267,23 @@ shinyServer(function(input, output,session) {
     for(x in list("adj.p.val",3,4)){
       mtx.deg[[selectedCor]][[x]] <- as.numeric(mtx.deg[[selectedCor]][[x]])
     }
+    mtx.deg[[selectedCor]] <- subset( mtx.deg[[selectedCor]], select = -c(ind))
     mtx.deg[[selectedCor]]
+  })
+  
+  output$tblEpigenetics <-renderDataTable({
+   validate(need(try(get.epigenetics.table()),"Try a different clustering method."))
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
                       pageLength = 50))
+  
+  output$downloadEpigenetics <- downloadHandler(
+    filename = function() { 
+      return("Epigenetics_table.txt")
+    },
+    content = function(file) {
+      write.table(x = get.epigenetics.table(),file =  file ,sep = "\t",quote = F,row.names = F)
+    }
+  )
   
   output$pltDend <- renderPlot({ 
     cor.mat <- get.corr.matrix() # this line ensure that dendrogram is redrawn when heatmap is
@@ -286,9 +300,8 @@ shinyServer(function(input, output,session) {
     # write.table(as.data.frame(mtx.clust), "/home/lukas/clustering_all.txt", sep="\t", row.names=FALSE, quote=FALSE)
     mtx = load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep="")) # load the original matrix
 
-    # create the tabs
-    
-    rect.hclust(as.hclust(dend), k=cl_num, border=cols) # Define the clusters by rectangles
+    # Define the clusters by rectangles
+    validate(need(try(rect.hclust( as.hclust(dend), k=cl_num, border=cols)),"Try a different clustering method."))
     
   })
   
@@ -309,6 +322,9 @@ shinyServer(function(input, output,session) {
                            plotOutput("pltEnrichDown", width="100%", height= "350px")
                   ),
                   tabPanel("Enrichment analysis tables",
+                           br(),br(),
+                           downloadButton('downloadEnrichTable', 'Download table in tab-separated format'),
+                           br(),br(),
                            DT::dataTableOutput("tblEnrichment")),
                   tabPanel("Epigenetic similarity analysis heatmap",
                            fluidPage(
@@ -324,6 +340,9 @@ shinyServer(function(input, output,session) {
                            )),
                   tabPanel("Epigenetic similarity analysis tables",
                            selectInput("cmbEpigenetics", "Select which epigenetic analysis to show", choices = list("Results not ready yet.")),
+                           br(),br(),
+                           downloadButton('downloadEpigenetics', 'Download table in tab-separated format'),
+                           br(),br(),
                            DT::dataTableOutput("tblEpigenetics"))
       )
     } else{ # this UI is created when only a single GF result is returned
@@ -334,7 +353,7 @@ shinyServer(function(input, output,session) {
                   ),
                   tabPanel("Enrichment analysis tables",
                            br(),br(),
-                           downloadButton('downloadEnrichSingleTable', 'Download table in tab-separated format'),
+                           downloadButton('downloadEnrichTable', 'Download table in tab-separated format'),
                            br(),br(),
                            DT::dataTableOutput("tblEnrichment"))
       )
