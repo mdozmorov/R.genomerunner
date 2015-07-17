@@ -8,7 +8,7 @@ library(colorRamps)
 library(shinyBS)
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2_single_col/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
 # Mikhail paths
 #results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/chromStates18/"
 
@@ -45,7 +45,7 @@ shinyServer(function(input, output,session) {
     mtx <- get.adjust.matrix()
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
     d3heatmap::d3heatmap(as.matrix(mtx),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}), colors = coloring(coloring.num), show_tip=FALSE,dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""))
-
+    
   })
   
   output$legendEnrich <- renderPlot({
@@ -102,6 +102,7 @@ shinyServer(function(input, output,session) {
     }
   )
   
+  
   outputOptions(output, "downloadEnrichTable", suspendWhenHidden=FALSE)
   
   ## enrichment up and down plots for single column --------------------------------------------------------------
@@ -109,25 +110,21 @@ shinyServer(function(input, output,session) {
     # populate the enrichment table combobox
     file.names.enrichment <- file_path_sans_ext(list.files(paste(get.results.dir(),"enrichment/",sep="")))
     mtx <- load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep=""))
+    
   })
-
   
-  # the same barplot is used for single FOI results and multiple FOI results
-  output$pltEnrichUp <- renderPlot({
+  
+  getEnrichmentUp <- reactive({
     mtx <-  data.frame( get.barplot.matrix())
+   
+    
     selectedFOI <- 1
     selectedFOI <-input$cmbFOI
-    
     updown.split =  0
     mtx.up <- subset(mtx[selectedFOI],mtx[selectedFOI] > updown.split)
-   
+    
     if (nrow(mtx.up)==0){
-      # plot raw text
-      par(mar = c(0,0,0,0))
-      plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
-      text(x = 0.5, y = 0.5, paste("Nothing overrepresented to plot."),  cex = 1.6, col = "black")
-      box()
-      return()
+      return(mtx.up)
     }
     
     if (input$cmbMatrix == "matrix_PVAL.txt"){
@@ -142,52 +139,22 @@ shinyServer(function(input, output,session) {
     
     # sort the results
     mtx.up.sorted <- mtx.up[order(mtx.up,decreasing = T),,drop=FALSE]
-    par(mar = c(10,5,4.1,2.1))
-    if (nrow(mtx.up) < 3){
-      barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
-              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),main="Enriched epigenomic associations",xlim=c(0,10*nrow(mtx.up)),axes=F)
-    } else{
-      barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
-              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),main="Enriched epigenomic associations",axes=F)
-    }
-    abline(a=0,b=0)   
-    if(input$cmbMatrix == "matrix_PVAL.txt"){
-      mtext('P-value',side=2,line=4)
-      axis.values = c(seq(0,100,by=1))
-      axis(side = 2, at = axis.values,labels=1/10^abs(axis.values),las=1)
-    } else{
-      mtext('Odds-ratio',side=2,line=4)
-      axis.values = seq(0,100,by = 1)
-      axis(side = 2, at = axis.values, labels=round(2^axis.values,digits = 2),las=1)
-    }
-    
-    #barplot1(head(mtx.up.sorted,input$sldNumFeatures),names.args = head(rownames(mtx.up.sorted),input$sldNumFeatures))
-    #names.args.up[names.args.up == "NA:NA"] <- make.names(unlist(lapply(mtx.sorted.up, rownames)), unique=T)[names.args.up == "NA:NA"]
-    #names.args.dn[names.args.dn == "NA:NA"] <- make.names(unlist(lapply(mtx.sorted.dn, rownames)), unique=T)[names.args.dn == "NA:NA"]
-    #bottom <- 8
-    # Plot barplots
-    #if (!grepl("dn", toPlot) & (nrow(mtx.barplot.up) > 0)) { barplot1(mtx.barplot.up[, seq(1:length(colnum)), drop=F], "topright", bottom=bottom, names.args=names.args.up, pval=pval) }
   })
   
-  output$pltEnrichDown <- renderPlot({
+  getEnrichmentDown <- reactive({
     mtx <-  data.frame( get.barplot.matrix())
     selectedFOI <- 1
     selectedFOI <-input$cmbFOI
     updown.split = 0
     mtx <-  data.frame(get.barplot.matrix())
     mtx.down <- subset(mtx[selectedFOI],mtx[selectedFOI] < updown.split,drop = F)
-  
+    
     if (nrow(mtx.down)==0){
-      # plot raw text
-      par(mar = c(0,0,0,0))
-      plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
-      text(x = 0.5, y = 0.5, paste("Nothing underrepresented to plot."),  cex = 1.6, col = "black")
-      box()
-      return()
-    }   
+      return(mtx.down)
+    }
     
     if (input$cmbMatrix == "matrix_PVAL.txt"){
-
+      
       # do the pvalue adjustment 
       mtx.down.adjust <- apply(1/10^(abs(mtx.down)), 2, function(x) {p.adjust(x,  method = input$cmbPvalAdjustMethod)})
       mtx.down.adjust <- -as.matrix(mtx.down.adjust) # apply negative bc everything is downregulated here
@@ -195,25 +162,68 @@ shinyServer(function(input, output,session) {
       mtx.down <- mtx.transform(mtx.down.adjust);
     }
     mtx.down.sorted <- mtx.down[order(mtx.down,decreasing = F),,drop=FALSE]
+  })
+  
+  # the same barplot is used for single FOI results and multiple FOI results
+  output$pltEnrichUp <- renderPlot({
+    mtx.up.sorted = getEnrichmentUp()
+    if (nrow(mtx.up.sorted)==0){
+      # plot raw text
+      par(mar = c(0,0,0,0))
+      plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
+      text(x = 0.5, y = 0.5, paste("Nothing overrepresented to plot."),  cex = 1.6, col = "black")
+      box()
+      return()
+    }
     par(mar = c(10,5,4.1,2.1))
-    if (nrow(mtx.down) < 3){
+    if (nrow(mtx.up.sorted) < 3){
+      barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
+              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),main="Enriched epigenomic associations",xlim=c(0,10*nrow(mtx.up.sorted)),axes=F)
+    } else{
+      barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
+              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),main="Enriched epigenomic associations",axes=F)
+    }
+    abline(a=0,b=0)   
+    if(input$cmbMatrix == "matrix_PVAL.txt"){
+      mtext('P-value',side=2,line=4)
+      axis.values = seq(0,100,by=1)
+      axis(side = 2, at = axis.values,labels=1/10^abs(axis.values),las=1)
+    } else{
+      mtext('Odds-ratio',side=2,line=4)
+      axis.values = seq(0,100,by = .1)
+      axis(side = 2, at = axis.values, labels=round(2^axis.values,digits = 2),las=1)
+    }
+  })
+  
+  output$pltEnrichDown <- renderPlot({
+    mtx.down.sorted <- abs(getEnrichmentDown())
+    if (nrow(mtx.down.sorted) == 0){
+      # plot raw text
+      par(mar = c(0,0,0,0))
+      plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
+      text(x = 0.5, y = 0.5, paste("Nothing underrepresented to plot."),  cex = 1.6, col = "black")
+      box()
+      return(mtx.down.sorted)
+    }
+    par(mar = c(10,5,4.1,2.1))
+    if (nrow(mtx.down.sorted) < 3){
       barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
-              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),main = "Depleted epigenomic associations",xlim=c(0,10*nrow(mtx.down)),axes = F)
+              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),main = "Depleted epigenomic associations",xlim=c(0,10*nrow(mtx.down.sorted)),axes = F)
     }else{
       barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
               space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),main = "Depleted epigenomic associations", axes = F)
     }
+    abline(a=0,b=0)   
     if(input$cmbMatrix == "matrix_PVAL.txt"){
       mtext('P-value',side=2,line=4)
-      axis.values = c(seq(-100,0,by=1))
+      axis.values = c(seq(0,100,by=1))
       axis(side = 2, at = axis.values,labels=1/10^abs(axis.values), las=1)
     }
     else{
       mtext('Odds-ratio',side=2,line=4)
-      axis.values = c(seq(-10, 0, by=.1))
+      axis.values = c(seq(0,100, by=.5))
       axis(side = 2, at = axis.values, labels=round(2^axis.values,digits = 2), las=1)
     }
-    #barplot(head(mtx.down.sorted,input$sldNumFeatures),names.args = head(rownames(mtx.down.sorted),input$sldNumFeatures))
   })
   
   # episimilarity ---------------------------------------------------------------
@@ -285,10 +295,10 @@ shinyServer(function(input, output,session) {
   })
   
   output$tblEpigenetics <-renderDataTable({
-   validate(need(try(get.epigenetics.table()),"Try a different clustering method."))
+    validate(need(try(get.epigenetics.table()),"Try a different clustering method."))
     get.epigenetics.table()
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
-                      pageLength = 50))
+                    pageLength = 50))
   
   output$downloadEpigenetics <- downloadHandler(
     filename = function() { 
@@ -313,11 +323,83 @@ shinyServer(function(input, output,session) {
     mtx.clust <- dend %>% mtx.clusters(height=hcut, minmembers=3)
     # write.table(as.data.frame(mtx.clust), "/home/lukas/clustering_all.txt", sep="\t", row.names=FALSE, quote=FALSE)
     mtx = load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep="")) # load the original matrix
-
+    
     # Define the clusters by rectangles
     validate(need(try(rect.hclust( as.hclust(dend), k=cl_num, border=cols)),"Try a different clustering method."))
     
   })
+  
+  
+  # --download button code --------------------------------------------------
+  output$downloadEnrichBarPDF <- downloadHandler(
+    filename = function() { 
+      return("EnrichmentUp.pdf")
+    },
+    content = function(file) {
+      pdf(file=file,width=9,height=5)
+      # print EnrichmentUp to PDF
+      mtx.up.sorted = getEnrichmentUp()
+      if (nrow(mtx.up.sorted)==0){
+        # plot raw text
+        par(mar = c(0,0,0,0))
+        plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
+        text(x = 0.5, y = 0.5, paste("Nothing overrepresented to plot."),  cex = 1.6, col = "black")
+        box()
+      }else{
+        par(mar = c(10,5,4.1,2.1))
+        if (nrow(mtx.up.sorted) < 3){
+          barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
+                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),main="Enriched epigenomic associations",xlim=c(0,10*nrow(mtx.up.sorted)),axes=F)
+        } else{
+          barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
+                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),main="Enriched epigenomic associations",axes=F)
+        }
+        abline(a=0,b=0)   
+        if(input$cmbMatrix == "matrix_PVAL.txt"){
+          mtext('P-value',side=2,line=4)
+          axis.values = c(seq(0,100,by=1))
+          axis(side = 2, at = axis.values,labels=1/10^abs(axis.values),las=1)
+        } else{
+          mtext('Odds-ratio',side=2,line=4)
+          axis.values = seq(0,100,by = 1)
+          axis(side = 2, at = axis.values, labels=round(2^axis.values,digits = 2),las=1)
+        }
+      }
+      # print Enrichmentdown bar plot to PDF
+      mtx.down.sorted <- abs(getEnrichmentDown())
+      if (nrow(mtx.down.sorted)==0){
+        # plot raw text
+        par(mar = c(0,0,0,0))
+        plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
+        text(x = 0.5, y = 0.5, paste("Nothing overrepresented to plot."),  cex = 1.6, col = "black")
+        box()
+      } else{
+        par(mar = c(10,5,4.1,2.1))
+        if (nrow(mtx.down.sorted) < 3){
+          barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
+                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),main = "Depleted epigenomic associations",xlim=c(0,10*nrow(mtx.down.sorted)),axes = F)
+        }else{
+          barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
+                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),main = "Depleted epigenomic associations", axes = F)
+        }
+        abline(a=0,b=0) 
+        if(input$cmbMatrix == "matrix_PVAL.txt"){
+          mtext('P-value',side=2,line=4)
+          axis.values = c(seq(-100,0,by=1))
+          axis(side = 2, at = axis.values,labels=1/10^abs(axis.values), las=1)
+        }
+        else{
+          mtext('Odds-ratio',side=2,line=4)
+          axis.values = c(seq(-10, 0, by=.1))
+          axis(side = 2, at = axis.values, labels=round(2^axis.values,digits = 2), las=1)
+        }
+      }
+      
+      dev.off()
+    },
+    contentType = 'application/pdf'
+  )
+  
   
   # Create a different UI depending if there are multiple GF in the results
   output$mainpage <-renderUI({
@@ -326,12 +408,13 @@ shinyServer(function(input, output,session) {
     single.feature = TRUE;
     if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
     if (single.feature == FALSE){
-      tabsetPanel("tabsMultiple",
+      tabsetPanel(id="tabsMultiple",
                   tabPanel("Enrichment analysis heatmap",
-                            d3heatmapOutput("heatmapEnrich", width = "100%", height = "600px"),
-                            plotOutput("legendEnrich",width="300px",height="150px")
+                           d3heatmapOutput("heatmapEnrich", width = "100%", height = "600px"),
+                           plotOutput("legendEnrich",width="300px",height="150px")
                   ), 
                   tabPanel("Enrichment analysis barplot",
+                           downloadButton('downloadEnrichBarPDF', 'Download PDF'),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
                            plotOutput("pltEnrichDown", width="100%", height= "350px")
                   ),
@@ -344,11 +427,11 @@ shinyServer(function(input, output,session) {
                            fluidPage(
                              fluidRow(
                                column(6,
-                                 d3heatmapOutput("heatmapEpisim", width = "100%", height = "600px"),
-                                 plotOutput("legendEpisim",width="300px",height="150px")
+                                      d3heatmapOutput("heatmapEpisim", width = "100%", height = "600px"),
+                                      plotOutput("legendEpisim",width="300px",height="150px")
                                ),
                                column(6, 
-                                  plotOutput("pltDend",width = "100%", height = "500px")
+                                      plotOutput("pltDend",width = "100%", height = "500px")
                                )
                              )
                            )),
@@ -360,8 +443,9 @@ shinyServer(function(input, output,session) {
                            DT::dataTableOutput("tblEpigenetics"))
       )
     } else{ # this UI is created when only a single GF result is returned
-      tabsetPanel("tabsSingleGF",
+      tabsetPanel(id="tabsSingleGF",
                   tabPanel("Enrichment analysis barplot",
+                           downloadButton('downloadEnrichBarPDF', 'Download PDF'),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
                            plotOutput("pltEnrichDown", width="100%", height= "350px")
                   ),
@@ -380,31 +464,36 @@ shinyServer(function(input, output,session) {
     if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
     if (single.feature == FALSE){
       sidebarPanel(width = 4,h3("Global Settings"),
-                  selectInput("cmbMatrix", label = "Results to visualize", 
+                   selectInput("cmbMatrix", label = "Results to visualize", 
                                choices = list("P-values" = "matrix_PVAL.txt", 
                                               "Odds Ratios" = "matrix_OR.txt")),
-                  bsTooltip("cmbMatrix", "Select P-value or Odds ratio", placement = "top", trigger = "hover"),
+                   bsTooltip("cmbMatrix", "Select P-value or Odds ratio", placement = "top", trigger = "hover"),
                    selectInput("cmbFOI", "Select which SNP set to visualize", choices = colnames(mtx)),
                    conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
                                     selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
                                                 choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))),
-                   hr(),h3("Heatmap Settings"),
-                   selectInput("cmbClustMethod",label = "Clustering method (hclust)", 
-                               choices = list("ward.D",
-                                              "ward.D2",
-                                              "single",
-                                              "complete",
-                                              "average",
-                                              "mcquitty",
-                                              "median",
-                                              "centroid")
+                   conditionalPanel("input.tabsMultiple == 'Enrichment analysis heatmap' || input.tabsMultiple == 'Epigenetic similarity analysis heatmap'",
+                                    hr(),h3("Heatmap Settings"),
+                                    selectInput("cmbClustMethod",label = "Clustering method (hclust)", 
+                                                choices = list("ward.D",
+                                                               "ward.D2",
+                                                               "single",
+                                                               "complete",
+                                                               "average",
+                                                               "mcquitty",
+                                                               "median",
+                                                               "centroid")
+                                    ),
+                                    selectInput('cmbEpisimCorType',label = "Correlation coefficient type",
+                                                choices = list("Pearson's" = "pearson",
+                                                               "Spearman's" = "spearman"))
                    ),
-                   selectInput('cmbEpisimCorType',label = "Correlation coefficient type",
-                               choices = list("Pearson's" = "pearson",
-                                              "Spearman's" = "spearman")),
-                   hr(),h3("Epigenetic similarity"),
-                   sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 3)
-              )
+                   conditionalPanel("input.tabsMultiple == 'Epigenetic similarity analysis heatmap'",
+                                    hr(),h3("Epigenetic similarity"),
+                                    sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 3)
+                   )
+                   
+      )
     }else{ # this is for a single column result file
       sidebarPanel(h3("Global Settings"), hr(),
                    selectInput("cmbMatrix", label = "Results to visualize", 
@@ -413,10 +502,11 @@ shinyServer(function(input, output,session) {
                    selectInput("cmbFOI", "Select which SNP set to visualize", choices = colnames(mtx)),
                    conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
                                     if(nrow(mtx)>1){
-                                    selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
-                                                choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))}
-                                      )
-                  )
+                                      selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
+                                                  choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))}
+                   )
+      )
     }
   })
 })
+
