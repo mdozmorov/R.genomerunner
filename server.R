@@ -62,17 +62,21 @@ shinyServer(function(input, output,session) {
     selectedFOI <-input$cmbFOI
     if (input$cmbMatrix == "matrix_PVAL.txt"){
       mtx.adjust <- apply(mtx[selectedFOI], 2, function(x) p.adjust(abs(x), method = input$cmbPvalAdjustMethod))
-      mtx.sign <- ifelse(sign(mtx[selectedFOI]) < 0, "Underrepresented", "Overrepresented")
+      pval.sig <- rep("Not significant",nrow(mtx.adjust))
+      pval.sig[ mtx[, selectedFOI] < 0.05 & mtx[, selectedFOI] > 0] <- "Overrepresented" 
+      pval.sig[mtx[, selectedFOI] > -0.05 & mtx[, selectedFOI] < 0] <- "Underrepresented"
       
       mtx.table <- cbind(abs(mtx[selectedFOI]), 
-                         mtx.sign, 
+                         pval.sig, 
                          mtx.adjust)
       colnames(mtx.table) <- c("P.value","Direction","P.adj")
     }else{ 
       # for odds ratio
-      mtx.sign <- ifelse(sign(mtx[selectedFOI]) < 1, "Underrepresented", "Overrepresented")
+      or.sig <- rep("Not significant", nrow(mtx))
+      or.sig[mtx[, selectedFOI] > 1] <- "Enriched"
+      or.sig[mtx[, selectedFOI] < 1] <- "Depleted"
       mtx.table <- cbind(abs(mtx[selectedFOI]),
-                         mtx.sign)
+                         or.sig)
       colnames(mtx.table) <- c("Odds.ratio","Direction")
     }
     mtx.table = cbind(GF.Name = rownames(mtx.table),mtx.table) # make the GF.name a column instead of just the rowname so we can left_join
@@ -138,18 +142,24 @@ shinyServer(function(input, output,session) {
     
     # sort the results
     mtx.up.sorted <- mtx.up[order(mtx.up,decreasing = T),,drop=FALSE]
-    if(input$cmbMatrix == "matrix_PVAL.txt"){
-      y.label = "-log10(p-value)"
-    }else{y.label="log2(odds-ratio)"}
     par(mar = c(10,5,4.1,2.1))
     if (nrow(mtx.up) < 3){
       barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
-              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),ylab=y.label,main="Enriched epigenomic associations",xlim=c(0,10*nrow(mtx.up)))
+              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),main="Enriched epigenomic associations",xlim=c(0,10*nrow(mtx.up)),axes=F)
     } else{
       barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
-              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),ylab=y.label,main="Enriched epigenomic associations")
+              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),main="Enriched epigenomic associations",axes=F)
     }
-    abline(a=0,b=0)
+    abline(a=0,b=0)   
+    if(input$cmbMatrix == "matrix_PVAL.txt"){
+      mtext('P-value',side=2,line=4)
+      axis.values = c(seq(0,100,by=1))
+      axis(side = 2, at = axis.values,labels=1/10^abs(axis.values),las=1)
+    } else{
+      mtext('Odds-ratio',side=2,line=4)
+      axis.values = seq(0,100,by = 1)
+      axis(side = 2, at = axis.values, labels=round(2^axis.values,digits = 2),las=1)
+    }
     
     #barplot1(head(mtx.up.sorted,input$sldNumFeatures),names.args = head(rownames(mtx.up.sorted),input$sldNumFeatures))
     #names.args.up[names.args.up == "NA:NA"] <- make.names(unlist(lapply(mtx.sorted.up, rownames)), unique=T)[names.args.up == "NA:NA"]
@@ -185,18 +195,24 @@ shinyServer(function(input, output,session) {
       mtx.down <- mtx.transform(mtx.down.adjust);
     }
     mtx.down.sorted <- mtx.down[order(mtx.down,decreasing = F),,drop=FALSE]
-    if(input$cmbMatrix == "matrix_PVAL.txt"){
-      y.label = "-log10(p-value)\nnegative = underrepresentation"
-    }else{y.label="log2(odds-ratio)\nnegative = underrepresentation"}
     par(mar = c(10,5,4.1,2.1))
     if (nrow(mtx.down) < 3){
       barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
-              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),ylab=y.label,main = "Depleted epigenomic associations",xlim=c(0,10*nrow(mtx.down)))
+              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),main = "Depleted epigenomic associations",xlim=c(0,10*nrow(mtx.down)),axes = F)
     }else{
       barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
-              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),ylab=y.label,main = "Depleted epigenomic associations")
+              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),main = "Depleted epigenomic associations", axes = F)
     }
-    abline(a=0,b=0)
+    if(input$cmbMatrix == "matrix_PVAL.txt"){
+      mtext('P-value',side=2,line=4)
+      axis.values = c(seq(-100,0,by=1))
+      axis(side = 2, at = axis.values,labels=1/10^abs(axis.values), las=1)
+    }
+    else{
+      mtext('Odds-ratio',side=2,line=4)
+      axis.values = c(seq(-10, 0, by=.1))
+      axis(side = 2, at = axis.values, labels=round(2^axis.values,digits = 2), las=1)
+    }
     #barplot(head(mtx.down.sorted,input$sldNumFeatures),names.args = head(rownames(mtx.down.sorted),input$sldNumFeatures))
   })
   
