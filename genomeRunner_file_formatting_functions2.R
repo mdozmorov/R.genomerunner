@@ -32,6 +32,10 @@ getV2OddsRatioMatrix <- function(infile){
     tmp$d = as.numeric(paste(mat$n_bgs)) - as.numeric(paste(mat$n_fois)) - tmp$c
     ## Perform Fisher's exact test and store all the results
     tmp1 <- apply(tmp, 1, function(x) fisher.test(matrix(unlist(x), 2, 2)))
+    # Keep regular OR
+    mat$OR <- sapply(tmp1, function(x) {ifelse(x$conf.int[1] < 1 & x$conf.int[2] > 1, 1, x$estimate)})
+    mat$OR[ is.infinite(mat$OR) ] <- .Machine$integer.max # Set infinite ORs to maximum number
+    mat$OR[ mat$OR == 0 ] <- .Machine$double.eps # Set zero ORs to minimum number
     # If OR confidence interval includes 1, then OR is not significant, set to 1
     mat$newOR <- sapply(tmp1, function(x) {ifelse(x$conf.int[1] < 1 & x$conf.int[2] > 1, 1, ifelse(x$estimate < 1, x$conf.int[2], x$conf.int[1]))})
     mat$newOR[ is.infinite(mat$newOR) ] <- .Machine$integer.max # Set infinite ORs to maximum number
@@ -43,6 +47,10 @@ getV2OddsRatioMatrix <- function(infile){
     mat$newPval[which(mat$newOR < 1)] = -1*mat$newPval[which(mat$newOR < 1)]
     
     # Extract the new odds ratio and pvalues from the data frame and save to seperate files.
+    oddsOR_mat=as.data.frame(matrix(mat$OR,nrow=num_foi,ncol=num_GF))
+    names(oddsOR_mat) <- GF
+    row.names(oddsOR_mat) <- mat$foi_name[1:num_foi] #substring(mat$foi_name[1:num_foi], 1, 15)
+    
     odds_mat=as.data.frame(matrix(mat$newOR,nrow=num_foi,ncol=num_GF))
     names(odds_mat) <- GF
     row.names(odds_mat) <- mat$foi_name[1:num_foi] #substring(mat$foi_name[1:num_foi], 1, 15)
@@ -57,9 +65,12 @@ getV2OddsRatioMatrix <- function(infile){
   
   ## Now save odds matrix and pval matrix to file
   ##write.table(t(odds_mat), file=paste(infile, ".OR", sep=""), quote=FALSE, sep="\t")
+  write.table(as.data.frame(t(oddsOR_mat)), file=paste(dirname(infile), "matrix_ORFULL.txt", sep="/"), quote=FALSE, sep="\t")
   write.table(as.data.frame(t(odds_mat)), file=paste(dirname(infile), "matrix_OR.txt", sep="/"), quote=FALSE, sep="\t")
-  
   write.table(as.data.frame(t(pval_mat)), file=paste(dirname(infile), "matrix_PVAL.txt", sep="/"), quote=FALSE, sep="\t")
+  # Combine P-values and odds ratios
+  comb_mat <- mtx.untransform(log2(odds_mat) * mtx.transform(pval_mat))
+  write.table(as.data.frame(t(comb_mat)), file=paste(dirname(infile), "matrix_COMB.txt", sep="/"), quote=FALSE, sep="\t")
 }
 
 
@@ -84,7 +95,7 @@ getV1OddsRatioPvalMatrix <- function(infile){
   cmd <- paste("echo -e \"foi_name\tObserved\tExpected\tDiff\tp-val\tPCC\tObs/Tot\" | cat - ",infile," > ",modfile, sep="\t")
   ## execute the command and then remove the extraneous "-e " in the file (not sure why it puts it there, doing it on terminal doesn't have this issue)
   system(cmd)
-  system(paste("cat ",modfile," | sed -e 's/^-e //' > tmp && mv tmp ",modfile, sep=""))
+  system(paste("cat ",modfile," | sed -e 's/^-e //' > tmp.txt && mv tmp.txt ",modfile, sep=""))
   
   # Now, load file after manually copying the header line into the file:
   v1 <- read.delim(modfile)
