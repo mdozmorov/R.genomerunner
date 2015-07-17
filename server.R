@@ -8,12 +8,12 @@ library(colorRamps)
 library(shinyBS)
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/"
 # Mikhail paths
 #results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/chromStates18/"
 
 
-genomerunner.mode <- FALSE
+genomerunner.mode <- TRUE
 coloring.num = 50
 shinyServer(function(input, output,session) {
   
