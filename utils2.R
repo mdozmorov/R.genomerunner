@@ -1,3 +1,9 @@
+# sudo apt-get install default-jre
+# http://tipsonubuntu.com/2015/03/21/install-oracle-java-9-in-ubuntu/
+# sudo apt-get install r-cran-rjava
+# install.packages(c("plyr","dplyr", "reshape2", "cluster", "ggplot2", "Hmisc", "pander", "colorRamps", "xlsx", "rJava", "xlsxjars", "shiny", "shinyBS", "d3heatmap", "DT", "dendextendRcpp"))
+# source("http://bioconductor.org/biocLite.R")
+# biocLite(c("Biobase", "limma", "genefilter", "biomaRt", "org.Hs.eg.db")))
 # Set up the environment
 library(plyr)
 library(dplyr)
@@ -13,8 +19,8 @@ library(colorRamps)
 library(genefilter)
 library(xlsx)
 # # Lukas paths
- source("/home/lukas/R.genomerunner/genomeRunner_file_formatting_functions2.R")
- gfAnnot <- read.xlsx2("/home/lukas/db_2.00_06-10-2015/grsnp_db/hg19/GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
+ source("genomeRunner_file_formatting_functions2.R")
+ gfAnnot <- read.xlsx2("GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
 # Mikhail paths
 #source("/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/genomeRunner_file_formatting_functions2.R")
 #gfAnnot <- read.xlsx2("/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
