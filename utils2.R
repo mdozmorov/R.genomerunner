@@ -409,7 +409,7 @@ mtx.trim.numofnas <- function(mtx.cast, numofnas=1) {
 
 showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=FALSE, adjust="fdr", pval=0.1, numtofilt=1, toPlot="bar", fileName=NULL) {
   mtx <- read.table(fname, sep="\t", fill=T, header=T, stringsAsFactors=F)
-  mtx <- mtx[ , colnum] # Select columns
+  mtx <- mtx[ , colnum, drop = FALSE] # Select columns
   total.colnum <- ncol(mtx) # Keep total number of columns
   mtx <- data.frame(GF=rownames(mtx), mtx) # Attach GF names
   # Join with annotations
@@ -441,7 +441,7 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=FAL
   if (length(colnum) == 1 & (toPlot == "heat")) { # If only 1 column selected, we can plot heatmap
     # Make wide matrix. 
     pmax <- function(x) { x[order(abs(x), decreasing=T)][1] } # Get absolute maximum p-value, keeping sign
-    mtx.cast <- dcast(mtx, formula=cell~factor, fun.aggregate=pmax, value.var=make.names(cols[colnum]))
+    mtx.cast <- dcast(mtx, formula=cell~factor, fun.aggregate=pmax, value.var=colnames(mtx)[2])
     
     # Make wide matrix. To properly handle duplicates, use https://stackoverflow.com/questions/12831524/can-dcast-be-used-without-an-aggregate-function
 #     tmp1 <- ddply(mtx, .(cell, factor), transform, newid = paste(cell, seq_along(factor)))
