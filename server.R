@@ -463,17 +463,19 @@ shinyServer(function(input, output,session) {
     single.feature = TRUE
     if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
     if (single.feature == FALSE){
-      sidebarPanel(width = 4,h3("Global Settings"),
+      sidebarPanel(width = 4,h3("Data Settings"),
                    selectInput("cmbMatrix", label = "Results to visualize", 
                                choices = list("P-values" = "matrix_PVAL.txt", 
                                               "Odds Ratios" = "matrix_OR.txt")),
                    bsTooltip("cmbMatrix", "Select P-value or Odds ratio", placement = "top", trigger = "hover"),
-                   selectInput("cmbFOI", "Select which SNP set to visualize", choices = colnames(mtx)),
+                   conditionalPanel("input.tabsMultiple == 'Enrichment analysis barplot'",
+                                    selectInput("cmbFOI", "Select which SNP set to visualize", choices = colnames(mtx))
+                                    ),
                    conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
                                     selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
                                                 choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))),
                    conditionalPanel("input.tabsMultiple == 'Enrichment analysis heatmap' || input.tabsMultiple == 'Epigenetic similarity analysis heatmap'",
-                                    hr(),h3("Heatmap Settings"),
+                                    hr(),h3("Visualization option"),
                                     selectInput("cmbClustMethod",label = "Clustering method (hclust)", 
                                                 choices = list("ward.D",
                                                                "ward.D2",
@@ -483,11 +485,14 @@ shinyServer(function(input, output,session) {
                                                                "mcquitty",
                                                                "median",
                                                                "centroid")
-                                    ),
+                                    )
+                   ),
+                   conditionalPanel("input.tabsMultiple == 'Epigenetic similarity analysis heatmap'",
                                     selectInput('cmbEpisimCorType',label = "Correlation coefficient type",
                                                 choices = list("Pearson's" = "pearson",
                                                                "Spearman's" = "spearman"))
                    ),
+                  
                    conditionalPanel("input.tabsMultiple == 'Epigenetic similarity analysis heatmap'",
                                     hr(),h3("Epigenetic similarity"),
                                     sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 3)
