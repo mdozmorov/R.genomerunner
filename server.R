@@ -190,15 +190,13 @@ shinyServer(function(input, output,session) {
     if(input$cmbMatrix == "matrix_PVAL.txt"){
       mtext('P-value',side=2,line=4)
       axis(side = 2, at = axis.values,labels=scientific_format(1)(1/10^abs(axis.values)),las=1)
-      axis(side=1, labels = FALSE)
     } else{
       mtext('Odds-ratio',side=2,line=4)
       axis(side = 2, at = axis.values, labels=scientific_format(1)(round(2^axis.values,digits = 2)),las=1)
-      axis(side=1, labels = FALSE)
     }
     # draw rotated x-labels
-    axis(side=1, labels = FALSE)
-    text(x.loc, par("usr")[3] - 0.25, srt = 45, adj = 1,
+    axis(side=1, labels = FALSE,tick = F)
+    text(x.loc, par("usr")[3], adj=c(1,1),srt = 45,
          labels = head(rownames(mtx.up.sorted),30), xpd = TRUE) 
   })
   
@@ -232,8 +230,8 @@ shinyServer(function(input, output,session) {
       axis(side = 2, at = axis.values, labels=scientific_format(1)(round(2^axis.values,digits = 2)), las=1)
     }
     # draw rotated x-labels
-    axis(side=1, labels = FALSE)
-    text(x.loc, par("usr")[3] - 0.25, srt = 45, adj = 1,
+    axis(side=1, labels = FALSE,tick = F)
+    text(x.loc, par("usr")[3], srt = 45, adj=c(1,1),
          labels = head(rownames(mtx.down.sorted),30), xpd = TRUE) 
   })
   
@@ -375,8 +373,8 @@ shinyServer(function(input, output,session) {
           axis(side = 2, at = axis.values, labels=scientific_format(1)(round(2^axis.values,digits = 2)),las=1)
         }
         # draw rotated x-labels
-        axis(side=1, labels = FALSE)
-        text(x.loc, par("usr")[3] - 0.25, srt = 45, adj = 1,
+        axis(side=1, labels = FALSE,tick=F)
+        text(x.loc, par("usr")[3], srt = 45,  adj=c(1,1),
              labels = head(rownames(mtx.up.sorted),30), xpd = TRUE) 
       }
       # print Enrichmentdown bar plot to PDF
@@ -396,10 +394,6 @@ shinyServer(function(input, output,session) {
          x.loc <- barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
                   space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),xaxt='n',main = "Depleted epigenomic associations", axes = F)
         }
-        # draw rotated x-labels
-        axis(side=1, labels = FALSE)
-        text(x.loc, par("usr")[3] - 0.25, srt = 45, adj = 1,
-             labels = head(rownames(mtx.down.sorted),30), xpd = TRUE) 
         abline(a=0,b=0)
         axis.values = seq(0,max(mtx.down.sorted),length.out = 10)
         if(input$cmbMatrix == "matrix_PVAL.txt"){
@@ -411,8 +405,8 @@ shinyServer(function(input, output,session) {
           axis(side = 2, at = axis.values, labels=scientific_format(1)(round(2^axis.values,digits = 2)), las=1)
         }
         # draw rotated x-labels
-        axis(side=1, labels = FALSE)
-        text(x.loc, par("usr")[3] - 0.25, srt = 45, adj = 1,
+        axis(side=1, labels = FALSE,tick = F)
+        text(x.loc, par("usr")[3], srt = 45, adj=c(1,1),
              labels = head(rownames(mtx.down.sorted),30), xpd = TRUE) 
       }
       
