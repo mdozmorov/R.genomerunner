@@ -6,6 +6,7 @@ library(dendextendRcpp) # required for extracting the height from the dendrogram
 library(tools)
 library(colorRamps)
 library(shinyBS)
+library(scales)
 
 # # Lukas paths
 results.dir <- "/home/lukas/db_2.00_06-10-2015/results/"
@@ -177,22 +178,28 @@ shinyServer(function(input, output,session) {
     }
     par(mar = c(10,5,4.1,2.1))
     if (nrow(mtx.up.sorted) < 3){
-      barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
-              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),main="Enriched epigenomic associations",xlim=c(0,10*nrow(mtx.up.sorted)),axes=F)
+     x.loc = barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
+              space=c(0.2,1), cex.names=1, las=2, xaxt='n',main="Enriched epigenomic associations",xlim=c(0,10*nrow(mtx.up.sorted)),axes=F)
     } else{
-      barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
-              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),main="Enriched epigenomic associations",axes=F)
+     x.loc =  barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
+              space=c(0.2,1), cex.names=1, las=2, xaxt='n',main="Enriched epigenomic associations",axes=F)
     }
     abline(a=0,b=0)   
+    axis.values = seq(0,max(mtx.up.sorted),length.out = 10)
+    # draw y labels
     if(input$cmbMatrix == "matrix_PVAL.txt"){
       mtext('P-value',side=2,line=4)
-      axis.values = seq(0,100,by=1)
-      axis(side = 2, at = axis.values,labels=1/10^abs(axis.values),las=1)
+      axis(side = 2, at = axis.values,labels=scientific_format(1)(1/10^abs(axis.values)),las=1)
+      axis(side=1, labels = FALSE)
     } else{
       mtext('Odds-ratio',side=2,line=4)
-      axis.values = seq(0,100,by = .1)
-      axis(side = 2, at = axis.values, labels=round(2^axis.values,digits = 2),las=1)
+      axis(side = 2, at = axis.values, labels=scientific_format(1)(round(2^axis.values,digits = 2)),las=1)
+      axis(side=1, labels = FALSE)
     }
+    # draw rotated x-labels
+    axis(side=1, labels = FALSE)
+    text(x.loc, par("usr")[3] - 0.25, srt = 45, adj = 1,
+         labels = head(rownames(mtx.up.sorted),30), xpd = TRUE) 
   })
   
   output$pltEnrichDown <- renderPlot({
@@ -207,23 +214,27 @@ shinyServer(function(input, output,session) {
     }
     par(mar = c(10,5,4.1,2.1))
     if (nrow(mtx.down.sorted) < 3){
-      barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
-              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),main = "Depleted epigenomic associations",xlim=c(0,10*nrow(mtx.down.sorted)),axes = F)
+      x.loc = barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
+              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),xaxt='n',main = "Depleted epigenomic associations",xlim=c(0,10*nrow(mtx.down.sorted)),axes = F)
     }else{
-      barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
-              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),main = "Depleted epigenomic associations", axes = F)
+      x.loc = barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
+              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),xaxt='n',main = "Depleted epigenomic associations", axes = F)
     }
-    abline(a=0,b=0)   
+    abline(a=0,b=0) 
+    # draw y-labels
+    axis.values = seq(0,max(mtx.down.sorted),length.out = 10)
     if(input$cmbMatrix == "matrix_PVAL.txt"){
       mtext('P-value',side=2,line=4)
-      axis.values = c(seq(0,100,by=1))
-      axis(side = 2, at = axis.values,labels=1/10^abs(axis.values), las=1)
+      axis(side = 2, at = axis.values,labels=scientific_format(1)(1/10^abs(axis.values)), las=1)
     }
     else{
       mtext('Odds-ratio',side=2,line=4)
-      axis.values = c(seq(0,100, by=.5))
-      axis(side = 2, at = axis.values, labels=round(2^axis.values,digits = 2), las=1)
+      axis(side = 2, at = axis.values, labels=scientific_format(1)(round(2^axis.values,digits = 2)), las=1)
     }
+    # draw rotated x-labels
+    axis(side=1, labels = FALSE)
+    text(x.loc, par("usr")[3] - 0.25, srt = 45, adj = 1,
+         labels = head(rownames(mtx.down.sorted),30), xpd = TRUE) 
   })
   
   # episimilarity ---------------------------------------------------------------
@@ -348,22 +359,25 @@ shinyServer(function(input, output,session) {
       }else{
         par(mar = c(10,5,4.1,2.1))
         if (nrow(mtx.up.sorted) < 3){
-          barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
-                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),main="Enriched epigenomic associations",xlim=c(0,10*nrow(mtx.up.sorted)),axes=F)
+          x.loc <-barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
+                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),xaxt='n',main="Enriched epigenomic associations",xlim=c(0,10*nrow(mtx.up.sorted)),axes=F)
         } else{
-          barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
-                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),main="Enriched epigenomic associations",axes=F)
+          x.loc <-barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
+                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),xaxt='n',main="Enriched epigenomic associations",axes=F)
         }
         abline(a=0,b=0)   
+        axis.values = seq(0,max(mtx.up.sorted),length.out = 10)
         if(input$cmbMatrix == "matrix_PVAL.txt"){
           mtext('P-value',side=2,line=4)
-          axis.values = c(seq(0,100,by=1))
-          axis(side = 2, at = axis.values,labels=1/10^abs(axis.values),las=1)
+          axis(side = 2, at = axis.values,labels=scientific_format(1)(1/10^abs(axis.values)),las=1)
         } else{
           mtext('Odds-ratio',side=2,line=4)
-          axis.values = seq(0,100,by = 1)
-          axis(side = 2, at = axis.values, labels=round(2^axis.values,digits = 2),las=1)
+          axis(side = 2, at = axis.values, labels=scientific_format(1)(round(2^axis.values,digits = 2)),las=1)
         }
+        # draw rotated x-labels
+        axis(side=1, labels = FALSE)
+        text(x.loc, par("usr")[3] - 0.25, srt = 45, adj = 1,
+             labels = head(rownames(mtx.up.sorted),30), xpd = TRUE) 
       }
       # print Enrichmentdown bar plot to PDF
       mtx.down.sorted <- abs(getEnrichmentDown())
@@ -376,23 +390,30 @@ shinyServer(function(input, output,session) {
       } else{
         par(mar = c(10,5,4.1,2.1))
         if (nrow(mtx.down.sorted) < 3){
-          barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
-                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),main = "Depleted epigenomic associations",xlim=c(0,10*nrow(mtx.down.sorted)),axes = F)
+         x.loc <- barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
+                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),xaxt='n',main = "Depleted epigenomic associations",xlim=c(0,10*nrow(mtx.down.sorted)),axes = F)
         }else{
-          barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
-                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),main = "Depleted epigenomic associations", axes = F)
+         x.loc <- barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
+                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),xaxt='n',main = "Depleted epigenomic associations", axes = F)
         }
-        abline(a=0,b=0) 
+        # draw rotated x-labels
+        axis(side=1, labels = FALSE)
+        text(x.loc, par("usr")[3] - 0.25, srt = 45, adj = 1,
+             labels = head(rownames(mtx.down.sorted),30), xpd = TRUE) 
+        abline(a=0,b=0)
+        axis.values = seq(0,max(mtx.down.sorted),length.out = 10)
         if(input$cmbMatrix == "matrix_PVAL.txt"){
           mtext('P-value',side=2,line=4)
-          axis.values = c(seq(-100,0,by=1))
-          axis(side = 2, at = axis.values,labels=1/10^abs(axis.values), las=1)
+          axis(side = 2, at = axis.values,labels=scientific_format(1)(1/10^abs(axis.values)), las=1)
         }
         else{
           mtext('Odds-ratio',side=2,line=4)
-          axis.values = c(seq(-10, 0, by=.1))
-          axis(side = 2, at = axis.values, labels=round(2^axis.values,digits = 2), las=1)
+          axis(side = 2, at = axis.values, labels=scientific_format(1)(round(2^axis.values,digits = 2)), las=1)
         }
+        # draw rotated x-labels
+        axis(side=1, labels = FALSE)
+        text(x.loc, par("usr")[3] - 0.25, srt = 45, adj = 1,
+             labels = head(rownames(mtx.down.sorted),30), xpd = TRUE) 
       }
       
       dev.off()
