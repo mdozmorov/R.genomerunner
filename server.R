@@ -402,7 +402,7 @@ shinyServer(function(input, output,session) {
         }
         else{
           mtext('Odds-ratio',side=2,line=4)
-          axis(side = 2, at = axis.values, labels=scientific_format(1)(round(2^axis.values,digits = 2)), las=1)
+          axis(side = 2, at = axis.values, labels=scientific_format(1)(2^axis.values), las=1)
         }
         # draw rotated x-labels
         axis(side=1, labels = FALSE,tick = F)
@@ -474,7 +474,7 @@ shinyServer(function(input, output,session) {
   })
   output$sidebar <- renderUI({
     mtx <- load_gr_data(paste(get.results.dir(), "matrix_PVAL.txt",sep="")) # manually load matrix since controls are not loaded yet
-    
+    mtx.col.names <- colnames(data.frame(mtx)) # R converts '-' to '.' in data frames
     single.feature = TRUE
     if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
     if (single.feature == FALSE){
@@ -484,7 +484,7 @@ shinyServer(function(input, output,session) {
                                               "Odds Ratios" = "matrix_OR.txt")),
                    bsTooltip("cmbMatrix", "Select P-value or Odds ratio", placement = "top", trigger = "hover"),
                    conditionalPanel("input.tabsMultiple == 'Enrichment analysis barplot'",
-                                    selectInput("cmbFOI", "Select which SNP set to visualize", choices = colnames(mtx))
+                                    selectInput("cmbFOI", "Select which SNP set to visualize", choices =   mtx.col.names)
                                     ),
                    conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
                                     selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
@@ -519,7 +519,7 @@ shinyServer(function(input, output,session) {
                    selectInput("cmbMatrix", label = "Results to visualize", 
                                choices = list("P-values" = "matrix_PVAL.txt", 
                                               "Odds Ratios" = "matrix_OR.txt")),
-                   selectInput("cmbFOI", "Select which SNP set to visualize", choices = colnames(mtx)),
+                   selectInput("cmbFOI", "Select which SNP set to visualize", choices =  mtx.col.names),
                    conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
                                     if(nrow(mtx)>1){
                                       selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
