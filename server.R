@@ -329,7 +329,7 @@ shinyServer(function(input, output,session) {
     print(cl_num)
     hcut <- heights_per_k.dendrogram(dend)[cl_num] # extract the height to cut based on # of groups
     # get the cluster labels
-    mtx.clust <- dend %>% mtx.clusters(height=hcut, minmembers=3)
+    mtx.clust <-validate(need(try(dend %>% mtx.clusters(height=hcut, minmembers=3)),"Try using a lower number of clusters"))
     # write.table(as.data.frame(mtx.clust), "/home/lukas/clustering_all.txt", sep="\t", row.names=FALSE, quote=FALSE)
     mtx = load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep="")) # load the original matrix
     
@@ -510,7 +510,7 @@ shinyServer(function(input, output,session) {
                   
                    conditionalPanel("input.tabsMultiple == 'Epigenetic similarity analysis heatmap'",
                                     hr(),h3("Epigenetic similarity"),
-                                    sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 3)
+                                    sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 2)
                    )
                    
       )
