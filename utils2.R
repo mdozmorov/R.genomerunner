@@ -1,3 +1,9 @@
+# sudo apt-get install default-jre
+# http://tipsonubuntu.com/2015/03/21/install-oracle-java-9-in-ubuntu/
+# sudo apt-get install r-cran-rjava
+# install.packages(c("plyr","dplyr", "reshape2", "cluster", "ggplot2", "Hmisc", "pander", "colorRamps", "xlsx", "rJava", "xlsxjars", "shiny", "shinyBS", "d3heatmap", "DT", "dendextendRcpp"))
+# source("http://bioconductor.org/biocLite.R")
+# biocLite(c("Biobase", "limma", "genefilter", "biomaRt", "org.Hs.eg.db")))
 # Set up the environment
 library(plyr)
 library(dplyr)
@@ -13,8 +19,8 @@ library(colorRamps)
 library(genefilter)
 library(xlsx)
 # # Lukas paths
- source("/home/lukas/R.genomerunner/genomeRunner_file_formatting_functions2.R")
- gfAnnot <- read.xlsx2("/home/lukas/db_2.00_06-10-2015/grsnp_db/hg19/GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
+ source("genomeRunner_file_formatting_functions2.R")
+ gfAnnot <- read.xlsx2("GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
 # Mikhail paths
 #source("/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/genomeRunner_file_formatting_functions2.R")
 #gfAnnot <- read.xlsx2("/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
@@ -409,7 +415,7 @@ mtx.trim.numofnas <- function(mtx.cast, numofnas=1) {
 
 showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=FALSE, adjust="fdr", pval=0.1, numtofilt=1, toPlot="bar", fileName=NULL) {
   mtx <- read.table(fname, sep="\t", fill=T, header=T, stringsAsFactors=F)
-  mtx <- mtx[ , colnum] # Select columns
+  mtx <- mtx[ , colnum, drop = FALSE] # Select columns
   total.colnum <- ncol(mtx) # Keep total number of columns
   mtx <- data.frame(GF=rownames(mtx), mtx) # Attach GF names
   # Join with annotations
@@ -441,7 +447,7 @@ showHeatmap <- function(fname, colnum=1, factor="none", cell="none", isLog10=FAL
   if (length(colnum) == 1 & (toPlot == "heat")) { # If only 1 column selected, we can plot heatmap
     # Make wide matrix. 
     pmax <- function(x) { x[order(abs(x), decreasing=T)][1] } # Get absolute maximum p-value, keeping sign
-    mtx.cast <- dcast(mtx, formula=cell~factor, fun.aggregate=pmax, value.var=make.names(cols[colnum]))
+    mtx.cast <- dcast(mtx, formula=cell~factor, fun.aggregate=pmax, value.var=colnames(mtx)[2])
     
     # Make wide matrix. To properly handle duplicates, use https://stackoverflow.com/questions/12831524/can-dcast-be-used-without-an-aggregate-function
 #     tmp1 <- ddply(mtx, .(cell, factor), transform, newid = paste(cell, seq_along(factor)))
