@@ -53,10 +53,12 @@ shinyServer(function(input, output,session) {
       # sort rows based on SD
       mtx.sd.order <- mtx[order(mtx.sd,decreasing = T),]
       mtx.sd.order <- mtx.sd.order[1:n_limit,]
-      
+      mtx <- mtx.sd.order
     }
+    
+    
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
-    d3heatmap::d3heatmap(as.matrix(mtx.sd.order),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}), colors = coloring(coloring.num), show_tip=FALSE,dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""))
+    d3heatmap::d3heatmap(as.matrix(mtx),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}), colors = coloring(coloring.num), show_tip=FALSE,dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""))
     
   })
   
@@ -64,7 +66,14 @@ shinyServer(function(input, output,session) {
     mtx <- get.adjust.matrix()
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
     color.range = seq(min(mtx),max(mtx), (max(mtx)-min(mtx))/coloring.num )
-    plot(color.range,rep(1,coloring.num+1),col=coloring(coloring.num+1),pch=15,cex=10,main="Depletion/Enrichment Significance",ylab="",xlab="",yaxt="n")
+    my.breaks <- c(seq(min(mtx), 0, length.out=10), 0, seq(0, max(mtx), length.out=10)) # Breaks symmetric around 0
+    
+    plot(my.breaks,rep(1,length(my.breaks)),col=coloring(length(my.breaks)),pch=15,cex=10,main="Depletion/Enrichment Significance",ylab="",xlab="",yaxt="n",xaxt='n')
+    if (input$cmbMatrix == "matrix_PVAL.txt"){
+      axis(side = 1, at =  my.breaks, labels=scientific_format(2)(1/10^abs( my.breaks)),las=1)
+    }else{
+      axis(side = 1, at =  my.breaks, labels=round(2^ my.breaks,digits=2),las=1)
+    }
   })
   
   # generate the enrichment table and appends the gf.name information columns
