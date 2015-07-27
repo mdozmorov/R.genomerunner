@@ -122,8 +122,12 @@ shinyServer(function(input, output,session) {
     selectedFOI <- 1
     selectedFOI <-input$cmbFOI
     updown.split =  0
+    # check if any results to subset
+    if (nrow(mtx)==0){
+      return(mtx)
+    }
     mtx.up <- subset(mtx[selectedFOI],mtx[selectedFOI] > updown.split)
-    
+  
     if (nrow(mtx.up)==0){
       return(mtx.up)
     }
@@ -147,7 +151,10 @@ shinyServer(function(input, output,session) {
     selectedFOI <- 1
     selectedFOI <-input$cmbFOI
     updown.split = 0
-    mtx <-  data.frame(get.barplot.matrix())
+    
+    if (nrow(mtx)==0){
+      return(mtx)
+    }
     mtx.down <- subset(mtx[selectedFOI],mtx[selectedFOI] < updown.split,drop = F)
     
     if (nrow(mtx.down)==0){
@@ -248,7 +255,10 @@ shinyServer(function(input, output,session) {
     as.dendrogram(hclust(as.dist(1-cor.mat), method=input$cmbClustMethod))
   })
   
-  output$heatmapEpisim <- renderD3heatmap({     
+  output$heatmapEpisim <- renderD3heatmap({ 
+    mat <- get.matrix()
+    validate(need(ncol(mat)>2,"Need at least 3 SNPs of interest files to perform clustering."))
+    validate(need(nrow(mat)>4,"Need at least 5 genome features to perform clustering."))
     cor.mat <- get.corr.matrix()
     hclustergram <- get.cor.hclust.dendrogram()
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
@@ -256,6 +266,9 @@ shinyServer(function(input, output,session) {
   })
   
   output$legendEpisim <- renderPlot({
+    mat <- get.matrix()
+    validate(need(ncol(mat)>2,""))
+    validate(need(nrow(mat)>4,""))
     mtx <- get.corr.matrix()
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
     color.range = seq(min(mtx),max(mtx), (max(mtx)-min(mtx))/coloring.num )
@@ -304,6 +317,9 @@ shinyServer(function(input, output,session) {
   })
   
   output$tblEpigenetics <-renderDataTable({
+    mtx <- get.matrix()
+    validate(need(ncol(mtx)>2,"Need at least 3 SNPs of interest files to perform clustering."))
+    validate(need(nrow(mtx)>4,"Need at 5 least genome features to perform clustering."))
     validate(need(try(get.epigenetics.table()),"Try a different clustering method."))
     get.epigenetics.table()
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
@@ -319,6 +335,10 @@ shinyServer(function(input, output,session) {
   )
   
   output$pltDend <- renderPlot({ 
+    mtx <- get.matrix()
+    validate(need(ncol(mtx)>2,""))
+    validate(need(nrow(mtx)>4,""))
+    
     cor.mat <- get.corr.matrix() # this line ensure that dendrogram is redrawn when heatmap is
     hclustergram <- get.cor.hclust.dendrogram() # ensures that dendrogram is redrawn when hclust method is changed
     
@@ -418,7 +438,8 @@ shinyServer(function(input, output,session) {
   
   # Create a different UI depending if there are multiple GF in the results
   output$mainpage <-renderUI({
-    mtx <- load_gr_data(paste(get.results.dir(), "matrix_PVAL.txt",sep="")) # manually load matrix since controls are not loaded yet
+    # manually load matrix since controls are not loaded yet
+    validate(need(try(mtx <- load_gr_data(paste(get.results.dir(), "matrix_PVAL.txt",sep=""))),"Error loading files. Does the data exist?"))
     
     single.feature = TRUE;
     if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
@@ -473,7 +494,8 @@ shinyServer(function(input, output,session) {
     }
   })
   output$sidebar <- renderUI({
-    mtx <- load_gr_data(paste(get.results.dir(), "matrix_PVAL.txt",sep="")) # manually load matrix since controls are not loaded yet
+    # manually load matrix since controls are not loaded yet
+    validate(need(try(mtx <- load_gr_data(paste(get.results.dir(), "matrix_PVAL.txt",sep=""))),""))
     mtx.col.names <- colnames(data.frame(mtx)) # R converts '-' to '.' in data frames
     single.feature = TRUE
     if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
