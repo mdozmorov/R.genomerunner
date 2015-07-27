@@ -44,8 +44,19 @@ shinyServer(function(input, output,session) {
   
   output$heatmapEnrich <- renderD3heatmap({
     mtx <- get.adjust.matrix()
+    n_limit = 20
+  # if n > 100, calculate SD for each row.
+    if (nrow(mtx) > n_limit){
+      #  calculate SD for each row.
+      mtx.sd <- apply(mtx,1,sd)
+      mtx.sd <- data.frame(mtx.sd)
+      # sort rows based on SD
+      mtx.sd.order <- mtx[order(mtx.sd,decreasing = T),]
+      mtx.sd.order <- mtx.sd.order[1:n_limit,]
+      
+    }
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
-    d3heatmap::d3heatmap(as.matrix(mtx),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}), colors = coloring(coloring.num), show_tip=FALSE,dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""))
+    d3heatmap::d3heatmap(as.matrix(mtx.sd.order),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}), colors = coloring(coloring.num), show_tip=FALSE,dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""))
     
   })
   
@@ -463,6 +474,7 @@ shinyServer(function(input, output,session) {
                            fluidPage(
                              fluidRow(
                                column(6,
+                                      downloadButton('downloadEpisimHeatmap', 'Download PDF'),
                                       d3heatmapOutput("heatmapEpisim", width = "100%", height = "600px"),
                                       plotOutput("legendEpisim",width="300px",height="150px")
                                ),
