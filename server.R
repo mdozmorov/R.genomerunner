@@ -189,10 +189,10 @@ shinyServer(function(input, output,session) {
     # draw y labels
     if(input$cmbMatrix == "matrix_PVAL.txt"){
       mtext('P-value',side=2,line=4)
-      axis(side = 2, at = axis.values,labels=scientific_format(1)(1/10^abs(axis.values)),las=1)
+      axis(side = 2, at = axis.values,labels=scientific_format(2)(1/10^abs(axis.values)),las=1)
     } else{
       mtext('Odds-ratio',side=2,line=4)
-      axis(side = 2, at = axis.values, labels=scientific_format(1)(round(2^axis.values,digits = 2)),las=1)
+      axis(side = 2, at = axis.values, labels=round(2^axis.values,digits=2),las=1)
     }
     # draw rotated x-labels
     axis(side=1, labels = FALSE,tick = F)
@@ -223,11 +223,11 @@ shinyServer(function(input, output,session) {
     axis.values = seq(0,max(mtx.down.sorted),length.out = 10)
     if(input$cmbMatrix == "matrix_PVAL.txt"){
       mtext('P-value',side=2,line=4)
-      axis(side = 2, at = axis.values,labels=scientific_format(1)(1/10^abs(axis.values)), las=1)
+      axis(side = 2, at = axis.values,labels=scientific_format(2)(1/10^abs(axis.values)), las=1)
     }
     else{
       mtext('Odds-ratio',side=2,line=4)
-      axis(side = 2, at = axis.values, labels=scientific_format(1)(round(2^axis.values,digits = 2)), las=1)
+      axis(side = 2, at = axis.values, label=scientific_format(2)(2^(-axis.values)), las=1)
     }
     # draw rotated x-labels
     axis(side=1, labels = FALSE,tick = F)
