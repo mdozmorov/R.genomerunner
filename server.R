@@ -9,12 +9,13 @@ library(shinyBS)
 library(scales)
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/master/"
+gfAnnot <- read.xlsx2("/home/lukas/genome_runner/db/gf_descriptions.xlsx", sheetName="gf_descriptions.txt")
 # Mikhail paths
 #results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/chromStates18/"
 
 
-genomerunner.mode <- TRUE
+genomerunner.mode <- FALSE
 coloring.num = 50
 shinyServer(function(input, output,session) {
   
@@ -38,8 +39,24 @@ shinyServer(function(input, output,session) {
   
   get.adjust.matrix <- reactive({
     mtx <- get.matrix()
-    mtx.adjust <- mtx.transform(apply(mtx.untransform(mtx), 2, function(x) p.adjust(abs(x), method = input$cmbPvalAdjustMethod)))
-    mtx.adjust <- sign(mtx)*mtx.adjust
+    sign.mtx <- apply(mtx, 2, sign)
+    total.columns = ncol(mtx)
+    # Join with annotations
+    mtx <- data.frame(GF=rownames(mtx), mtx) # Attach GF names
+    mtx <- left_join(mtx, gfAnnot[, c("file_name", "cell")], by=c("GF" = "file_name"))
+    unique.cells <- unique(mtx$cell) # Keep unique cell types
+    
+    # Adjust for multiple testing and -log10 transform, if needed
+    for (i in 1:total.columns) { # Process each column
+      for (u.c in unique.cells) { # Adjust for multiple testing on per-cell-type basis
+        # i+1 because we added the GF column
+        mtx[mtx$cell == u.c,i + 1] <- mtx.transform(apply(mtx.untransform(mtx[mtx$cell == u.c,i+1,drop=F]), 2, function(x) p.adjust(abs(x), method = input$cmbPvalAdjustMethod)))
+        # mtx[mtx$cell == u.c,i + 1] <- mtx.transform(p.adjust(abs(mtx.untransform(mtx[mtx$cell == u.c,i+1,drop=F])), method = input$cmbPvalAdjustMethod))
+       # mtx[ mtx.anot$cell == c, i + 1] <- mtx.adjust.1(as.numeric(unlist(mtx[ mtx.anot$cell == c, i + 1])), adjust=adjust, isLog10 = isLog10)
+      }  
+    }
+  
+    mtx <- sign.mtx*mtx[,2:total.columns+1]
   })
   
   output$heatmapEnrich <- renderD3heatmap({
