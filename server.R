@@ -265,8 +265,17 @@ shinyServer(function(input, output,session) {
   # episimilarity ---------------------------------------------------------------
   get.corr.matrix <- reactive({
     mtx <- load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep=""))
+    # If there are columns with SD=0, add jitter to it. Needed for pair-wise column correlation analysis (epigenomic similarity analysis). Only valid if there's more than 1 row
+    if (nrow(mtx) > 1) {
+      ind <- apply(mtx, 2, function(x) sd(x, na.rm=TRUE)) == 0 # Indexes of such columns
+      if (sum(ind) > 0) {
+        set.seed(1)
+        mtx[, ind] <- jitter(mtx[, ind, drop=FALSE], factor=0.1)
+      }
+    }
     mtx <- scale(mtx)
     
+   
     rcorr(as.matrix(mtx), type=input$cmbEpisimCorType)[[1]]
   })
   

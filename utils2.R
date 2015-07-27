@@ -20,7 +20,7 @@ library(genefilter)
 library(xlsx)
 # # Lukas paths
  source("genomeRunner_file_formatting_functions2.R")
- gfAnnot <- read.xlsx2("GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
+ gfAnnot <- read.xlsx2("/home/lukas/db_2.00_06-10-2015/grsnp_db/hg19/GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
 # Mikhail paths
 #source("/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/genomeRunner_file_formatting_functions2.R")
 #gfAnnot <- read.xlsx2("/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
@@ -80,14 +80,7 @@ load_gr_data <- function(dname, subset="none") {
   # Trim the matrix
   mtx <- mtx[ apply(mtx, 1, function(x) sum(!is.na(x))) > 0, apply(mtx, 2, function(x) sum(!is.na(x))) > 0, drop=FALSE] # Remove rows/columns with all NAs
   mtx <- mtx[ !(apply(mtx, 1, function(x) sum(x == 0) == ncol(mtx))), , drop=F] # If all values in a row are 0, remove these rows
-  # If there are columns with SD=0, add jitter to it. Needed for pair-wise column correlation analysis (epigenomic similarity analysis). Only valid if there's more than 1 row
-  if (nrow(mtx) > 1) {
-    ind <- apply(mtx, 2, function(x) sd(x, na.rm=TRUE)) == 0 # Indexes of such columns
-    if (sum(ind) > 0) {
-      set.seed(1)
-      mtx[, ind] <- jitter(mtx[, ind, drop=FALSE], factor=0.1)
-    }
-  }
+
   return(as.matrix(mtx)) # Return (processed) data
 }
 
