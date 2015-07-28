@@ -9,13 +9,13 @@ library(shinyBS)
 library(scales)
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
 gfAnnot <- read.table("/home/lukas/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
 # # Mikhail paths
 # gfAnnot <- read.xlsx2("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.xlsx", sheetName="gf_descriptions.txt")
 # results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test1/"
 
-genomerunner.mode <- TRUE
+genomerunner.mode <- F
 coloring.num = 50
 shinyServer(function(input, output,session) {
   
@@ -40,10 +40,12 @@ shinyServer(function(input, output,session) {
   get.adjust.matrix <- reactive({
     mtx <- get.matrix()
     sign.mtx <- apply(mtx, 2, sign)
-    total.columns = ncol(mtx)
+    adjust.rownames <- rownames(mtx)
+    total.columns <- ncol(mtx)
     # Join with annotations
-    mtx <- data.frame(GF=rownames(mtx), mtx) # Attach GF names
+    mtx <- data.frame(GF=adjust.rownames, mtx) # Attach GF names
     mtx <- left_join(mtx, gfAnnot[, c("file_name", "cell")], by=c("GF" = "file_name"))
+    row.names(mtx) <-  adjust.rownames
     unique.cells <- unique(mtx$cell) # Keep unique cell types
     
     # Adjust for multiple testing and -log10 transform, if needed
@@ -237,7 +239,7 @@ shinyServer(function(input, output,session) {
       box()
       return()
     }
-    par(mar = c(10,5,4.1,2.1))
+    par(mar = c(10,7,4.1,2.1))
     if (nrow(mtx.up.sorted) < 3){
      x.loc = barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
               space=c(0.2,1), cex.names=1, las=2, xaxt='n',main="Enriched epigenomic associations",xlim=c(0,10*nrow(mtx.up.sorted)),axes=F)
@@ -252,8 +254,8 @@ shinyServer(function(input, output,session) {
       mtext('P-value',side=2,line=4)
       axis(side = 2, at = axis.values,labels=scientific_format(2)(1/10^abs(axis.values)),las=1)
     } else{
-      mtext('Odds-ratio',side=2,line=4)
-      axis(side = 2, at = axis.values, labels=round(2^axis.values,digits=2),las=1)
+      mtext('Odds-ratio',side=2,line=5)
+      axis(side = 2, at = axis.values, labels=scientific_format(2)(2^axis.values),las=1)
     }
     # draw rotated x-labels
     axis(side=1, labels = FALSE,tick = F)
@@ -271,7 +273,7 @@ shinyServer(function(input, output,session) {
       box()
       return(mtx.down.sorted)
     }
-    par(mar = c(10,5,4.1,2.1))
+    par(mar = c(10,7,4.1,2.1))
     if (nrow(mtx.down.sorted) < 3){
       x.loc = barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
               space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),xaxt='n',main = "Depleted epigenomic associations",xlim=c(0,10*nrow(mtx.down.sorted)),axes = F)
@@ -287,7 +289,7 @@ shinyServer(function(input, output,session) {
       axis(side = 2, at = axis.values,labels=scientific_format(2)(1/10^abs(axis.values)), las=1)
     }
     else{
-      mtext('Odds-ratio',side=2,line=4)
+      mtext('Odds-ratio',side=2,line=5)
       axis(side = 2, at = axis.values, label=scientific_format(2)(2^(-axis.values)), las=1)
     }
     # draw rotated x-labels
@@ -438,7 +440,7 @@ shinyServer(function(input, output,session) {
         text(x = 0.5, y = 0.5, paste("Nothing overrepresented to plot."),  cex = 1.6, col = "black")
         box()
       }else{
-        par(mar = c(10,5,4.1,2.1))
+        par(mar = c(10,7,4.1,2.1))
         if (nrow(mtx.up.sorted) < 3){
           x.loc <-barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
                   space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),xaxt='n',main="Enriched epigenomic associations",xlim=c(0,10*nrow(mtx.up.sorted)),axes=F)
@@ -452,8 +454,8 @@ shinyServer(function(input, output,session) {
           mtext('P-value',side=2,line=4)
           axis(side = 2, at = axis.values,labels=scientific_format(1)(1/10^abs(axis.values)),las=1)
         } else{
-          mtext('Odds-ratio',side=2,line=4)
-          axis(side = 2, at = axis.values, labels=scientific_format(1)(round(2^axis.values,digits = 2)),las=1)
+          mtext('Odds-ratio',side=2,line=5)
+          axis(side = 2, at = axis.values, labels=scientific_format(2)(2^axis.values),las=1)
         }
         # draw rotated x-labels
         axis(side=1, labels = FALSE,tick=F)
@@ -469,7 +471,7 @@ shinyServer(function(input, output,session) {
         text(x = 0.5, y = 0.5, paste("Nothing overrepresented to plot."),  cex = 1.6, col = "black")
         box()
       } else{
-        par(mar = c(10,5,4.1,2.1))
+        par(mar = c(10,7,4.1,2.1))
         if (nrow(mtx.down.sorted) < 3){
          x.loc <- barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
                   space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),xaxt='n',main = "Depleted epigenomic associations",xlim=c(0,10*nrow(mtx.down.sorted)),axes = F)
@@ -484,8 +486,8 @@ shinyServer(function(input, output,session) {
           axis(side = 2, at = axis.values,labels=scientific_format(1)(1/10^abs(axis.values)), las=1)
         }
         else{
-          mtext('Odds-ratio',side=2,line=4)
-          axis(side = 2, at = axis.values, labels=scientific_format(1)(2^axis.values), las=1)
+          mtext('Odds-ratio',side=2,line=5)
+          axis(side = 2, at = axis.values, labels=scientific_format(2)(2^axis.values), las=1)
         }
         # draw rotated x-labels
         axis(side=1, labels = FALSE,tick = F)
