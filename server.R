@@ -9,13 +9,13 @@ library(shinyBS)
 library(scales)
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/master/"
-gfAnnot <- read.xlsx2("/home/lukas/genome_runner/db/gf_descriptions.xlsx", sheetName="gf_descriptions.txt")
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/"
+gfAnnot <- read.table("/home/lukas/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
 # # Mikhail paths
 # gfAnnot <- read.xlsx2("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.xlsx", sheetName="gf_descriptions.txt")
 # results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test1/"
 
-genomerunner.mode <- FALSE
+genomerunner.mode <- TRUE
 coloring.num = 50
 shinyServer(function(input, output,session) {
   
@@ -83,7 +83,6 @@ shinyServer(function(input, output,session) {
   output$legendEnrich <- renderPlot({
     mtx <- get.adjust.matrix()
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
-    color.range = seq(min(mtx),max(mtx), (max(mtx)-min(mtx))/coloring.num )
     my.breaks <- c(seq(min(mtx), 0, length.out=10), 0, seq(0, max(mtx), length.out=10)) # Breaks symmetric around 0
     
     plot(my.breaks,rep(1,length(my.breaks)),col=coloring(length(my.breaks)),pch=15,cex=10,main="Depletion/Enrichment Significance",ylab="",xlab="",yaxt="n",xaxt='n')
@@ -121,16 +120,25 @@ shinyServer(function(input, output,session) {
     mtx.table = cbind(GF.Name = rownames(mtx.table),mtx.table) # make the GF.name a column instead of just the rowname so we can left_join
     rownames(mtx.table) <- NULL
     # gfAnnot is loaded in utils2
-    mtx.table <- left_join(mtx.table,gfAnnot,by=c("GF.Name"="name"))
-    mtx.table <- subset(mtx.table, select = -c(ind))
+    mtx.table <- left_join(mtx.table,gfAnnot,by=c("GF.Name"="file_name"))
     
     return(mtx.table)
   })
   
   output$tblEnrichment <-renderDataTable({
-    get.enrichment.table()
+    num.char <- 50
+    table.enrich <- get.enrichment.table()
+    table.enrich <- apply(table.enrich,c(1,2),function(x) {
+      if (!is.na(x) & nchar(x)>num.char){
+        return(paste(substring(x,1,num.char),  "..."))
+      } else{
+        return(x)
+      }
+    })
   }, options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
                      pageLength = 50))
+  
+  
   
   output$downloadEnrichTable <- downloadHandler(
     filename = function() { 
