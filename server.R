@@ -61,7 +61,11 @@ shinyServer(function(input, output,session) {
   })
   
   output$heatmapEnrich <- renderD3heatmap({
-    mtx <- get.adjust.matrix()
+    if (input$cmbMatrix == "matrix_PVAL.txt"){
+      mtx <- get.adjust.matrix()
+    }else{
+      mtx <- get.matrix()
+    }
     n_limit = 20
   # if n > 100, calculate SD for each row.
     if (nrow(mtx) > n_limit){
@@ -81,7 +85,11 @@ shinyServer(function(input, output,session) {
   })
   
   output$legendEnrich <- renderPlot({
-    mtx <- get.adjust.matrix()
+    if (input$cmbMatrix == "matrix_PVAL.txt"){
+      mtx <- get.adjust.matrix()
+    }else{
+      mtx <- get.matrix()
+    }
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
     my.breaks <- c(seq(min(mtx), 0, length.out=10), 0, seq(0, max(mtx), length.out=10)) # Breaks symmetric around 0
     
@@ -89,7 +97,7 @@ shinyServer(function(input, output,session) {
     if (input$cmbMatrix == "matrix_PVAL.txt"){
       axis(side = 1, at =  my.breaks, labels=scientific_format(2)(1/10^abs( my.breaks)),las=1)
     }else{
-      axis(side = 1, at =  my.breaks, labels=round(2^ my.breaks,digits=2),las=1)
+      axis(side = 1, at =  my.breaks, labels=scientific_format(2)(2^my.breaks),las=1)
     }
   })
   
@@ -561,7 +569,7 @@ shinyServer(function(input, output,session) {
                                choices = list("P-values" = "matrix_PVAL.txt", 
                                               "Odds Ratios" = "matrix_OR.txt")),
                    bsTooltip("cmbMatrix", "Select P-value or Odds ratio", placement = "top", trigger = "hover"),
-                   conditionalPanel("input.tabsMultiple == 'Enrichment analysis barplot'",
+                   conditionalPanel("input.tabsMultiple == 'Enrichment analysis barplot' || input.tabsMultiple == 'Enrichment analysis tables'",
                                     selectInput("cmbFOI", "Select which SNP set to visualize", choices =   mtx.col.names)
                                     ),
                    conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
