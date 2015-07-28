@@ -12,8 +12,9 @@ library(scales)
 results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
 gfAnnot <- read.table("/home/lukas/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
 # # Mikhail paths
-# gfAnnot <- read.xlsx2("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.xlsx", sheetName="gf_descriptions.txt")
-# results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test1/"
+# gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
+# results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_30x5matrix_nonsig/"
+# results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/Paper-Similarity/data_GWASdb2_manual/bed_selected/renamed/gappedPeak/"
 
 genomerunner.mode <- F
 coloring.num = 50
@@ -46,6 +47,7 @@ shinyServer(function(input, output,session) {
     mtx <- data.frame(GF=adjust.rownames, mtx) # Attach GF names
     mtx <- left_join(mtx, gfAnnot[, c("file_name", "cell")], by=c("GF" = "file_name"))
     row.names(mtx) <-  adjust.rownames
+    mtx$cell[ is.na(mtx$cell) ] <- "dummy_cell" # If some file names is not in the gfAnnot dataframe (e.g., user-provided data), 'cell' column will contain NAs. replace them with dummy text to allow FDR correction
     unique.cells <- unique(mtx$cell) # Keep unique cell types
     
     # Adjust for multiple testing and -log10 transform, if needed
