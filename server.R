@@ -11,9 +11,9 @@ library(scales)
 # # Lukas paths
 results.dir <- "/home/lukas/db_2.00_06-10-2015/results/master/"
 gfAnnot <- read.xlsx2("/home/lukas/genome_runner/db/gf_descriptions.xlsx", sheetName="gf_descriptions.txt")
-# Mikhail paths
-#results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Dennis/data.1/chromStates18/"
-
+# # Mikhail paths
+# gfAnnot <- read.xlsx2("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.xlsx", sheetName="gf_descriptions.txt")
+# results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test1/"
 
 genomerunner.mode <- FALSE
 coloring.num = 50
@@ -49,10 +49,11 @@ shinyServer(function(input, output,session) {
     # Adjust for multiple testing and -log10 transform, if needed
     for (i in 1:total.columns) { # Process each column
       for (u.c in unique.cells) { # Adjust for multiple testing on per-cell-type basis
-        # i+1 because we added the GF column
-        mtx[mtx$cell == u.c,i + 1] <- mtx.transform(apply(mtx.untransform(mtx[mtx$cell == u.c,i+1,drop=F]), 2, function(x) p.adjust(abs(x), method = input$cmbPvalAdjustMethod)))
-        # mtx[mtx$cell == u.c,i + 1] <- mtx.transform(p.adjust(abs(mtx.untransform(mtx[mtx$cell == u.c,i+1,drop=F])), method = input$cmbPvalAdjustMethod))
-       # mtx[ mtx.anot$cell == c, i + 1] <- mtx.adjust.1(as.numeric(unlist(mtx[ mtx.anot$cell == c, i + 1])), adjust=adjust, isLog10 = isLog10)
+        # If the cell-specific subset have >1 row, perform correction for multiple testing
+        if(sum(mtx$cell == u.c) > 1) {
+          # i+1 because we added the GF column
+          mtx[mtx$cell == u.c,i + 1] <- mtx.transform(apply(mtx.untransform(mtx[mtx$cell == u.c,i+1,drop=F]), 2, function(x) p.adjust(abs(x), method = input$cmbPvalAdjustMethod)))
+        }
       }  
     }
   

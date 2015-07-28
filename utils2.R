@@ -19,15 +19,15 @@ library(colorRamps)
 library(genefilter)
 library(xlsx)
 # # Lukas paths
- source("genomeRunner_file_formatting_functions2.R")
- gfAnnot <- read.xlsx2("/home/lukas/db_2.00_06-10-2015/grsnp_db/hg19/GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
+source("genomeRunner_file_formatting_functions2.R")
+# gfAnnot <- read.xlsx2("/home/lukas/db_2.00_06-10-2015/grsnp_db/hg19/GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
 # Mikhail paths
 #source("/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/genomeRunner_file_formatting_functions2.R")
 #gfAnnot <- read.xlsx2("/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/GFs_hg19_joined_cell_factor.xlsx", sheetName="GFs_hg19_joined_cell_histone_1")
 
-cellAnnot <- aggregate(gfAnnot$celldescr, list(gfAnnot$cell), unique)
-colnames(cellAnnot) <- c("cell", "description")
-cellAnnot <- cellAnnot[ cellAnnot$cell != "", ] # Remove empty cells
+# cellAnnot <- aggregate(gfAnnot$celldescr, list(gfAnnot$cell), unique)
+# colnames(cellAnnot) <- c("cell", "description")
+# cellAnnot <- cellAnnot[ cellAnnot$cell != "", ] # Remove empty cells
 # Define color palette
 #color<-colorRampPalette(c("blue", "yellow", "red")) # Define color gradient
 color <- matlab.like
