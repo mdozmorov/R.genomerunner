@@ -7,9 +7,10 @@ library(tools)
 library(colorRamps)
 library(shinyBS)
 library(scales)
+(source("functions/mtx.degfs.R"))
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/one_col/"
 gfAnnot <- read.table("/home/lukas/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
 # # Mikhail paths
 # gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
@@ -47,6 +48,7 @@ shinyServer(function(input, output,session) {
     mtx <- data.frame(GF=adjust.rownames, mtx) # Attach GF names
     mtx <- left_join(mtx, gfAnnot[, c("file_name", "cell")], by=c("GF" = "file_name"))
     row.names(mtx) <-  adjust.rownames
+    class(mtx$cell) <- "character"
     mtx$cell[ is.na(mtx$cell) ] <- "dummy_cell" # If some file names is not in the gfAnnot dataframe (e.g., user-provided data), 'cell' column will contain NAs. replace them with dummy text to allow FDR correction
     unique.cells <- unique(mtx$cell) # Keep unique cell types
     
@@ -161,6 +163,14 @@ shinyServer(function(input, output,session) {
     }
   )
   
+  get.annotation.table <- reactive({
+    validate(need(try(mtx <- read.table(paste(get.results.dir(),"annotations/", input$cmbAnnotation,sep=""),header=T)),"Annotation results not available."))
+    mtx
+  })
+  
+  output$tblAnnotation <- renderDataTable({
+    get.annotation.table()
+  })
   
   outputOptions(output, "downloadEnrichTable", suspendWhenHidden=FALSE)
   
@@ -353,7 +363,11 @@ shinyServer(function(input, output,session) {
     # get the cluster labels
     mtx.clust <- dend %>% mtx.clusters(height=hcut, minmembers=3)
     mtx = load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep="")) # load the original matrix
-    mtx.deg <- suppressWarnings(mtx.degfs(mtx[, mtx.clust$eset.labels], mtx.clust, label="broadPeak2"))
+    is.OR = T
+    if(input$cmbMatrix == "matrix_PVAL.txt"){
+      is.OR = F
+    }
+    mtx.deg <- suppressWarnings(mtx.degfs(mtx[, mtx.clust$eset.labels], mtx.clust, label="broadPeak2",isOR = is.OR))
     
     updateSelectInput(session,"cmbEpigenetics","Select which epigenetic table to render",choices = names(mtx.deg))
     mtx.deg.path = paste(get.results.dir(),"mtx.deg.episim.RDS",sep = "")
@@ -544,7 +558,9 @@ shinyServer(function(input, output,session) {
                            br(),br(),
                            downloadButton('downloadEpigenetics', 'Download table in tab-separated format'),
                            br(),br(),
-                           DT::dataTableOutput("tblEpigenetics"))
+                           DT::dataTableOutput("tblEpigenetics")),
+                  tabPanel("Annotation Analysis",
+                           DT::dataTableOutput("tblAnnotation"))
       )
     } else{ # this UI is created when only a single GF result is returned
       tabsetPanel(id="tabsSingleGF",
@@ -557,7 +573,9 @@ shinyServer(function(input, output,session) {
                            br(),br(),
                            downloadButton('downloadEnrichTable', 'Download table in tab-separated format'),
                            br(),br(),
-                           DT::dataTableOutput("tblEnrichment"))
+                           DT::dataTableOutput("tblEnrichment")),
+                  tabPanel("Annotation Analysis",
+                           DT::dataTableOutput("tblAnnotation"))
       )
     }
   })
@@ -565,6 +583,7 @@ shinyServer(function(input, output,session) {
     # manually load matrix since controls are not loaded yet
     validate(need(try(mtx <- load_gr_data(paste(get.results.dir(), "matrix_PVAL.txt",sep=""))),""))
     mtx.col.names <- colnames(data.frame(mtx)) # R converts '-' to '.' in data frames
+    file.names.annotation <- list.files(paste(get.results.dir(),"annotations/",sep=""))
     single.feature = TRUE
     if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
     if (single.feature == FALSE){
@@ -579,6 +598,11 @@ shinyServer(function(input, output,session) {
                    conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
                                     selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
                                                 choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))),
+                   conditionalPanel("input.tabsMultiple == 'Annotation Analysis'",
+                                    if (length(file.names.annotation)>0){
+                                      selectInput("cmbAnnotation", label = "Annotation results to visualize", 
+                                                  choices = file.names.annotation)
+                                      }),
                    conditionalPanel("input.tabsMultiple == 'Enrichment analysis heatmap' || input.tabsMultiple == 'Epigenetic similarity analysis heatmap'",
                                     hr(),h3("Visualization option"),
                                     selectInput("cmbClustMethod",label = "Clustering method (hclust)", 
@@ -610,6 +634,11 @@ shinyServer(function(input, output,session) {
                                choices = list("P-values" = "matrix_PVAL.txt", 
                                               "Odds Ratios" = "matrix_OR.txt")),
                    selectInput("cmbFOI", "Select which SNP set to visualize", choices =  mtx.col.names),
+                   conditionalPanel("input.tabsSingleGF == 'Annotation Analysis'",
+                                    if (length(file.names.annotation)>0){
+                                      selectInput("cmbAnnotation", label = "Annotation results to visualize", 
+                                                  choices = file.names.annotation)
+                                    }),
                    conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
                                     if(nrow(mtx)>1){
                                       selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",

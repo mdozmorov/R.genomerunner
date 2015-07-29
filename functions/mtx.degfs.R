@@ -36,7 +36,7 @@ mtx.degfs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fd
         # Average values in clusters i and j
         if(sum(degs < cutoff.pval) > 0) {
           if( isOR == FALSE ) {
-            i.av<-1/(10^rowMeans(abs(exprs(eset)[names(degs), design[, i] == 1, drop=FALSE]))0 # Anti -log10 transform p-values
+            i.av<-1/(10^rowMeans(abs(exprs(eset)[names(degs), design[, i] == 1, drop=FALSE]))) # Anti -log10 transform p-values
             j.av<-1/(10^rowMeans(abs(exprs(eset)[names(degs), design[, j] == 1, drop=FALSE])))
           } else {
             i.av<-2^rowMeans(exprs(eset)[names(degs), design[, i] == 1, drop=FALSE]) # Anti log2 transform mean odds ratios
