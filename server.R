@@ -73,7 +73,7 @@ shinyServer(function(input, output,session) {
       mtx <- get.matrix()
     }
     n_limit = 20
-  # if n > 100, calculate SD for each row.
+    # if n > 100, calculate SD for each row.
     if (nrow(mtx) > n_limit){
       #  calculate SD for each row.
       mtx.sd <- apply(mtx,1,sd)
@@ -89,6 +89,8 @@ shinyServer(function(input, output,session) {
     d3heatmap::d3heatmap(as.matrix(mtx),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}), colors = coloring(coloring.num), show_tip=FALSE,dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""))
     
   })
+  
+  
   
   output$legendEnrich <- renderPlot({
     if (input$cmbMatrix == "matrix_PVAL.txt"){
@@ -395,7 +397,6 @@ shinyServer(function(input, output,session) {
     for(x in list("adj.p.val",3,4)){
       mtx.deg[[selectedCor]][[x]] <- as.numeric(mtx.deg[[selectedCor]][[x]])
     }
-    mtx.deg[[selectedCor]] <- subset( mtx.deg[[selectedCor]], select = -c(ind))
     mtx.deg[[selectedCor]]
   })
   
@@ -443,9 +444,60 @@ shinyServer(function(input, output,session) {
   
   
   # --download button code --------------------------------------------------
+  
+  
+  output$downloadEnrichHeatmap <- downloadHandler(
+    filename = function() { 
+      return("EnrichmentHeatmap.pdf")
+    },
+    content = function(file) {
+      pdf(file=file,width=10,height=10)
+      par(mfrow=c(3,3))
+      if (input$cmbMatrix == "matrix_PVAL.txt"){
+        mtx <- get.adjust.matrix()
+      }else{
+        mtx <- get.matrix()
+      }
+      n_limit = 20
+      # if n > 100, calculate SD for each row.
+      if (nrow(mtx) > n_limit){
+        #  calculate SD for each row.
+        mtx.sd <- apply(mtx,1,sd)
+        mtx.sd <- data.frame(mtx.sd)
+        # sort rows based on SD
+        mtx.sd.order <- mtx[order(mtx.sd,decreasing = T),]
+        mtx.sd.order <- mtx.sd.order[1:n_limit,]
+        mtx <- mtx.sd.order
+      }
+     
+      heatmap.2(as.matrix(mtx),hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)},density.info = 'none',main = "Enrichment Heatmap",
+                margins = c(10,10),srtRow = -45,srtCol = 45)
+      dev.off()
+    },
+    contentType = 'application/pdf'
+  )
+  
+  output$downloadEpisimHeatmap <- downloadHandler(
+    filename = function() { 
+      return("EpisimilarityHeatmap.pdf")
+    },
+    content = function(file) {
+      pdf(file=file,width=10,height=10)
+      mat <- get.matrix()
+      validate(need(ncol(mat)>2,"Need at least 3 SNPs of interest files to perform clustering."))
+      validate(need(nrow(mat)>4,"Need at least 5 genome features to perform clustering."))
+      cor.mat <- get.corr.matrix()
+      hclustergram <- get.cor.hclust.dendrogram()
+      coloring<-colorRampPalette(c("blue", "yellow", "red"))
+      heatmap.2(as.matrix(cor.mat),Colv = hclustergram,margins = c(10,10),density.info = 'none',srtRow = -45,srtCol = 45,main = "Episimilarity Heatmap")
+      dev.off()
+    },
+    contentType = 'application/pdf'
+  )
+  
   output$downloadEnrichBarPDF <- downloadHandler(
     filename = function() { 
-      return("EnrichmentUp.pdf")
+      return("EnrichmentBarPlot.pdf")
     },
     content = function(file) {
       pdf(file=file,width=9,height=5)
@@ -529,6 +581,7 @@ shinyServer(function(input, output,session) {
     if (single.feature == FALSE){
       tabsetPanel(id="tabsMultiple",
                   tabPanel("Enrichment analysis heatmap",
+                           downloadButton('downloadEnrichHeatmap',"Download PDF"),
                            d3heatmapOutput("heatmapEnrich", width = "100%", height = "600px"),
                            plotOutput("legendEnrich",width="300px",height="150px")
                   ), 
