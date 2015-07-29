@@ -10,7 +10,7 @@ library(scales)
 (source("functions/mtx.degfs.R"))
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/master/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
 gfAnnot <- read.table("/home/lukas/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
 # # Mikhail paths
 # gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
@@ -575,6 +575,7 @@ shinyServer(function(input, output,session) {
   output$mainpage <-renderUI({
     # manually load matrix since controls are not loaded yet
     validate(need(try(mtx <- load_gr_data(paste(get.results.dir(), "matrix_PVAL.txt",sep=""))),"Error loading files. Does the data exist?"))
+    file.names.annotation <- list.files(paste(get.results.dir(),"annotations/",sep=""))
     
     single.feature = TRUE;
     if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
@@ -614,8 +615,10 @@ shinyServer(function(input, output,session) {
                            downloadButton('downloadEpigenetics', 'Download table in tab-separated format'),
                            br(),br(),
                            DT::dataTableOutput("tblEpigenetics")),
-                  tabPanel("Annotation Analysis",
+                  if (length(file.names.annotation)>0){
+                    tabPanel("Annotation Analysis",
                            DT::dataTableOutput("tblAnnotation"))
+                  }
       )
     } else{ # this UI is created when only a single GF result is returned
       tabsetPanel(id="tabsSingleGF",
@@ -629,8 +632,10 @@ shinyServer(function(input, output,session) {
                            downloadButton('downloadEnrichTable', 'Download table in tab-separated format'),
                            br(),br(),
                            DT::dataTableOutput("tblEnrichment")),
-                  tabPanel("Annotation Analysis",
-                           DT::dataTableOutput("tblAnnotation"))
+                  if (length(file.names.annotation)>0){
+                    tabPanel("Annotation Analysis",
+                             DT::dataTableOutput("tblAnnotation"))
+                  }
       )
     }
   })
