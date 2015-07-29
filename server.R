@@ -10,7 +10,7 @@ library(scales)
 (source("functions/mtx.degfs.R"))
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/one_col/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/master/"
 gfAnnot <- read.table("/home/lukas/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
 # # Mikhail paths
 # gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
@@ -134,7 +134,9 @@ shinyServer(function(input, output,session) {
     mtx.table = cbind(GF.Name = rownames(mtx.table),mtx.table) # make the GF.name a column instead of just the rowname so we can left_join
     rownames(mtx.table) <- NULL
     # gfAnnot is loaded in utils2
-    mtx.table <- left_join(mtx.table,gfAnnot,by=c("GF.Name"="file_name"))
+    
+    mtx.table <- left_join(mtx.table,gfAnnot[,(names(gfAnnot) %in% c("file_name", "cell", "cell_desc", "factor", "factor_desc", "source", "source_desc"))],
+                           by=c("GF.Name"="file_name"))
     
     return(mtx.table)
   })
