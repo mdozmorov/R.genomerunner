@@ -175,7 +175,8 @@ shinyServer(function(input, output,session) {
   
   output$tblAnnotation <- renderDataTable({
     get.annotation.table()
-  })
+  },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
+                     pageLength = 50))
   
   outputOptions(output, "downloadEnrichTable", suspendWhenHidden=FALSE)
   
@@ -674,6 +675,9 @@ shinyServer(function(input, output,session) {
                     tabPanel("Annotation Analysis",
                            downloadButton('downloadAnnotation', 'Download Table'),
                            DT::dataTableOutput("tblAnnotation"))
+                  }else{
+                    conditionalPanel('False',tabPanel("Annotation Analysis")
+                    )
                   },
                   tabPanel("Cell-type enrichment tables",
                            br(),br(),
@@ -697,6 +701,9 @@ shinyServer(function(input, output,session) {
                     tabPanel("Annotation Analysis",
                              downloadButton('downloadAnnotation', 'Download Table'),
                              DT::dataTableOutput("tblAnnotation"))
+                  }else{
+                    conditionalPanel('False',tabPanel("Annotation Analysis")
+                    )
                   },
                   tabPanel("Cell-type enrichment tables",
                            br(),br(),
