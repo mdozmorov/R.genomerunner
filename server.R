@@ -10,14 +10,14 @@ library(scales)
 
 # # Lukas paths
 #results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/master/"
-gfAnnot <- read.table("/home/lukas/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
-# # Mikhail paths
-#gfAnnot <- read.table("/home/mdozmorov/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
+# results.dir <- "/home/lukas/db_2.00_06-10-2015/results/master/"
+# gfAnnot <- read.table("/home/lukas/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
+ # Mikhail paths
+gfAnnot <- read.table("/home/mdozmorov/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
 # gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
 # results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_30x5matrix_nonsig/"
 # results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/Paper-Similarity/data_GWASdb2_manual/bed_selected/renamed/gappedPeak/"
-#results.dir <- "/home/mdozmorov/Documents/results/"
+results.dir <- "/home/mdozmorov/Documents/results/"
 
 genomerunner.mode <- T
 coloring.num = 50
@@ -86,9 +86,10 @@ shinyServer(function(input, output,session) {
       mtx <- mtx.sd.order
     }
     
-    
+    par(cex.main=0.65, oma=c(2,0,0,5), mar=c(5, 4.1, 4.1, 5)) # Adjust margins
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
-    d3heatmap::d3heatmap(as.matrix(mtx),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}), colors = coloring(coloring.num), show_tip=FALSE,dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""))
+    d3heatmap::d3heatmap(as.matrix(mtx),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}), colors = coloring(coloring.num), show_tip=FALSE,dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""),
+                         xaxis_font_size = "10pt", yaxis_font_size = "10pt")
     
   })
   
@@ -260,10 +261,10 @@ shinyServer(function(input, output,session) {
     par(mar = c(10,7,4.1,2.1))
     if (nrow(mtx.up.sorted) < 3){
      x.loc = barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
-              space=c(0.2,1), cex.names=1, las=2, xaxt='n',main="Enriched epigenomic associations",xlim=c(0,10*nrow(mtx.up.sorted)),axes=F)
+              space=c(0.2,1), cex.names=1, las=2, xaxt='n',main="Enriched regulatory associations",xlim=c(0,10*nrow(mtx.up.sorted)),axes=F)
     } else{
      x.loc =  barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
-              space=c(0.2,1), cex.names=1, las=2, xaxt='n',main="Enriched epigenomic associations",axes=F)
+              space=c(0.2,1), cex.names=1, las=2, xaxt='n',main="Enriched regulatory associations",axes=F)
     }
     abline(a=0,b=0)   
     axis.values = seq(0,max(mtx.up.sorted),length.out = 10)
@@ -294,10 +295,10 @@ shinyServer(function(input, output,session) {
     par(mar = c(10,7,4.1,2.1))
     if (nrow(mtx.down.sorted) < 3){
       x.loc = barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
-              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),xaxt='n',main = "Depleted epigenomic associations",xlim=c(0,10*nrow(mtx.down.sorted)),axes = F)
+              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),xaxt='n',main = "Depleted regulatory associations",xlim=c(0,10*nrow(mtx.down.sorted)),axes = F)
     }else{
       x.loc = barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
-              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),xaxt='n',main = "Depleted epigenomic associations", axes = F)
+              space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),xaxt='n',main = "Depleted regulatory associations", axes = F)
     }
     abline(a=0,b=0) 
     # draw y-labels
@@ -319,7 +320,7 @@ shinyServer(function(input, output,session) {
   # episimilarity ---------------------------------------------------------------
   get.corr.matrix <- reactive({
     mtx <- load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep=""))
-    # If there are columns with SD=0, add jitter to it. Needed for pair-wise column correlation analysis (epigenomic similarity analysis). Only valid if there's more than 1 row
+    # If there are columns with SD=0, add jitter to it. Needed for pair-wise column correlation analysis (regulatory similarity analysis). Only valid if there's more than 1 row
     if (nrow(mtx) > 1) {
       ind <- apply(mtx, 2, function(x) sd(x, na.rm=TRUE)) == 0 # Indexes of such columns
       if (sum(ind) > 0) {
@@ -345,7 +346,8 @@ shinyServer(function(input, output,session) {
     cor.mat <- get.corr.matrix()
     hclustergram <- get.cor.hclust.dendrogram()
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
-    d3heatmap::d3heatmap(as.matrix(cor.mat),heatmap_options = list(Rowv=hclustergram,Colv=hclustergram,keep.dendro=TRUE),colors = coloring(coloring.num),dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""))
+    d3heatmap::d3heatmap(as.matrix(cor.mat),heatmap_options = list(Rowv=hclustergram,Colv=hclustergram,keep.dendro=TRUE),colors = coloring(coloring.num),dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""),
+                         xaxis_font_size = "10pt", yaxis_font_size = "10pt")
   })
   
   output$legendEpisim <- renderPlot({
@@ -375,7 +377,7 @@ shinyServer(function(input, output,session) {
     }
     mtx.deg <- suppressWarnings(mtx.degfs(mtx[, mtx.clust$eset.labels], mtx.clust, label="broadPeak2",isOR = is.OR))
     
-    updateSelectInput(session,"cmbEpigenetics","Select which epigenetic table to render",choices = names(mtx.deg))
+    updateSelectInput(session,"cmbEpigenetics","Select which regulatory table to render",choices = names(mtx.deg))
     mtx.deg.path = paste(get.results.dir(),"mtx.deg.episim.RDS",sep = "")
     saveRDS(mtx.deg,file=mtx.deg.path)
     return(mtx.deg)
@@ -413,7 +415,7 @@ shinyServer(function(input, output,session) {
   
   output$downloadEpigenetics <- downloadHandler(
     filename = function() { 
-      return("Epigenetics_table.txt")
+      return("Regulatory_table.txt")
     },
     content = function(file) {
       write.table(x = get.epigenetics.table(),file =  file ,sep = "\t",quote = F,row.names = F)
@@ -519,10 +521,10 @@ shinyServer(function(input, output,session) {
         par(mar = c(10,7,4.1,2.1))
         if (nrow(mtx.up.sorted) < 3){
           x.loc <-barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
-                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),xaxt='n',main="Enriched epigenomic associations",xlim=c(0,10*nrow(mtx.up.sorted)),axes=F)
+                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),xaxt='n',main="Enriched regulatory associations",xlim=c(0,10*nrow(mtx.up.sorted)),axes=F)
         } else{
           x.loc <-barplot(as.matrix(t(head(mtx.up.sorted,30))), beside=T,col = "red3",
-                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),xaxt='n',main="Enriched epigenomic associations",axes=F)
+                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.up.sorted),30),xaxt='n',main="Enriched regulatory associations",axes=F)
         }
         abline(a=0,b=0)   
         axis.values = seq(0,max(mtx.up.sorted),length.out = 10)
@@ -550,10 +552,10 @@ shinyServer(function(input, output,session) {
         par(mar = c(10,7,4.1,2.1))
         if (nrow(mtx.down.sorted) < 3){
          x.loc <- barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
-                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),xaxt='n',main = "Depleted epigenomic associations",xlim=c(0,10*nrow(mtx.down.sorted)),axes = F)
+                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),xaxt='n',main = "Depleted regulatory associations",xlim=c(0,10*nrow(mtx.down.sorted)),axes = F)
         }else{
          x.loc <- barplot(as.matrix(t(head(mtx.down.sorted,30))), beside=T,col = "green4",
-                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),xaxt='n',main = "Depleted epigenomic associations", axes = F)
+                  space=c(0.2,1), cex.names=1, las=2, names.arg=head(rownames(mtx.down.sorted),30),xaxt='n',main = "Depleted regulatory associations", axes = F)
         }
         abline(a=0,b=0)
         axis.values = seq(0,max(mtx.down.sorted),length.out = 10)
@@ -587,22 +589,22 @@ shinyServer(function(input, output,session) {
     if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
     if (single.feature == FALSE){
       tabsetPanel(id="tabsMultiple",
-                  tabPanel("Enrichment analysis heatmap",
+                  tabPanel("Enrichment heatmap",
                            downloadButton('downloadEnrichHeatmap',"Download PDF"),
                            d3heatmapOutput("heatmapEnrich", width = "100%", height = "600px"),
                            plotOutput("legendEnrich",width="300px",height="150px")
                   ), 
-                  tabPanel("Enrichment analysis barplot",
+                  tabPanel("Enrichment barplot",
                            downloadButton('downloadEnrichBarPDF', 'Download PDF'),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
                            plotOutput("pltEnrichDown", width="100%", height= "350px")
                   ),
-                  tabPanel("Enrichment analysis tables",
+                  tabPanel("Enrichment tables",
                            br(),br(),
                            downloadButton('downloadEnrichTable', 'Download table in tab-separated format'),
                            br(),br(),
                            DT::dataTableOutput("tblEnrichment")),
-                  tabPanel("Epigenetic similarity analysis heatmap",
+                  tabPanel("Regulatory similarity heatmap",
                            fluidPage(
                              fluidRow(
                                column(6,
@@ -615,8 +617,8 @@ shinyServer(function(input, output,session) {
                                )
                              )
                            )),
-                  tabPanel("Epigenetic similarity analysis tables",
-                           selectInput("cmbEpigenetics", "Select which epigenetic analysis to show", choices = list("Results not ready yet.")),
+                  tabPanel("Differential regulatory analysis",
+                           selectInput("cmbEpigenetics", "Select which results to show", choices = list("Results not ready yet.")),
                            br(),br(),
                            downloadButton('downloadEpigenetics', 'Download table in tab-separated format'),
                            br(),br(),
@@ -628,12 +630,12 @@ shinyServer(function(input, output,session) {
       )
     } else{ # this UI is created when only a single GF result is returned
       tabsetPanel(id="tabsSingleGF",
-                  tabPanel("Enrichment analysis barplot",
+                  tabPanel("Enrichment barplot",
                            downloadButton('downloadEnrichBarPDF', 'Download PDF'),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
                            plotOutput("pltEnrichDown", width="100%", height= "350px")
                   ),
-                  tabPanel("Enrichment analysis tables",
+                  tabPanel("Enrichment tables",
                            br(),br(),
                            downloadButton('downloadEnrichTable', 'Download table in tab-separated format'),
                            br(),br(),
@@ -657,8 +659,8 @@ shinyServer(function(input, output,session) {
                    selectInput("cmbMatrix", label = "Results to visualize", 
                                choices = list("P-values" = "matrix_PVAL.txt", 
                                               "Odds Ratios" = "matrix_OR.txt")),
-                   bsTooltip("cmbMatrix", "Select P-value or Odds ratio", placement = "top", trigger = "hover"),
-                   conditionalPanel("input.tabsMultiple == 'Enrichment analysis barplot' || input.tabsMultiple == 'Enrichment analysis tables'",
+                   bsTooltip("cmbMatrix", "Select significance or effect size", placement = "right", trigger = "hover"),
+                   conditionalPanel("input.tabsMultiple == 'Enrichment barplot' || input.tabsMultiple == 'Enrichment tables'",
                                     selectInput("cmbFOI", "Select which SNP set to visualize", choices =   mtx.col.names)
                                     ),
                    conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
@@ -669,9 +671,9 @@ shinyServer(function(input, output,session) {
                                       selectInput("cmbAnnotation", label = "Annotation results to visualize", 
                                                   choices = file.names.annotation)
                                       }),
-                   conditionalPanel("input.tabsMultiple == 'Enrichment analysis heatmap' || input.tabsMultiple == 'Epigenetic similarity analysis heatmap'",
+                   conditionalPanel("input.tabsMultiple == 'Enrichment heatmap' || input.tabsMultiple == 'Regulatory similarity heatmap'",
                                     hr(),h3("Visualization option"),
-                                    selectInput("cmbClustMethod",label = "Clustering method (hclust)", 
+                                    selectInput("cmbClustMethod",label = "Clustering method", 
                                                 choices = list("ward.D",
                                                                "ward.D2",
                                                                "single",
@@ -682,14 +684,15 @@ shinyServer(function(input, output,session) {
                                                                "centroid")
                                     )
                    ),
-                   conditionalPanel("input.tabsMultiple == 'Epigenetic similarity analysis heatmap'",
+                   bsTooltip("cmbClustMethod", "Select clustering method", placement = "right", trigger = "hover"),
+                   conditionalPanel("input.tabsMultiple == 'Regulatory similarity heatmap'",
                                     selectInput('cmbEpisimCorType',label = "Correlation coefficient type",
                                                 choices = list("Pearson's" = "pearson",
                                                                "Spearman's" = "spearman"))
                    ),
                   
-                   conditionalPanel("input.tabsMultiple == 'Epigenetic similarity analysis heatmap'",
-                                    hr(),h3("Epigenetic similarity"),
+                   conditionalPanel("input.tabsMultiple == 'Regulatory similarity heatmap'",
+                                    hr(),h3("Regulatory similarity"),
                                     sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 2)
                    )
                    
