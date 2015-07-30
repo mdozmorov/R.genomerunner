@@ -10,7 +10,7 @@ library(scales)
 (source("functions/mtx.degfs.R"))
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/one_col/"
 gfAnnot <- read.table("/home/lukas/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
 # # Mikhail paths
 # gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
@@ -495,6 +495,14 @@ shinyServer(function(input, output,session) {
     contentType = 'application/pdf'
   )
   
+  output$downloadAnnotation <- downloadHandler(
+    filename = function() { 
+      return("Enrichment_table.txt")
+    },
+    content = function(file) {
+      write.table(x = get.annotation.table(),file =  file ,sep = "\t",quote = F,row.names = F)
+    }
+  )
   output$downloadEnrichBarPDF <- downloadHandler(
     filename = function() { 
       return("EnrichmentBarPlot.pdf")
@@ -617,6 +625,7 @@ shinyServer(function(input, output,session) {
                            DT::dataTableOutput("tblEpigenetics")),
                   if (length(file.names.annotation)>0){
                     tabPanel("Annotation Analysis",
+                           downloadButton('downloadAnnotation', 'Download Table'),
                            DT::dataTableOutput("tblAnnotation"))
                   }
       )
@@ -634,6 +643,7 @@ shinyServer(function(input, output,session) {
                            DT::dataTableOutput("tblEnrichment")),
                   if (length(file.names.annotation)>0){
                     tabPanel("Annotation Analysis",
+                             downloadButton('downloadAnnotation', 'Download Table'),
                              DT::dataTableOutput("tblAnnotation"))
                   }
       )
