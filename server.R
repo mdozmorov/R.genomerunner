@@ -7,17 +7,19 @@ library(tools)
 library(colorRamps)
 library(shinyBS)
 library(scales)
-(source("functions/mtx.degfs.R"))
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
+#results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/master/"
 gfAnnot <- read.table("/home/lukas/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
 # # Mikhail paths
+#gfAnnot <- read.table("/home/mdozmorov/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
 # gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
 # results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_30x5matrix_nonsig/"
 # results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/Paper-Similarity/data_GWASdb2_manual/bed_selected/renamed/gappedPeak/"
+#results.dir <- "/home/mdozmorov/Documents/results/"
 
-genomerunner.mode <- F
+genomerunner.mode <- T
 coloring.num = 50
 shinyServer(function(input, output,session) {
   
@@ -469,9 +471,10 @@ shinyServer(function(input, output,session) {
         mtx.sd.order <- mtx.sd.order[1:n_limit,]
         mtx <- mtx.sd.order
       }
-     
-      heatmap.2(as.matrix(mtx),hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)},density.info = 'none',main = "Enrichment Heatmap",
-                margins = c(10,10),srtRow = -45,srtCol = 45)
+      par(cex.main=0.65, oma=c(2,0,0,5), mar=c(5, 4.1, 4.1, 5)) # Adjust margins
+      heatmap.2(as.matrix(mtx),hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)},
+                trace="none", density.info="none", col=colorRampPalette(c("blue", "yellow", "red")), main = "Enrichment Heatmap",
+                cexRow=0.8, cexCol=1, margins = c(10,10), srtRow = 0, srtCol = 45)
       dev.off()
     },
     contentType = 'application/pdf'
@@ -488,8 +491,11 @@ shinyServer(function(input, output,session) {
       validate(need(nrow(mat)>4,"Need at least 5 genome features to perform clustering."))
       cor.mat <- get.corr.matrix()
       hclustergram <- get.cor.hclust.dendrogram()
+      par(cex.main=0.65, oma=c(2,0,0,5), mar=c(5, 4.1, 4.1, 5)) # Adjust margins
       coloring<-colorRampPalette(c("blue", "yellow", "red"))
-      heatmap.2(as.matrix(cor.mat),Colv = hclustergram,margins = c(10,10),density.info = 'none',srtRow = -45,srtCol = 45,main = "Episimilarity Heatmap")
+      heatmap.2(as.matrix(cor.mat), Colv = hclustergram,
+                trace="none", density.info="none", col=colorRampPalette(c("blue", "yellow", "red")), main = "Episimilarity Heatmap",
+                cexRow=0.8, cexCol=1, margins = c(10,10), srtRow = 0, srtCol = 45)
       dev.off()
     },
     contentType = 'application/pdf'
