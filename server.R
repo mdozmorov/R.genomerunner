@@ -9,7 +9,7 @@ library(shinyBS)
 library(scales)
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/one_col/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/"
 gfAnnot <- read.table("/home/lukas/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
 # # Mikhail paths
 # gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
@@ -17,7 +17,7 @@ gfAnnot <- read.table("/home/lukas/genome_runner/db/gf_descriptions.txt",sep="\t
 # results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/Paper-Similarity/data_GWASdb2_manual/bed_selected/renamed/gappedPeak/"
 #results.dir <- "/home/mdozmorov/Documents/results/"
 
-genomerunner.mode <- F
+genomerunner.mode <- T
 coloring.num = 50
 shinyServer(function(input, output,session) {
   
