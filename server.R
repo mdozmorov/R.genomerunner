@@ -9,13 +9,13 @@ library(shinyBS)
 library(scales)
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/one_col/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/"
 gfAnnot <- read.table("/home/lukas/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
 # # Mikhail paths
 # gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
 # results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_30x5matrix_nonsig/"
 # results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/Paper-Similarity/data_GWASdb2_manual/bed_selected/renamed/gappedPeak/"
-results.dir <- "/home/mdozmorov/Documents/results/"
+#results.dir <- "/home/mdozmorov/Documents/results/"
 
 genomerunner.mode <- T
 coloring.num = 50
@@ -175,7 +175,8 @@ shinyServer(function(input, output,session) {
   
   output$tblAnnotation <- renderDataTable({
     get.annotation.table()
-  })
+  },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
+                     pageLength = 50))
   
   outputOptions(output, "downloadEnrichTable", suspendWhenHidden=FALSE)
   
@@ -329,7 +330,9 @@ shinyServer(function(input, output,session) {
     mtx <- scale(mtx)
     
    
-    rcorr(as.matrix(mtx), type=input$cmbEpisimCorType)[[1]]
+   mtx <- rcorr(as.matrix(mtx), type=input$cmbEpisimCorType)[[1]]
+   write.table(x = mtx,file = paste(results.dir,"matrix_CORR.txt"))
+   mtx
   })
   
   get.cor.hclust.dendrogram <- reactive({
@@ -444,7 +447,26 @@ shinyServer(function(input, output,session) {
     
   })
   
+  get.CTEnrichment.table <- reactive({
+    mtx <- load_gr_data(paste(get.results.dir(), 'matrix_PVAL.txt',sep=""))
+    #running function
+    selected.FOI <- input$cmbFOI
+    validate(need(try(mtx),"Could not run cell-type enrichment"))
+    return(mtx)
+  })
   
+  output$tblCTEnrichment <- renderDataTable({
+    mtx <- get.CTEnrichment.table()
+  },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
+                     pageLength = 50))
+  
+  output$downloadCTEnrichment <- downloadHandler(
+    filename = function() { 
+    return("EnrichmentCT_table.txt")
+  },
+  content = function(file) {
+    write.table(x = get.CTEnrichment.table(),file =  file ,sep = "\t",quote = F,row.names = F)
+  })
   # --download button code --------------------------------------------------
   
   
@@ -584,6 +606,26 @@ shinyServer(function(input, output,session) {
     contentType = 'application/pdf'
   )
   
+  output$downloadZIP <- downloadHandler(
+    filename = function() { 
+      return("genome_runner.zip")
+    },
+    content = function(file) {
+      # ensure correlation matrix is created
+      mtx <- get.matrix()
+      if (ncol(mtx)>1 & nrow(mtx)>1){get.corr.matrix()}
+      
+      # zip up text files
+      files.txt <- list.files(get.results.dir(), pattern = "\\.txt$",full.names = T)
+      file.names.annotation <- list.files(paste(get.results.dir(),"annotations",sep=""),full.names = T)
+      file.names.enrichment <- list.files(paste(get.results.dir(),"enrichment",sep=""),full.names = T)
+      file.all <- c(file.names.enrichment,file.names.annotation,files.txt)
+      file.all <- gsub("//", "/" ,file.all)
+      zip(zipfile <- file,files = file.all)
+    },
+    contentType = "application/zip"
+  )
+  
   
   # Create a different UI depending if there are multiple GF in the results
   output$mainpage <-renderUI({
@@ -633,7 +675,15 @@ shinyServer(function(input, output,session) {
                     tabPanel("Annotation Analysis",
                            downloadButton('downloadAnnotation', 'Download Table'),
                            DT::dataTableOutput("tblAnnotation"))
-                  }
+                  }else{
+                    conditionalPanel('False',tabPanel("Annotation Analysis")
+                    )
+                  },
+                  tabPanel("Cell-type enrichment tables",
+                           br(),br(),
+                           downloadButton('downloadCTEnrichment', 'Download table in tab-separated format'),
+                           br(),br(),
+                           DT::dataTableOutput("tblCTEnrichment"))
       )
     } else{ # this UI is created when only a single GF result is returned
       tabsetPanel(id="tabsSingleGF",
@@ -651,7 +701,15 @@ shinyServer(function(input, output,session) {
                     tabPanel("Annotation Analysis",
                              downloadButton('downloadAnnotation', 'Download Table'),
                              DT::dataTableOutput("tblAnnotation"))
-                  }
+                  }else{
+                    conditionalPanel('False',tabPanel("Annotation Analysis")
+                    )
+                  },
+                  tabPanel("Cell-type enrichment tables",
+                           br(),br(),
+                           downloadButton('downloadCTEnrichment', 'Download table in tab-separated format'),
+                           br(),br(),
+                           DT::dataTableOutput("tblCTEnrichment"))
       )
     }
   })
@@ -664,14 +722,16 @@ shinyServer(function(input, output,session) {
     if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
     if (single.feature == FALSE){
       sidebarPanel(width = 4,h3("Data Settings"),
-                   selectInput("cmbMatrix", label = "Results to visualize", 
-                               choices = list("P-values" = "matrix_PVAL.txt", 
-                                              "Odds Ratios" = "matrix_OR.txt")),
-                   bsTooltip("cmbMatrix", "Select significance or effect size", placement = "right", trigger = "hover"),
-                   conditionalPanel("input.tabsMultiple == 'Enrichment barplot' || input.tabsMultiple == 'Enrichment tables'",
+                   conditionalPanel("input.tabsMultiple != 'Cell-type enrichment tables'",
+                     selectInput("cmbMatrix", label = "Results to visualize", 
+                                 choices = list("P-values" = "matrix_PVAL.txt", 
+                                                "Odds Ratios" = "matrix_OR.txt")),
+                     bsTooltip("cmbMatrix", "Select significance or effect size", placement = "right", trigger = "hover")
+                   ),
+                   conditionalPanel("input.tabsMultiple == 'Enrichment barplot' || input.tabsMultiple == 'Enrichment tables' || input.tabsMultiple == 'Cell-type enrichment tables'",
                                     selectInput("cmbFOI", "Select which SNP set to visualize", choices =   mtx.col.names)
                                     ),
-                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
+                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt' && input.tabsMultiple != 'Cell-type enrichment tables'" ,
                                     selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
                                                 choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))),
                    conditionalPanel("input.tabsMultiple == 'Annotation Analysis'",
@@ -702,25 +762,29 @@ shinyServer(function(input, output,session) {
                    conditionalPanel("input.tabsMultiple == 'Regulatory similarity heatmap'",
                                     hr(),h3("Regulatory similarity"),
                                     sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 2)
-                   )
+                   ),
+                   downloadButton('downloadZIP', 'Download ZIP')
                    
       )
     }else{ # this is for a single column result file
       sidebarPanel(h3("Global Settings"), hr(),
-                   selectInput("cmbMatrix", label = "Results to visualize", 
-                               choices = list("P-values" = "matrix_PVAL.txt", 
-                                              "Odds Ratios" = "matrix_OR.txt")),
+                   conditionalPanel("input.tabsSingleGF != 'Cell-type enrichment tables'",
+                     selectInput("cmbMatrix", label = "Results to visualize", 
+                                 choices = list("P-values" = "matrix_PVAL.txt", 
+                                                "Odds Ratios" = "matrix_OR.txt"))
+                   ),
                    selectInput("cmbFOI", "Select which SNP set to visualize", choices =  mtx.col.names),
                    conditionalPanel("input.tabsSingleGF == 'Annotation Analysis'",
                                     if (length(file.names.annotation)>0){
                                       selectInput("cmbAnnotation", label = "Annotation results to visualize", 
                                                   choices = file.names.annotation)
                                     }),
-                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt'",
+                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt' && input.tabsSingleGF != 'Cell-type enrichment tables'",
                                     if(nrow(mtx)>1){
                                       selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
                                                   choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))}
-                   )
+                   ),
+                   downloadButton('downloadZIP', 'Download ZIP')
       )
     }
   })
