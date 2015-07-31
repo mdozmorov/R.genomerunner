@@ -23,6 +23,7 @@ mtx.cellspecific <- function(mtx, fname=NULL, pval=0.01) {
   # Global counts
   tot.tests <- nrow(mtx) # Total number of enrichment analyses
   cells.tests <- vector(mode="numeric", length=length(cells)) # Number of analyses per cell type
+  names(cells.tests) <- cells
   for(c in 1:length(cells)) {
     cells.tests[c] <- length(mtx$cell[ mtx$cell == cells[c]]) # Number of analyses per cell type
   }
