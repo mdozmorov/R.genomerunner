@@ -1,5 +1,7 @@
 suppressMessages(source("utils2.R")) # See the required packages there
-suppressMessages(source("episimilarity.R"))
+# suppressMessages(source("episimilarity.R"))
+source("functions/mtx.degfs.R")
+source("functions/mtx.cellspecific.R")
 (source("genomerunner_d3heatmap.R"))
 library(d3heatmap)
 library(dendextendRcpp) # required for extracting the height from the dendrogram
@@ -9,15 +11,16 @@ library(shinyBS)
 library(scales)
 
 # # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/"
-gfAnnot <- read.table("/home/lukas/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
+#results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
+#gfAnnot <- read.table("/home/lukas/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
 # # Mikhail paths
-# gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
-# results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_30x5matrix_nonsig/"
-# results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/Paper-Similarity/data_GWASdb2_manual/bed_selected/renamed/gappedPeak/"
-#results.dir <- "/home/mdozmorov/Documents/results/"
+gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
+results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_30x5matrix/"
+#results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_all_data/"
+#results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/Paper-Similarity/data_GWASdb2_manual/bed_selected/renamed/gappedPeak/"
 
-genomerunner.mode <- T
+genomerunner.mode <- F
+
 coloring.num = 50
 shinyServer(function(input, output,session) {
   
@@ -449,14 +452,21 @@ shinyServer(function(input, output,session) {
   
   get.CTEnrichment.table <- reactive({
     mtx <- load_gr_data(paste(get.results.dir(), 'matrix_PVAL.txt',sep=""))
+    validate(need(nrow(mtx)>5,"Insufficient data for performing cell type-specific enrichment analysis"))
     #running function
-    selected.FOI <- input$cmbFOI
-    validate(need(try(mtx),"Could not run cell-type enrichment"))
-    return(mtx)
+    mtx.CTE <- mtx.cellspecific(mtx)
+    if (is.character(mtx.CTE)) {
+      return(data.frame(NoResults="Insufficient data for performing cell type-specific enrichment analysis"))
+    }
+    selectedCor <- input$cmbFOI
+    if (is.character(mtx.CTE[[selectedCor]])) {
+      return(data.frame(NoResults="Nothing significant"))
+    }
+    return(mtx.CTE[[selectedCor]])
   })
   
   output$tblCTEnrichment <- renderDataTable({
-    mtx <- get.CTEnrichment.table()
+    get.CTEnrichment.table()
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
                      pageLength = 50))
   
@@ -465,7 +475,7 @@ shinyServer(function(input, output,session) {
     return("EnrichmentCT_table.txt")
   },
   content = function(file) {
-    write.table(x = get.CTEnrichment.table(),file =  file ,sep = "\t",quote = F,row.names = F)
+    write.table(x = get.CTEnrichment.table(),file =  file ,sep = "\t",quote = F,row.names = T,col.names=NA)
   })
   # --download button code --------------------------------------------------
   
@@ -630,7 +640,7 @@ shinyServer(function(input, output,session) {
   # Create a different UI depending if there are multiple GF in the results
   output$mainpage <-renderUI({
     # manually load matrix since controls are not loaded yet
-    validate(need(try(mtx <- load_gr_data(paste(get.results.dir(), "matrix_PVAL.txt",sep=""))),"Error loading files. Does the data exist?"))
+    validate(need(try(mtx <- load_gr_data(paste(get.results.dir(), "matrix_PVAL.txt",sep=""))),"Error loading files. Either no significant results are available, or data files are corrupted. Please, re-run the analysis using larger number of genome annotation datasets."))
     file.names.annotation <- list.files(paste(get.results.dir(),"annotations/",sep=""))
     
     single.feature = TRUE;
