@@ -7,11 +7,7 @@ source("functions/mtx.untransform.R")
 source("functions/mtx.clusters.R")
 source("functions/mtx.degfs.R")
 source("functions/mtx.cellspecific.R")
-source("functions/genomerunner_d3heatmap.R")
 
-
-# # Lukas paths
-#results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
 # # Mikhail paths
 #gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
 #results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_30x5matrix/"
@@ -21,7 +17,7 @@ results.dir <- "/home/mdozmorov/Documents/results/rl4bwlih9giknkbw63n3cnu96h0up9
 results.dir <- "/media/sf_F_DRIVE/Work/GenomeRunner/R.GenomeRunner/data/test_cellspecific/"
 
 
-genomerunner.mode <- F
+genomerunner.mode <- T
 
 coloring.num = 50
 shinyServer(function(input, output,session) {
@@ -91,7 +87,7 @@ shinyServer(function(input, output,session) {
     
     par(cex.main=0.65, oma=c(2,0,0,5), mar=c(5, 4.1, 4.1, 5)) # Adjust margins
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
-    d3heatmap::d3heatmap(as.matrix(mtx),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}), colors = coloring(coloring.num), show_tip=FALSE,dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""),
+    d3heatmap::d3heatmap(as.matrix(mtx),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}), colors = coloring(coloring.num), dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""),
                          xaxis_font_size = "10pt", yaxis_font_size = "10pt")
     
   })
