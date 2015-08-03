@@ -16,7 +16,7 @@ library(scales)
 # # Mikhail paths
 gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
 results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_30x5matrix/"
-#results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_all_data/"
+results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_all_data/"
 #results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/Paper-Similarity/data_GWASdb2_manual/bed_selected/renamed/gappedPeak/"
 
 genomerunner.mode <- F
@@ -450,11 +450,15 @@ shinyServer(function(input, output,session) {
     
   })
   
-  get.CTEnrichment.table <- reactive({
+  calculateCTEnrichment <- reactive({
     mtx <- load_gr_data(paste(get.results.dir(), 'matrix_PVAL.txt',sep=""))
     validate(need(nrow(mtx)>5,"Insufficient data for performing cell type-specific enrichment analysis"))
     #running function
     mtx.CTE <- mtx.cellspecific(mtx)
+  })
+  
+  get.CTEnrichment.table <- reactive({
+    mtx.CTE <- calculateCTEnrichment()
     if (is.character(mtx.CTE)) {
       return(data.frame(NoResults="Insufficient data for performing cell type-specific enrichment analysis"))
     }
