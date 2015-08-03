@@ -14,8 +14,7 @@
 #' mtx.degfs(mtx.tumor[, tumor.clust$eset.labels] %>% mtx.transform.p2z %>% normalizeQuantiles , tumor.clust, label="tumor_gfs")
 ##
 mtx.degfs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fdr", isOR=FALSE) {
-  # Limma on clusters
-  eset<-new("ExpressionSet", exprs=(as.matrix(mtx[ , clust$eset.labels])))
+  exprs=(as.matrix(mtx[ , clust$eset.labels]))
   # Make model matrix
   design<-model.matrix(~ 0+factor(clust$eset.groups))
   colnames(design)<-paste("c", unique(clust$eset.groups), sep="")
@@ -29,18 +28,18 @@ mtx.degfs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fd
     for(j in 1:length(colnames(design))){
       # Test only unique pairs of clusters
       if (i < j) {
-        degs <- apply(exprs(eset), 1, function(x) wilcox.test(x[design[, i] == 1], x[design[, j] == 1])$p.value)
+        degs <- apply(exprs, 1, function(x) wilcox.test(x[design[, i] == 1], x[design[, j] == 1])$p.value)
         degs <- degs[ !is.na(degs) ] # Precaution against NA p-values, when both clusters have exactly the same numbers
         degs <- p.adjust(degs, method=cutoff.adjust)
         degs <- degs[degs < cutoff.pval]
         # Average values in clusters i and j
         if(sum(degs < cutoff.pval) > 0) {
           if( isOR == FALSE ) {
-            i.av<-1/(10^rowMeans(abs(exprs(eset)[names(degs), design[, i] == 1, drop=FALSE]))) # Anti -log10 transform p-values
-            j.av<-1/(10^rowMeans(abs(exprs(eset)[names(degs), design[, j] == 1, drop=FALSE])))
+            i.av<-1/(10^rowMeans(abs(exprs[names(degs), design[, i] == 1, drop=FALSE]))) # Anti -log10 transform p-values
+            j.av<-1/(10^rowMeans(abs(exprs[names(degs), design[, j] == 1, drop=FALSE])))
           } else {
-            i.av<-2^rowMeans(exprs(eset)[names(degs), design[, i] == 1, drop=FALSE]) # Anti log2 transform mean odds ratios
-            j.av<-2^rowMeans(exprs(eset)[names(degs), design[, j] == 1, drop=FALSE])
+            i.av<-2^rowMeans(exprs[names(degs), design[, i] == 1, drop=FALSE]) # Anti log2 transform mean odds ratios
+            j.av<-2^rowMeans(exprs[names(degs), design[, j] == 1, drop=FALSE])
           }
           
           # Merge and convert the values
@@ -61,13 +60,13 @@ mtx.degfs <- function(mtx, clust, label=NULL, cutoff.pval=0.1, cutoff.adjust="fd
           names(degfs.list)[length(degfs.list)] <- paste(colnames(design)[i], "vs", colnames(design)[j], sep="_") # Name the list after combination of clustering
           # Save the results in the file
           if (!is.null(label)) {
-            write.xlsx2(degs.table, paste("results/degfs_", label, ".xlsx", sep=""), sheetName=paste(colnames(design)[i], "vs", colnames(design)[j], sep="_"), row.names=FALSE, append=TRUE)
+            #write.xlsx2(degs.table, paste("results/degfs_", label, ".xlsx", sep=""), sheetName=paste(colnames(design)[i], "vs", colnames(design)[j], sep="_"), row.names=FALSE, append=TRUE)
           }
         }
       } 
     }
   }
   print("Counts of differential regulatory elements")
-  pander(degs.matrix)
+  print(degs.matrix)
   return(degfs.list) # Return the full list of the results
 }

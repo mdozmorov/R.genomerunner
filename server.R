@@ -1,22 +1,21 @@
-suppressMessages(source("utils2.R")) # See the required packages there
+# suppressMessages(source("utils2.R")) # See the required packages there
 # suppressMessages(source("episimilarity.R"))
+source("functions/load_required_packages.R")
+source("functions/load_gr_data.R")
+source("functions/mtx.transform.R")
+source("functions/mtx.untransform.R")
+source("functions/mtx.clusters.R")
 source("functions/mtx.degfs.R")
 source("functions/mtx.cellspecific.R")
-library(d3heatmap)
-library(dendextendRcpp) # required for extracting the height from the dendrogram
-library(tools)
-library(colorRamps)
-library(shinyBS)
-library(scales)
 
-# # Lukas paths
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/"
-gfAnnot <- read.table("/home/lukas/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
 # # Mikhail paths
 #gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
 #results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_30x5matrix/"
 #results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_all_data/"
 #results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/Paper-Similarity/data_GWASdb2_manual/bed_selected/renamed/gappedPeak/"
+results.dir <- "/home/mdozmorov/Documents/results/rl4bwlih9giknkbw63n3cnu96h0up9g4/"
+results.dir <- "/media/sf_F_DRIVE/Work/GenomeRunner/R.GenomeRunner/data/test_cellspecific/"
+
 
 genomerunner.mode <- T
 

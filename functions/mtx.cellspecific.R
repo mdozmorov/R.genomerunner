@@ -12,7 +12,6 @@
 ##
 mtx.cellspecific <- function(mtx, fname=NULL, pval=0.01) {
   if (nrow(mtx) <= 5) return("Insufficient data for performing cell type-specific enrichment analysis") # If too few genomic features, no analysis can be performed
-  
   n.fois <- ncol(mtx) # Total number of SNP sets (FOIs) to calculate the cell type-specific p-values
   # Prepare the matrix for merging with GF annotations
   mtx <- as.data.frame(cbind(GF=rownames(mtx), mtx))
@@ -68,7 +67,7 @@ mtx.cellspecific <- function(mtx, fname=NULL, pval=0.01) {
     if(length(cells.foi.tmp) > 0) {
       cells.stats.foi <- as.data.frame(merge(as.matrix(cells.foi.tmp, ncol=1), t(as.data.frame(stats.foi.tmp)), by="row.names")) # Combine cell type-specific p-values with enrichment stats
       colnames(cells.stats.foi) <- c("CellType", "pval", "NumOfTests", "AvPvalCell", "AvPvalTot") # Name the columns
-      cells.stats.foi <- unique(left_join(cells.stats.foi, gfAnnot[, c("cell", "cell_desc")], by=c("CellType" = "cell"))) # Join with cell annotations. We need unique to keep unique rows.
+      cells.stats.foi <- left_join(cells.stats.foi, unique(gfAnnot[, c("cell", "cell_desc")]), by=c("CellType" = "cell")) # Join with cell annotations. We need unique to keep unique rows.
       cells.stats.foi[, c("AvPvalCell", "AvPvalTot")] <- mtx.untransform(cells.stats.foi[, c("AvPvalCell", "AvPvalTot")]) # Untransform average p-values
       # Formatting
       if (nrow(cells.stats.foi) > 1) cells.stats.foi <- cells.stats.foi[ order(cells.stats.foi$pval), ] # If more than 1 row, order by pval
