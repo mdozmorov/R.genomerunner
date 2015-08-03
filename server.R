@@ -2,7 +2,6 @@ suppressMessages(source("utils2.R")) # See the required packages there
 # suppressMessages(source("episimilarity.R"))
 source("functions/mtx.degfs.R")
 source("functions/mtx.cellspecific.R")
-(source("genomerunner_d3heatmap.R"))
 library(d3heatmap)
 library(dendextendRcpp) # required for extracting the height from the dendrogram
 library(tools)
@@ -11,15 +10,15 @@ library(shinyBS)
 library(scales)
 
 # # Lukas paths
-#results.dir <- "/home/lukas/db_2.00_06-10-2015/results/test2/"
-#gfAnnot <- read.table("/home/lukas/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/"
+gfAnnot <- read.table("/home/lukas/genome_runner/db/gf_descriptions.txt",sep="\t",header=T)
 # # Mikhail paths
-gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
-results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_30x5matrix/"
-results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_all_data/"
+#gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
+#results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_30x5matrix/"
+#results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_all_data/"
 #results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/Paper-Similarity/data_GWASdb2_manual/bed_selected/renamed/gappedPeak/"
 
-genomerunner.mode <- F
+genomerunner.mode <- T
 
 coloring.num = 50
 shinyServer(function(input, output,session) {
@@ -89,7 +88,7 @@ shinyServer(function(input, output,session) {
     
     par(cex.main=0.65, oma=c(2,0,0,5), mar=c(5, 4.1, 4.1, 5)) # Adjust margins
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
-    d3heatmap::d3heatmap(as.matrix(mtx),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}), colors = coloring(coloring.num), show_tip=FALSE,dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""),
+    d3heatmap::d3heatmap(as.matrix(mtx),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}), colors = coloring(coloring.num), dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""),
                          xaxis_font_size = "10pt", yaxis_font_size = "10pt")
     
   })
