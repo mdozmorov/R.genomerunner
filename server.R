@@ -69,10 +69,13 @@ shinyServer(function(input, output,session) {
   })
   
   output$heatmapEnrich <- renderD3heatmap({
+    untransform.method = "none"
     if (input$cmbMatrix == "matrix_PVAL.txt"){
       mtx <- get.adjust.matrix()
+      untransform.method = "log10"
     }else{
       mtx <- get.matrix()
+      untransform.method = 'log2'
     }
     n_limit = 20
     # if n > 100, calculate SD for each row.
@@ -88,7 +91,7 @@ shinyServer(function(input, output,session) {
     
     par(cex.main=0.65, oma=c(2,0,0,5), mar=c(5, 4.1, 4.1, 5)) # Adjust margins
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
-    d3heatmap::d3heatmap(as.matrix(mtx),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}), colors = coloring(coloring.num), dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""),
+    d3heatmap::d3heatmap(as.matrix(mtx),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}), colors = coloring(coloring.num), tip_transformation = untransform.method, dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""),
                          xaxis_font_size = "10pt", yaxis_font_size = "10pt")
     
   })
