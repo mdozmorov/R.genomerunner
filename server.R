@@ -337,7 +337,7 @@ shinyServer(function(input, output,session) {
     
    
    mtx <- rcorr(as.matrix(mtx), type=input$cmbEpisimCorType)[[1]]
-   write.table(x = mtx,file = paste(results.dir,"matrix_CORR.txt"))
+   write.table(x = mtx,file = paste(results.dir,"matrix_CORR.txt",sep=""))
    mtx
   })
   
@@ -409,7 +409,7 @@ shinyServer(function(input, output,session) {
     for(x in list("adj.p.val",3,4)){
       mtx.deg[[selectedCor]][[x]] <- as.numeric(mtx.deg[[selectedCor]][[x]])
     }
-    mtx.deg[[selectedCor]]
+    mtx.deg[[selectedCor]][,c("cell", "cell_desc", "factor", "factor_desc", "source", "source_desc")]
   })
   
   output$tblEpigenetics <-renderDataTable({
@@ -417,7 +417,15 @@ shinyServer(function(input, output,session) {
     validate(need(ncol(mtx)>2,"Need at least 3 SNPs of interest files to perform clustering."))
     validate(need(nrow(mtx)>4,"Need at 5 least genome features to perform clustering."))
     validate(need(try(get.epigenetics.table()),"Try a different clustering method."))
-    get.epigenetics.table()
+    table.epi <- get.epigenetics.table()
+    num.char <- 50
+    table.epi <- apply( table.epi,c(1,2),function(x) {
+      if (!is.na(x) & nchar(x)>num.char){
+        return(paste(substring(x,1,num.char),  "..."))
+      } else{
+        return(x)
+      }
+    })
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
                     pageLength = 50))
   
@@ -473,7 +481,15 @@ shinyServer(function(input, output,session) {
   })
   
   output$tblCTEnrichment <- renderDataTable({
-    get.CTEnrichment.table()
+    table.CTE <-  get.CTEnrichment.table()
+    num.char <- 50
+    table.CTE  <- apply( table.CTE ,c(1,2),function(x) {
+      if (!is.na(x) & nchar(x)>num.char){
+        return(paste(substring(x,1,num.char),  "..."))
+      } else{
+        return(x)
+      }
+    })
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
                      pageLength = 50))
   
@@ -632,8 +648,23 @@ shinyServer(function(input, output,session) {
       mtx <- get.matrix()
       if (ncol(mtx)>1 & nrow(mtx)>1){get.corr.matrix()}
       
+      # Append gfAnnot columns to the end of the PVAL and OR matrix
+      mtx <- load_gr_data(paste(get.results.dir(),"matrix_PVAL.txt",sep=""))
+      mtx <- data.frame(GF=rownames(mtx), mtx)
+      mtx <- left_join(mtx, gfAnnot, by=c("GF" = "file_name"))
+      rownames(mtx) <- mtx$GF; mtx$GF <- NULL
+      write.table(mtx,file=paste(get.results.dir(),"matrix_PVAL_annot.txt",sep=""), sep="\t", quote=FALSE, col.names=NA)
+      
+      mtx <- load_gr_data(paste(get.results.dir(),"matrix_OR.txt",sep=""))
+      mtx <- data.frame(GF=rownames(mtx), mtx)
+      mtx <- left_join(mtx, gfAnnot, by=c("GF" = "file_name"))
+      rownames(mtx) <- mtx$GF; mtx$GF <- NULL
+      write.table(mtx,file=paste(get.results.dir(),"matrix_OR_annot.txt",sep=""), sep="\t", quote=FALSE, col.names=NA)
+      
       # zip up text files
-      files.txt <- list.files(get.results.dir(), pattern = "\\.txt$",full.names = T)
+      files.txt <- as.character(sapply(c("gr_log.txt","detailed.txt","matrix_PVAL_annot.txt","matrix_OR_annot.txt","matrix_CORR.txt"), function(x){
+        paste(get.results.dir(),x,sep = "")
+      }))
       file.names.annotation <- list.files(paste(get.results.dir(),"annotations",sep=""),full.names = T)
       anot.path <- paste(get.results.dir(),"annotations.zip",sep="")
       if (length(file.names.annotation) != 0 & !file.exists(anot.path)){
@@ -709,7 +740,11 @@ shinyServer(function(input, output,session) {
                            br(),br(),
                            downloadButton('downloadCTEnrichment', 'Download table in tab-separated format'),
                            br(),br(),
-                           DT::dataTableOutput("tblCTEnrichment"))
+                           DT::dataTableOutput("tblCTEnrichment")),
+                  tabPanel("Download",
+                           br(),
+                           h3("Download results"),
+                           downloadButton('downloadZIP', 'Download enrichment and/or annotation analysis results'))
       )
     } else{ # this UI is created when only a single GF result is returned
       tabsetPanel(id="tabsSingleGF",
@@ -735,7 +770,11 @@ shinyServer(function(input, output,session) {
                            br(),br(),
                            downloadButton('downloadCTEnrichment', 'Download table in tab-separated format'),
                            br(),br(),
-                           DT::dataTableOutput("tblCTEnrichment"))
+                           DT::dataTableOutput("tblCTEnrichment")),
+                  tabPanel("Download",
+                           br(),
+                           h3("Download results"),
+                           downloadButton('downloadZIP', 'Download enrichment and/or annotation analysis results'))
       )
     }
   })
@@ -748,7 +787,7 @@ shinyServer(function(input, output,session) {
     if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
     if (single.feature == FALSE){
       sidebarPanel(width = 4,h3("Data Settings"),
-                   conditionalPanel("input.tabsMultiple != 'Cell-type enrichment tables'",
+                   conditionalPanel("input.tabsMultiple != 'Cell-type enrichment tables' && input.tabsMultiple != 'Download'",
                      selectInput("cmbMatrix", label = "Results to visualize", 
                                  choices = list("P-values" = "matrix_PVAL.txt", 
                                                 "Odds Ratios" = "matrix_OR.txt")),
@@ -757,7 +796,7 @@ shinyServer(function(input, output,session) {
                    conditionalPanel("input.tabsMultiple == 'Enrichment barplot' || input.tabsMultiple == 'Enrichment tables' || input.tabsMultiple == 'Cell-type enrichment tables'",
                                     selectInput("cmbFOI", "Select which SNP set to visualize", choices =   mtx.col.names)
                                     ),
-                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt' && input.tabsMultiple != 'Cell-type enrichment tables' && input.tabsMultiple != 'Differential regulatory analysis'" ,
+                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt' && input.tabsMultiple != 'Cell-type enrichment tables' && input.tabsMultiple != 'Differential regulatory analysis'  && input.tabsMultiple != 'Download'" ,
                                     selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
                                                 choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))),
                    conditionalPanel("input.tabsMultiple == 'Annotation Analysis'",
@@ -788,13 +827,11 @@ shinyServer(function(input, output,session) {
                    conditionalPanel("input.tabsMultiple == 'Regulatory similarity heatmap'",
                                     hr(),h3("Regulatory similarity"),
                                     sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 2)
-                   ),
-                   downloadButton('downloadZIP', 'Download ZIP')
-                   
+                   )
       )
     }else{ # this is for a single column result file
       sidebarPanel(h3("Global Settings"), hr(),
-                   conditionalPanel("input.tabsSingleGF != 'Cell-type enrichment tables'",
+                   conditionalPanel("input.tabsSingleGF != 'Cell-type enrichment tables' && input.tabsSingleGF != 'Download'",
                      selectInput("cmbMatrix", label = "Results to visualize", 
                                  choices = list("P-values" = "matrix_PVAL.txt", 
                                                 "Odds Ratios" = "matrix_OR.txt"))
@@ -805,12 +842,11 @@ shinyServer(function(input, output,session) {
                                       selectInput("cmbAnnotation", label = "Annotation results to visualize", 
                                                   choices = file.names.annotation)
                                     }),
-                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt' && input.tabsSingleGF != 'Cell-type enrichment tables'",
+                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt' && input.tabsSingleGF != 'Cell-type enrichment tables' && input.tabsSingleGF != 'Download'",
                                     if(nrow(mtx)>1){
                                       selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
                                                   choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))}
-                   ),
-                   downloadButton('downloadZIP', 'Download ZIP')
+                   )
       )
     }
   })
