@@ -635,10 +635,19 @@ shinyServer(function(input, output,session) {
       # zip up text files
       files.txt <- list.files(get.results.dir(), pattern = "\\.txt$",full.names = T)
       file.names.annotation <- list.files(paste(get.results.dir(),"annotations",sep=""),full.names = T)
+      anot.path <- paste(get.results.dir(),"annotations.zip",sep="")
+      if (length(file.names.annotation) != 0 & !file.exists(anot.path)){
+        zip(zipfile <- anot.path ,files =  file.names.annotation,flags = "-j")
+      }
+      
+      enrich.path <- paste(get.results.dir(),"enrichment.zip",sep="")
       file.names.enrichment <- list.files(paste(get.results.dir(),"enrichment",sep=""),full.names = T)
-      file.all <- c(file.names.enrichment,file.names.annotation,files.txt)
+      if (length(file.names.enrichment) != 0 & !file.exists(enrich.path)){
+        zip(zipfile <- enrich.path,files = file.names.enrichment,flags = "-j")
+      }
+      file.all <- c(enrich.path,anot.path,files.txt)
       file.all <- gsub("//", "/" ,file.all)
-      zip(zipfile <- file,files = file.all)
+      zip(zipfile <- file,files = file.all,flags = "-j")
     },
     contentType = "application/zip"
   )
