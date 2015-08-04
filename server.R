@@ -10,14 +10,14 @@ source("functions/mtx.cellspecific.R")
 
 # # Mikhail paths
 #gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
-#results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_30x5matrix/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/largerun/"
 #results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_all_data/"
 #results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/Paper-Similarity/data_GWASdb2_manual/bed_selected/renamed/gappedPeak/"
-results.dir <- "/home/mdozmorov/Documents/results/rl4bwlih9giknkbw63n3cnu96h0up9g4/"
-results.dir <- "/media/sf_F_DRIVE/Work/GenomeRunner/R.GenomeRunner/data/test_cellspecific/"
+#results.dir <- "/home/mdozmorov/Documents/results/rl4bwlih9giknkbw63n3cnu96h0up9g4/"
+#results.dir <- "/media/sf_F_DRIVE/Work/GenomeRunner/R.GenomeRunner/data/test_cellspecific/"
 
 
-genomerunner.mode <- T
+genomerunner.mode <- F
 
 coloring.num = 50
 shinyServer(function(input, output,session) {
@@ -52,7 +52,7 @@ shinyServer(function(input, output,session) {
     class(mtx$cell) <- "character"
     mtx$cell[ is.na(mtx$cell) ] <- "dummy_cell" # If some file names is not in the gfAnnot dataframe (e.g., user-provided data), 'cell' column will contain NAs. replace them with dummy text to allow FDR correction
     unique.cells <- unique(mtx$cell) # Keep unique cell types
-    
+   
     # Adjust for multiple testing and -log10 transform, if needed
     for (i in 1:total.columns) { # Process each column
       for (u.c in unique.cells) { # Adjust for multiple testing on per-cell-type basis
@@ -63,20 +63,23 @@ shinyServer(function(input, output,session) {
         }
       }  
     }
-  
     mtx <- sign.mtx*mtx[,2:total.columns+1]
+    mtx
   })
   
   output$heatmapEnrich <- renderD3heatmap({
-    untransform.method = "none"
+    # force heatmap to be redrawn when controls change
+    untransform.method <- "none"
+    mtx <- get.adjust.matrix()
     if (input$cmbMatrix == "matrix_PVAL.txt"){
       mtx <- get.adjust.matrix()
-      untransform.method = "log10"
+      untransform.method <- "log10"
     }else{
       mtx <- get.matrix()
-      untransform.method = 'log2'
+      untransform.method <- 'log2'
     }
     n_limit = 20
+   
     # if n > 100, calculate SD for each row.
     if (nrow(mtx) > n_limit){
       #  calculate SD for each row.
@@ -87,13 +90,12 @@ shinyServer(function(input, output,session) {
       mtx.sd.order <- mtx.sd.order[1:n_limit,]
       mtx <- mtx.sd.order
     }
-    
+    dend.path <- paste(get.results.dir(),"heatmap.dend.rds", sep="")
     par(cex.main=0.65, oma=c(2,0,0,5), mar=c(5, 4.1, 4.1, 5)) # Adjust margins
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
-    d3heatmap::d3heatmap(as.matrix(mtx),heatmap_options = list(hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}), colors = coloring(coloring.num), tip_transformation = untransform.method, dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""),
-                         xaxis_font_size = "10pt", yaxis_font_size = "10pt")
-    
-  })
+    d3heatmap::d3heatmap(as.matrix(mtx),hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}, colors = coloring(coloring.num), tip_transformation = untransform.method,
+                         xaxis_font_size = "10pt", yaxis_font_size = "10pt",xaxis_height=200,yaxis_height=200,dendro.rds.path=dend.path)
+  }))
   
   
   
@@ -351,8 +353,9 @@ shinyServer(function(input, output,session) {
     cor.mat <- get.corr.matrix()
     hclustergram <- get.cor.hclust.dendrogram()
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
-    d3heatmap::d3heatmap(as.matrix(cor.mat),heatmap_options = list(Rowv=hclustergram,Colv=hclustergram,keep.dendro=TRUE),colors = coloring(coloring.num),dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""),
-                         xaxis_font_size = "10pt", yaxis_font_size = "10pt")
+    # TODO: Colv == Rowv?
+    d3heatmap::d3heatmap(as.matrix(cor.mat),Rowv=hclustergram,Colv='Rowv',colors = coloring(coloring.num),dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""),
+                         xaxis_font_size = "10pt", yaxis_font_size = "10pt",xaxis_height=200,yaxis_height=200)
   })
   
   output$legendEpisim <- renderPlot({
@@ -439,7 +442,6 @@ shinyServer(function(input, output,session) {
     plot(as.dendrogram(dend, hang=-1)) # Plot dendrogram
     cl_num <- input$sldEpisimNumClust # Empirically set desired numter of clusters
     cols <- rainbow(cl_num) # Make colos for clusters
-    print(cl_num)
     hcut <- heights_per_k.dendrogram(dend)[cl_num] # extract the height to cut based on # of groups
     # get the cluster labels
     mtx.clust <-validate(need(try(dend %>% mtx.clusters(height=hcut, minmembers=3)),"Try using a lower number of clusters"))
