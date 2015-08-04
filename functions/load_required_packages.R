@@ -6,5 +6,6 @@ library(Hmisc)
 library(shinyBS)
 library(scales)
 library(dplyr)
+library(gplots)
 
 gfAnnot <- read.table("data/gf_descriptions.txt",sep="\t",header=T, stringsAsFactors = FALSE)
