@@ -94,7 +94,7 @@ shinyServer(function(input, output,session) {
     par(cex.main=0.65, oma=c(2,0,0,5), mar=c(5, 4.1, 4.1, 5)) # Adjust margins
     coloring<-colorRampPalette(c("blue", "yellow", "red"))
     d3heatmap::d3heatmap(as.matrix(mtx),hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}, colors = coloring(coloring.num), tip_transformation = untransform.method,
-                         xaxis_font_size = "10pt", yaxis_font_size = "10pt",xaxis_height=200,yaxis_height=200,dendro.rds.path=dend.path,)
+                         xaxis_font_size = "10pt", yaxis_font_size = "10pt",xaxis_height=200,yaxis_height=200,dendro.rds.path=dend.path)
   })
   
   
@@ -748,7 +748,7 @@ shinyServer(function(input, output,session) {
                    conditionalPanel("input.tabsMultiple == 'Enrichment barplot' || input.tabsMultiple == 'Enrichment tables' || input.tabsMultiple == 'Cell-type enrichment tables'",
                                     selectInput("cmbFOI", "Select which SNP set to visualize", choices =   mtx.col.names)
                                     ),
-                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt' && input.tabsMultiple != 'Cell-type enrichment tables'" ,
+                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt' && input.tabsMultiple != 'Cell-type enrichment tables' && input.tabsMultiple != 'Differential regulatory analysis'" ,
                                     selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
                                                 choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))),
                    conditionalPanel("input.tabsMultiple == 'Annotation Analysis'",
