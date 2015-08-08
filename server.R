@@ -7,17 +7,18 @@ source("functions/mtx.untransform.R")
 source("functions/mtx.clusters.R")
 source("functions/mtx.degfs.R")
 source("functions/mtx.cellspecific.R")
+#shiny::runApp(host='0.0.0.0',port=4494)
 
 # # Mikhail paths
 #gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/largerun/"
+# results.dir <- "/home/lukas/db_2.00_06-10-2015/results/largerun/"
 #results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_all_data/"
 #results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/Paper-Similarity/data_GWASdb2_manual/bed_selected/renamed/gappedPeak/"
 #results.dir <- "/home/mdozmorov/Documents/results/rl4bwlih9giknkbw63n3cnu96h0up9g4/"
 #results.dir <- "/media/sf_F_DRIVE/Work/GenomeRunner/R.GenomeRunner/data/test_cellspecific/"
-
-
-genomerunner.mode <- F
+results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
+#results.dir <- "/home/mdozmorov/Documents/results/9eato61fpum8kucycs60kbcjpick32hd"
+genomerunner.mode <- T
 
 coloring.num = 50
 shinyServer(function(input, output,session) {
@@ -787,7 +788,7 @@ shinyServer(function(input, output,session) {
     if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
     if (single.feature == FALSE){
       sidebarPanel(width = 4,h3("Data Settings"),
-                   conditionalPanel("input.tabsMultiple != 'Cell-type enrichment tables' && input.tabsMultiple != 'Download'",
+                   conditionalPanel("input.tabsMultiple != 'Cell-type enrichment tables' && input.tabsMultiple != 'Download'  && input.tabsMultiple != 'Annotation Analysis'",
                      selectInput("cmbMatrix", label = "Results to visualize", 
                                  choices = list("P-values" = "matrix_PVAL.txt", 
                                                 "Odds Ratios" = "matrix_OR.txt")),
@@ -796,7 +797,7 @@ shinyServer(function(input, output,session) {
                    conditionalPanel("input.tabsMultiple == 'Enrichment barplot' || input.tabsMultiple == 'Enrichment tables' || input.tabsMultiple == 'Cell-type enrichment tables'",
                                     selectInput("cmbFOI", "Select which SNP set to visualize", choices =   mtx.col.names)
                                     ),
-                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt' && input.tabsMultiple != 'Cell-type enrichment tables' && input.tabsMultiple != 'Differential regulatory analysis'  && input.tabsMultiple != 'Download'" ,
+                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt' && input.tabsMultiple != 'Cell-type enrichment tables' && input.tabsMultiple != 'Differential regulatory analysis'  && input.tabsMultiple != 'Download' && input.tabsMultiple != 'Annotation Analysis'",
                                     selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
                                                 choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))),
                    conditionalPanel("input.tabsMultiple == 'Annotation Analysis'",
@@ -831,7 +832,7 @@ shinyServer(function(input, output,session) {
       )
     }else{ # this is for a single column result file
       sidebarPanel(h3("Global Settings"), hr(),
-                   conditionalPanel("input.tabsSingleGF != 'Cell-type enrichment tables' && input.tabsSingleGF != 'Download'",
+                   conditionalPanel("input.tabsSingleGF != 'Cell-type enrichment tables' && input.tabsSingleGF != 'Download' && input.tabsSingleGF != 'Annotation Analysis'",
                      selectInput("cmbMatrix", label = "Results to visualize", 
                                  choices = list("P-values" = "matrix_PVAL.txt", 
                                                 "Odds Ratios" = "matrix_OR.txt"))
@@ -842,7 +843,7 @@ shinyServer(function(input, output,session) {
                                       selectInput("cmbAnnotation", label = "Annotation results to visualize", 
                                                   choices = file.names.annotation)
                                     }),
-                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt' && input.tabsSingleGF != 'Cell-type enrichment tables' && input.tabsSingleGF != 'Download'",
+                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt' && input.tabsSingleGF != 'Cell-type enrichment tables' && input.tabsSingleGF != 'Download' && input.tabsSingleGF != 'Annotation Analysis'",
                                     if(nrow(mtx)>1){
                                       selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
                                                   choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))}
