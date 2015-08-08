@@ -8,4 +8,4 @@ library(scales)
 library(dplyr)
 library(gplots)
 
-gfAnnot <- read.table("data/gf_descriptions.txt",sep="\t",header=T, stringsAsFactors = FALSE)
+gfAnnot <- read.table("data/gf_descriptions.txt",sep="\t",header=T, stringsAsFactors = FALSE, fileEncoding="UTF-8")
