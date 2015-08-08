@@ -128,7 +128,7 @@ shinyServer(function(input, output,session) {
       pval.sig[ mtx[, selectedFOI] < 0.05 & mtx[, selectedFOI] > 0] <- "Overrepresented" 
       pval.sig[mtx[, selectedFOI] > -0.05 & mtx[, selectedFOI] < 0] <- "Underrepresented"
       
-      mtx.table <- cbind(abs(mtx[selectedFOI]), 
+      mtx.table <- cbind(scientific_format(3)(abs(mtx[selectedFOI])), 
                          pval.sig, 
                          mtx.adjust)
       colnames(mtx.table) <- c("P.value","Direction","P.adj")
