@@ -162,7 +162,7 @@ shinyServer(function(input, output,session) {
       }
     })
   }, options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
-                     pageLength = 50))
+                     pageLength = 10))
   
   
   
@@ -183,7 +183,7 @@ shinyServer(function(input, output,session) {
   output$tblAnnotation <- renderDataTable({
     get.annotation.table()
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
-                     pageLength = 50))
+                     pageLength = 10))
   
   outputOptions(output, "downloadEnrichTable", suspendWhenHidden=FALSE)
   
@@ -428,7 +428,7 @@ shinyServer(function(input, output,session) {
       }
     })
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
-                    pageLength = 50))
+                    pageLength = 10))
   
   output$downloadEpigenetics <- downloadHandler(
     filename = function() { 
@@ -492,7 +492,7 @@ shinyServer(function(input, output,session) {
       }
     })
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
-                     pageLength = 50))
+                     pageLength = 10))
   
   output$downloadCTEnrichment <- downloadHandler(
     filename = function() { 
