@@ -14,7 +14,7 @@ mtx.cellspecific <- function(mtx, fname=NULL, pval=0.01) {
   if (nrow(mtx) <= 5) return("Insufficient data for performing cell type-specific enrichment analysis") # If too few genomic features, no analysis can be performed
   n.fois <- ncol(mtx) # Total number of SNP sets (FOIs) to calculate the cell type-specific p-values
   # Prepare the matrix for merging with GF annotations
-  mtx <- as.data.frame(cbind(GF=rownames(mtx), mtx))
+  mtx <- as.data.frame(cbind(GF=rownames(mtx), mtx), stringsAsFactors = FALSE)
   mtx <- left_join(mtx, gfAnnot[, c("file_name", "cell", "factor")], by=c("GF" = "file_name")) 
   mtx$cell[ is.na(mtx$cell) ] <- "dummy_cell" # If some file names is not in the gfAnnot dataframe (e.g., user-provided data), 'cell' column will contain NAs. replace them with dummy text to allow cell type-specific analysis
   
