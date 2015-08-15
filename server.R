@@ -11,14 +11,14 @@ source("functions/mtx.cellspecific.R")
 
 # # Mikhail paths
 #gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
-# results.dir <- "/home/lukas/db_2.00_06-10-2015/results/largerun/"
+results.dir <- "/home/lukas/db_2.00_06-10-2015/results/largerun/"
 #results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_all_data/"
 #results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/Paper-Similarity/data_GWASdb2_manual/bed_selected/renamed/gappedPeak/"
 #results.dir <- "/home/mdozmorov/Documents/results/rl4bwlih9giknkbw63n3cnu96h0up9g4/"
 #results.dir <- "/media/sf_F_DRIVE/Work/GenomeRunner/R.GenomeRunner/data/test_cellspecific/"
-results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
+#results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
 #results.dir <- "/home/mdozmorov/Documents/results/9eato61fpum8kucycs60kbcjpick32hd"
-genomerunner.mode <- T
+genomerunner.mode <- F
 
 coloring.num = 50
 shinyServer(function(input, output,session) {
@@ -69,33 +69,36 @@ shinyServer(function(input, output,session) {
   })
   
   output$heatmapEnrich <- renderD3heatmap({
-    # force heatmap to be redrawn when controls change
-    untransform.method <- "none"
-    mtx <- get.adjust.matrix()
-    if (input$cmbMatrix == "matrix_PVAL.txt"){
+    withProgress({
+      # force heatmap to be redrawn when controls change
+      untransform.method <- "none"
       mtx <- get.adjust.matrix()
-      untransform.method <- "log10"
-    }else{
-      mtx <- get.matrix()
-      untransform.method <- 'log2'
-    }
-    n_limit = 20
-   
-    # if n > 100, calculate SD for each row.
-    if (nrow(mtx) > n_limit){
-      #  calculate SD for each row.
-      mtx.sd <- apply(mtx,1,sd)
-      mtx.sd <- data.frame(mtx.sd)
-      # sort rows based on SD
-      mtx.sd.order <- mtx[order(mtx.sd,decreasing = T),]
-      mtx.sd.order <- mtx.sd.order[1:n_limit,]
-      mtx <- mtx.sd.order
-    }
-    dend.path <- paste(get.results.dir(),"heatmap.dend.rds", sep="")
-    par(cex.main=0.65, oma=c(2,0,0,5), mar=c(5, 4.1, 4.1, 5)) # Adjust margins
-    coloring<-colorRampPalette(c("blue", "yellow", "red"))
-    d3heatmap::d3heatmap(as.matrix(mtx),hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}, colors = coloring(coloring.num), tip_transformation = untransform.method,
+      if (input$cmbMatrix == "matrix_PVAL.txt"){
+        mtx <- get.adjust.matrix()
+        untransform.method <- "log10"
+      }else{
+        mtx <- get.matrix()
+        untransform.method <- 'log2'
+      }
+      n_limit = 20
+     
+      # if n > 100, calculate SD for each row.
+      if (nrow(mtx) > n_limit){
+        #  calculate SD for each row.
+        mtx.sd <- apply(mtx,1,sd)
+        mtx.sd <- data.frame(mtx.sd)
+        # sort rows based on SD
+        mtx.sd.order <- mtx[order(mtx.sd,decreasing = T),]
+        mtx.sd.order <- mtx.sd.order[1:n_limit,]
+        mtx <- mtx.sd.order
+      }
+      dend.path <- paste(get.results.dir(),"heatmap.dend.rds", sep="")
+      par(cex.main=0.65, oma=c(2,0,0,5), mar=c(5, 4.1, 4.1, 5)) # Adjust margins
+      coloring<-colorRampPalette(c("blue", "yellow", "red"))
+     
+      d3heatmap::d3heatmap(as.matrix(mtx),hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}, colors = coloring(coloring.num), tip_transformation = untransform.method,
                          xaxis_font_size = "10pt", yaxis_font_size = "10pt",xaxis_height=200,yaxis_height=200,dendro.rds.path=dend.path)
+      }, message = "Rendering heatmap",value = 1.0)
   })
   
   
@@ -152,15 +155,17 @@ shinyServer(function(input, output,session) {
   })
   
   output$tblEnrichment <-renderDataTable({
-    num.char <- 50
-    table.enrich <- get.enrichment.table()
-    table.enrich <- apply(table.enrich,c(1,2),function(x) {
-      if (!is.na(x) & nchar(x)>num.char){
-        return(paste(substring(x,1,num.char),  "..."))
-      } else{
-        return(x)
-      }
-    })
+    withProgress({
+      num.char <- 50
+      table.enrich <- get.enrichment.table()
+      table.enrich <- apply(table.enrich,c(1,2),function(x) {
+        if (!is.na(x) & nchar(x)>num.char){
+          return(paste(substring(x,1,num.char),  "..."))
+        } else{
+          return(x)
+        }
+      })
+    }, message = "Loading enrichment table",value=1.0)
   }, options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
                      pageLength = 10))
   
@@ -176,8 +181,9 @@ shinyServer(function(input, output,session) {
   )
   
   get.annotation.table <- reactive({
+    withProgress({
     validate(need(try(mtx <- read.table(paste(get.results.dir(),"annotations/", input$cmbAnnotation,sep=""),header=T)),"Annotation results not available."))
-    mtx
+    mtx}, message = "Loading Annotation table",value=1.0)
   })
   
   output$tblAnnotation <- renderDataTable({
@@ -348,15 +354,17 @@ shinyServer(function(input, output,session) {
   })
   
   output$heatmapEpisim <- renderD3heatmap({ 
-    mat <- get.matrix()
-    validate(need(ncol(mat)>2,"Need at least 3 SNPs of interest files to perform clustering."))
-    validate(need(nrow(mat)>4,"Need at least 5 genome features to perform clustering."))
-    cor.mat <- get.corr.matrix()
-    hclustergram <- get.cor.hclust.dendrogram()
-    coloring<-colorRampPalette(c("blue", "yellow", "red"))
-    # TODO: Colv == Rowv?
-    d3heatmap::d3heatmap(as.matrix(cor.mat),Rowv=hclustergram,Colv='Rowv',colors = coloring(coloring.num),dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""),
-                         xaxis_font_size = "10pt", yaxis_font_size = "10pt",xaxis_height=200,yaxis_height=200)
+    withProgress({
+      mat <- get.matrix()
+      validate(need(ncol(mat)>2,"Need at least 3 SNPs of interest files to perform clustering."))
+      validate(need(nrow(mat)>4,"Need at least 5 genome features to perform clustering."))
+      cor.mat <- get.corr.matrix()
+      hclustergram <- get.cor.hclust.dendrogram()
+      coloring<-colorRampPalette(c("blue", "yellow", "red"))
+      # TODO: Colv == Rowv?
+      d3heatmap::d3heatmap(as.matrix(cor.mat),Rowv=hclustergram,Colv='Rowv',colors = coloring(coloring.num),dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""),
+                           xaxis_font_size = "10pt", yaxis_font_size = "10pt",xaxis_height=200,yaxis_height=200)
+    }, message = "Rendering heatmap",value = 1.0)
   })
   
   output$legendEpisim <- renderPlot({
@@ -393,23 +401,27 @@ shinyServer(function(input, output,session) {
   })
   
   get.epigenetics.table <- reactive({
-    mtx.deg <- calculate.clust()
-    # check if any results were returned
-    if (is.null(names(mtx.deg))){ 
-      return(data.frame(NoResult="There is nothing signficant to show"))
-    }
-    selectedCor = names(mtx.deg)[1]
-    # save last selected value
-    if (input$cmbEpigenetics != "Results not ready yet.") {
-      if (input$cmbEpigenetics %in% names(mtx.deg)){
-        selectedCor = input$cmbEpigenetics
+    withProgress({
+      mtx.deg <- calculate.clust()
+      # check if any results were returned
+      if (is.null(names(mtx.deg))){ 
+        return(data.frame(NoResult="There is nothing signficant to show"))
       }
-      updateSelectInput(session,"cmbEpigenetics",choices=names(mtx.deg),selected = selectedCor)
-    }
-    #convert values to numeric form for sorting purposes
-    for(x in list("adj.p.val",3,4)){
-      mtx.deg[[selectedCor]][[x]] <- as.numeric(mtx.deg[[selectedCor]][[x]])
-    }
+      selectedCor = names(mtx.deg)[1]
+      # save last selected value
+      if (input$cmbEpigenetics != "Results not ready yet.") {
+        if (input$cmbEpigenetics %in% names(mtx.deg)){
+          selectedCor = input$cmbEpigenetics
+        }
+        updateSelectInput(session,"cmbEpigenetics",choices=names(mtx.deg),selected = selectedCor)
+      }
+    }, message = "Calculating epigenetic data",value = 1.0)
+    withProgress({
+      #convert values to numeric form for sorting purposes
+      for(x in list("adj.p.val",3,4)){
+        mtx.deg[[selectedCor]][[x]] <- as.numeric(mtx.deg[[selectedCor]][[x]])
+      }
+    }, message = "Formatting data",value=1.0)
     mtx.deg[[selectedCor]][,c("cell", "cell_desc", "factor", "factor_desc", "source", "source_desc")]
   })
   
@@ -440,26 +452,28 @@ shinyServer(function(input, output,session) {
   )
   
   output$pltDend <- renderPlot({ 
-    mtx <- get.matrix()
-    validate(need(ncol(mtx)>2,""))
-    validate(need(nrow(mtx)>4,""))
-    
-    cor.mat <- get.corr.matrix() # this line ensure that dendrogram is redrawn when heatmap is
-    hclustergram <- get.cor.hclust.dendrogram() # ensures that dendrogram is redrawn when hclust method is changed
-    
-    dend = readRDS(file = paste(get.results.dir(), "heatmap.dend.rds",sep=""))
-    plot(as.dendrogram(dend, hang=-1)) # Plot dendrogram
-    cl_num <- input$sldEpisimNumClust # Empirically set desired numter of clusters
-    cols <- rainbow(cl_num) # Make colos for clusters
-    hcut <- heights_per_k.dendrogram(dend)[cl_num] # extract the height to cut based on # of groups
-    # get the cluster labels
-    mtx.clust <-validate(need(try(dend %>% mtx.clusters(height=hcut, minmembers=3)),"Try using a lower number of clusters"))
-    # write.table(as.data.frame(mtx.clust), "/home/lukas/clustering_all.txt", sep="\t", row.names=FALSE, quote=FALSE)
-    mtx = load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep="")) # load the original matrix
-    
-    # Define the clusters by rectangles
-    validate(need(try(rect.hclust( as.hclust(dend), k=cl_num, border=cols)),"Try a different clustering method."))
-    
+    withProgress({
+      mtx <- get.matrix()
+      validate(need(ncol(mtx)>2,""))
+      validate(need(nrow(mtx)>4,""))
+      
+      cor.mat <- get.corr.matrix() # this line ensure that dendrogram is redrawn when heatmap is
+      hclustergram <- get.cor.hclust.dendrogram() # ensures that dendrogram is redrawn when hclust method is changed
+      
+      dend = readRDS(file = paste(get.results.dir(), "heatmap.dend.rds",sep=""))
+      plot(as.dendrogram(dend, hang=-1)) # Plot dendrogram
+      cl_num <- input$sldEpisimNumClust # Empirically set desired numter of clusters
+      cols <- rainbow(cl_num) # Make colos for clusters
+      hcut <- heights_per_k.dendrogram(dend)[cl_num] # extract the height to cut based on # of groups
+      # get the cluster labels
+      mtx.clust <-validate(need(try(dend %>% mtx.clusters(height=hcut, minmembers=3)),"Try using a lower number of clusters"))
+      # write.table(as.data.frame(mtx.clust), "/home/lukas/clustering_all.txt", sep="\t", row.names=FALSE, quote=FALSE)
+      mtx = load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep="")) # load the original matrix
+      
+      # Define the clusters by rectangles
+      validate(need(try(rect.hclust( as.hclust(dend), k=cl_num, border=cols)),"Try a different clustering method."))
+    }, message = "Rendering dendrogram", value = 1.0)
+      
   })
   
   calculateCTEnrichment <- reactive({
@@ -482,15 +496,17 @@ shinyServer(function(input, output,session) {
   })
   
   output$tblCTEnrichment <- renderDataTable({
-    table.CTE <-  get.CTEnrichment.table()
-    num.char <- 50
-    table.CTE  <- apply( table.CTE ,c(1,2),function(x) {
-      if (!is.na(x) & nchar(x)>num.char){
-        return(paste(substring(x,1,num.char),  "..."))
-      } else{
-        return(x)
-      }
-    })
+    withProgress({
+      table.CTE <-  get.CTEnrichment.table()
+      num.char <- 50
+      table.CTE  <- apply( table.CTE ,c(1,2),function(x) {
+        if (!is.na(x) & nchar(x)>num.char){
+          return(paste(substring(x,1,num.char),  "..."))
+        } else{
+          return(x)
+        }
+      })
+    }, message = "Loading table", value = 1.0)
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
                      pageLength = 10))
   
