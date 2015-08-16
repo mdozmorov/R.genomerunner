@@ -665,23 +665,36 @@ shinyServer(function(input, output,session) {
       mtx <- get.matrix()
       if (ncol(mtx)>1 & nrow(mtx)>1){get.corr.matrix()}
       
+      
       # Append gfAnnot columns to the end of the PVAL and OR matrix
-      mtx <- load_gr_data(paste(get.results.dir(),"matrix_PVAL.txt",sep=""))
+      mtx <- read.csv(paste(get.results.dir(),"matrix_PVAL.txt",sep=""),sep = '\t')
       mtx <- data.frame(GF=rownames(mtx), mtx)
       mtx <- left_join(mtx, gfAnnot, by=c("GF" = "file_name"))
       rownames(mtx) <- mtx$GF; mtx$GF <- NULL
       write.table(mtx,file=paste(get.results.dir(),"matrix_PVAL_annot.txt",sep=""), sep="\t", quote=FALSE, col.names=NA)
       
-      mtx <- load_gr_data(paste(get.results.dir(),"matrix_OR.txt",sep=""))
+      mtx <- read.csv(paste(get.results.dir(),"matrix_OR.txt",sep=""),sep = '\t')
       mtx <- data.frame(GF=rownames(mtx), mtx)
       mtx <- left_join(mtx, gfAnnot, by=c("GF" = "file_name"))
       rownames(mtx) <- mtx$GF; mtx$GF <- NULL
       write.table(mtx,file=paste(get.results.dir(),"matrix_OR_annot.txt",sep=""), sep="\t", quote=FALSE, col.names=NA)
+      mtx.clust = tryCatch({
+         calculate.clust()
+       }, error = function(e) {
+        "Try different clustering settings"
+       })
       
+      # save each new data frame as an individual .csv file based on its name
+      
+      lapply(1:length(mtx.clust), function(i) write.table(mtx.clust[[i]], 
+                                                      file = paste0(get.results.dir(),names(mtx.clust[i]), ".txt"),
+                                                      quote=F,row.names = F,sep='\t'))
+     
       # zip up text files
       files.txt <- as.character(sapply(c("gr_log.txt","detailed.txt","matrix_PVAL_annot.txt","matrix_OR_annot.txt","matrix_CORR.txt"), function(x){
         paste(get.results.dir(),x,sep = "")
       }))
+      files.txt <- append(files.txt, paste0(get.results.dir(),names(mtx.clust), ".txt"))
       file.names.annotation <- list.files(paste(get.results.dir(),"annotations",sep=""),full.names = T)
       anot.path <- paste(get.results.dir(),"annotations.zip",sep="")
       if (length(file.names.annotation) != 0 & !file.exists(anot.path)){
