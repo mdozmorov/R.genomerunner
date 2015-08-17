@@ -1,6 +1,8 @@
 Examples of visualization and analysis of the enrichment and epigenomic similarity results
 ========================================================
 
+R.genomerunner is currently developed in [shiny branch](https://github.com/mdozmorov/R.genomerunner/tree/shiny)
+
 Scripts for processing the enrichment analysis matrixes produced by [GenomeRunner Web](http://www.genomerunner.org) or [GenomeRunner](http://sourceforge.net/projects/genomerunner/). The scripts are developed in, and best used with [RStudio](http://www.rstudio.com/)
 
 * `Analysis.Rmd and Analysis.html` - The main tutorial for the enrichment and regulatory similarity analyses and visualization in R.
