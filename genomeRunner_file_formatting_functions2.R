@@ -123,6 +123,10 @@ getV1OddsRatioPvalMatrix <- function(infile){
   
   #get patients/disease features
   pdf <- as.character(v1[parsed_GF$dstart[1]:parsed_GF$dend[1],]$foi_name)
+  pdf <- sub(".bed", "", pdf) # Remove ".bed", if any
+  for (i in 1:length(pdf)) {
+    pdf[i] <- tail(unlist(strsplit(pdf[i], "\\\\")), n=1) # Remove full path
+  }
   
   data <- list()
   
