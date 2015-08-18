@@ -9,15 +9,10 @@ source("functions/mtx.degfs.R")
 source("functions/mtx.cellspecific.R")
 #shiny::runApp(host='0.0.0.0',port=4494)
 
-# # Mikhail paths
-#gfAnnot <- read.table("/Users/mikhail/Documents/Work/GenomeRunner/genome_runner/db/gf_descriptions.txt", sep="\t",header=T)
 results.dir <- "/home/lukas/db_2.00_06-10-2015/results/largerun/"
-#results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/R.GenomeRunner/data/test_all_data/"
-#results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/Paper-Similarity/data_GWASdb2_manual/bed_selected/renamed/gappedPeak/"
-#results.dir <- "/home/mdozmorov/Documents/results/rl4bwlih9giknkbw63n3cnu96h0up9g4/"
-#results.dir <- "/media/sf_F_DRIVE/Work/GenomeRunner/R.GenomeRunner/data/test_cellspecific/"
-#results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
-#results.dir <- "/home/mdozmorov/Documents/results/9eato61fpum8kucycs60kbcjpick32hd"
+# Mikhail paths
+# results.dir <- "/Users/mikhail/Documents/tmp/results/ey6zzmizv8wblt0spzf9sfg7gx6sk4z7/"
+
 genomerunner.mode <- F
 
 coloring.num = 50
@@ -392,7 +387,7 @@ shinyServer(function(input, output,session) {
     if(input$cmbMatrix == "matrix_PVAL.txt"){
       is.OR = F
     }
-    mtx.deg <- suppressWarnings(mtx.degfs(mtx[, mtx.clust$eset.labels], mtx.clust, label="broadPeak2",isOR = is.OR))
+    mtx.deg <- suppressWarnings(mtx.degfs(mtx[, mtx.clust$eset.labels], mtx.clust, isOR = is.OR))
     
     updateSelectInput(session,"cmbEpigenetics","Select which regulatory table to render",choices = names(mtx.deg))
     mtx.deg.path = paste(get.results.dir(),"mtx.deg.episim.RDS",sep = "")
@@ -415,14 +410,14 @@ shinyServer(function(input, output,session) {
         }
         updateSelectInput(session,"cmbEpigenetics",choices=names(mtx.deg),selected = selectedCor)
       }
-    }, message = "Calculating epigenetic data",value = 1.0)
+    }, message = "Calculating regulatory differences",value = 1.0)
     withProgress({
       #convert values to numeric form for sorting purposes
       for(x in list("adj.p.val",3,4)){
         mtx.deg[[selectedCor]][[x]] <- as.numeric(mtx.deg[[selectedCor]][[x]])
       }
     }, message = "Formatting data",value=1.0)
-    mtx.deg[[selectedCor]][,c("cell", "cell_desc", "factor", "factor_desc", "source", "source_desc")]
+    mtx.deg[[selectedCor]][, !(colnames(mtx.deg[[1]]) %in% c("full_path", "URL", "full_description", "category", "category_desc"))]
   })
   
   output$tblEpigenetics <-renderDataTable({
