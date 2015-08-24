@@ -12,7 +12,7 @@ source("functions/mtx.cellspecific.R")
 results.dir <- "/home/lukas/db_2.00_06-10-2015/results/largerun/"
 # Mikhail paths
 # results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
-results.dir <- "/Users/mikhail/Documents/tmp/results/jp2j633uvobkq8tsjp0rg50kp0c9o8m5/"
+results.dir <- "/Users/mikhail/Documents/tmp/results/py4rdowe2jhj90jd9y1sy4c0gsz7t9bj/"
 
 genomerunner.mode <- F
 
@@ -425,7 +425,7 @@ shinyServer(function(input, output,session) {
     mtx <- get.matrix()
     validate(need(ncol(mtx)>2,"Need at least 3 SNPs of interest files to perform clustering."))
     validate(need(nrow(mtx)>4,"Need at 5 least genome features to perform clustering."))
-    validate(need(try(get.epigenetics.table()),"Either nothing is significant, or the analysis can't be run. Try a different clustering method."))
+    validate(need(try(get.epigenetics.table()),"Either nothing is significant, or there are too few SNP sets per cluster. Re-run the analysis using more SNP sets, or try a different clustering method."))
     table.epi <- get.epigenetics.table()
     num.char <- 50
     table.epi <- apply( table.epi,c(1,2),function(x) {
