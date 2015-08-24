@@ -11,7 +11,8 @@ source("functions/mtx.cellspecific.R")
 
 results.dir <- "/home/lukas/db_2.00_06-10-2015/results/largerun/"
 # Mikhail paths
-# results.dir <- "/Users/mikhail/Documents/tmp/results/ey6zzmizv8wblt0spzf9sfg7gx6sk4z7/"
+# results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
+results.dir <- "/Users/mikhail/Documents/tmp/results/pvj2kxn5p2195hy1zp92kt4kwkm2jzec/"
 
 genomerunner.mode <- F
 
@@ -67,7 +68,7 @@ shinyServer(function(input, output,session) {
     withProgress({
       # force heatmap to be redrawn when controls change
       untransform.method <- "none"
-      mtx <- get.adjust.matrix()
+      # mtx <- get.adjust.matrix()
       if (input$cmbMatrix == "matrix_PVAL.txt"){
         mtx <- get.adjust.matrix()
         untransform.method <- "log10"
@@ -126,10 +127,8 @@ shinyServer(function(input, output,session) {
       pval.sig[ mtx[, selectedFOI] < 0.05 & mtx[, selectedFOI] > 0] <- "Overrepresented" 
       pval.sig[mtx[, selectedFOI] > -0.05 & mtx[, selectedFOI] < 0] <- "Underrepresented"
       
-      mtx.table <- cbind(scientific_format(3)(abs(mtx[selectedFOI])), 
-                         pval.sig, 
-                         mtx.adjust)
-      colnames(mtx.table) <- c("P.value","Direction","P.adj")
+      mtx.table <- cbind(scientific_format(3)(abs(mtx[selectedFOI])), pval.sig, scientific_format(3)(mtx.adjust))
+      colnames(mtx.table) <- c("p.value","direction","adj.p.val")
     }else{ 
       # for odds ratio
       or.sig <- rep("Not significant", nrow(mtx))
@@ -137,7 +136,7 @@ shinyServer(function(input, output,session) {
       or.sig[mtx[, selectedFOI] < 1] <- "Depleted"
       mtx.table <- cbind(abs(mtx[selectedFOI]),
                          or.sig)
-      colnames(mtx.table) <- c("Odds.ratio","Direction")
+      colnames(mtx.table) <- c("odds.ratio","direction")
     }
     mtx.table = cbind(GF.Name = rownames(mtx.table),mtx.table) # make the GF.name a column instead of just the rowname so we can left_join
     rownames(mtx.table) <- NULL
@@ -411,12 +410,14 @@ shinyServer(function(input, output,session) {
         updateSelectInput(session,"cmbEpigenetics",choices=names(mtx.deg),selected = selectedCor)
       }
     }, message = "Calculating regulatory differences",value = 1.0)
-    withProgress({
-      #convert values to numeric form for sorting purposes
+    #convert values to numeric form for sorting purposes
+    if(input$cmbMatrix == "matrix_PVAL.txt"){
       for(x in list("adj.p.val",3,4)){
-        mtx.deg[[selectedCor]][[x]] <- as.numeric(mtx.deg[[selectedCor]][[x]])
+        mtx.deg[[selectedCor]][[x]] <- scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][[x]]))
       }
-    }, message = "Formatting data",value=1.0)
+    } else {
+        mtx.deg[[selectedCor]][["adj.p.val"]] <- scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][["adj.p.val"]]))
+      }
     mtx.deg[[selectedCor]][, !(colnames(mtx.deg[[1]]) %in% c("full_path", "URL", "full_description", "category", "category_desc"))]
   })
   
@@ -424,7 +425,7 @@ shinyServer(function(input, output,session) {
     mtx <- get.matrix()
     validate(need(ncol(mtx)>2,"Need at least 3 SNPs of interest files to perform clustering."))
     validate(need(nrow(mtx)>4,"Need at 5 least genome features to perform clustering."))
-    validate(need(try(get.epigenetics.table()),"Try a different clustering method."))
+    validate(need(try(get.epigenetics.table()),"Either nothing is significant, or the analysis can't be run. Try a different clustering method."))
     table.epi <- get.epigenetics.table()
     num.char <- 50
     table.epi <- apply( table.epi,c(1,2),function(x) {
