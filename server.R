@@ -134,17 +134,12 @@ shinyServer(function(input, output,session) {
       or.sig <- rep("Not significant", nrow(mtx))
       or.sig[mtx[, selectedFOI] > 1] <- "Enriched"
       or.sig[mtx[, selectedFOI] < 1] <- "Depleted"
-      mtx.table <- cbind(abs(mtx[selectedFOI]),
-                         or.sig)
+      mtx.table <- cbind(scientific_format(3)(abs(mtx[selectedFOI])), or.sig)
       colnames(mtx.table) <- c("odds.ratio","direction")
     }
     mtx.table = cbind(GF.Name = rownames(mtx.table),mtx.table) # make the GF.name a column instead of just the rowname so we can left_join
     rownames(mtx.table) <- NULL
-    # gfAnnot is loaded in utils2
-    
-    mtx.table <- left_join(mtx.table,gfAnnot[,(names(gfAnnot) %in% c("file_name", "cell", "cell_desc", "factor", "factor_desc", "source", "source_desc"))],
-                           by=c("GF.Name"="file_name"))
-    
+    mtx.table <- left_join(mtx.table,gfAnnot[,(names(gfAnnot) %in% c("file_name", "cell", "cell_desc", "factor", "factor_desc", "source", "source_desc"))], by=c("GF.Name"="file_name"))
     return(mtx.table)
   })
   
