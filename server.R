@@ -12,7 +12,7 @@ source("functions/mtx.cellspecific.R")
 results.dir <- "/home/lukas/db_2.00_06-10-2015/results/largerun/"
 # Mikhail paths
 # results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
-results.dir <- "/Users/mikhail/Documents/tmp/results/pvj2kxn5p2195hy1zp92kt4kwkm2jzec/"
+results.dir <- "/Users/mikhail/Documents/tmp/results/jp2j633uvobkq8tsjp0rg50kp0c9o8m5/"
 
 genomerunner.mode <- F
 
@@ -388,7 +388,7 @@ shinyServer(function(input, output,session) {
     }
     mtx.deg <- suppressWarnings(mtx.degfs(mtx[, mtx.clust$eset.labels], mtx.clust, isOR = is.OR))
     
-    updateSelectInput(session,"cmbEpigenetics","Select which regulatory table to render",choices = names(mtx.deg))
+    updateSelectInput(session,"cmbEpigenetics","Select which comparison to show",choices = names(mtx.deg))
     mtx.deg.path = paste(get.results.dir(),"mtx.deg.episim.RDS",sep = "")
     saveRDS(mtx.deg,file=mtx.deg.path)
     return(mtx.deg)
@@ -721,50 +721,66 @@ shinyServer(function(input, output,session) {
     if (single.feature == FALSE){
       tabsetPanel(id="tabsMultiple",
                   tabPanel("Enrichment heatmap",
+                           br("Heatmap of the enrichment analysis results. Rows - names of regulatory elements, columns - names of SNP sets, cells - enrichment p-values/odds ratios. Blue/red gradient highlights depleted/enriched associations for corresponding regulatory elements and SNP sets, respectively"),
+                           br("Mouse over the heatmap to see numerical values. Click-and-drag to zoom in, single click to reset zoom."),
                            downloadButton('downloadEnrichHeatmap',"Download PDF"),
                            d3heatmapOutput("heatmapEnrich", width = "100%", height = "600px"),
                            plotOutput("legendEnrich",width="300px",height="150px")
                   ), 
                   tabPanel("Enrichment barplot",
+                           br("SNP set-specific enrichment results. Height of bars corresponds to the strength of enriched/depleted associations, top/bottom barplot, respectively."),
                            downloadButton('downloadEnrichBarPDF', 'Download PDF'),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
                            plotOutput("pltEnrichDown", width="100%", height= "350px")
                   ),
                   tabPanel("Enrichment tables",
-                           br(),br(),
-                           downloadButton('downloadEnrichTable', 'Download table in tab-separated format'),
+                           br("Enrichment analysis results in text format."),
+                           br(),
+                           downloadButton('downloadEnrichTable', 'Download table'),
                            br(),br(),
                            DT::dataTableOutput("tblEnrichment")),
                   tabPanel("Regulatory similarity heatmap",
                            fluidPage(
                              fluidRow(
                                column(6,
+                                      br("Heatmap of regulatory similarity among SNP sets. Cells show correlation coefficients for each pair-wise correlation of SNP set-specific regulatory profiles."),
+                                      br("Mouse over the heatmap to see numerical values. Click-and-drag to zoom in, single click to reset zoom."),
                                       downloadButton('downloadEpisimHeatmap', 'Download PDF'),
                                       d3heatmapOutput("heatmapEpisim", width = "100%", height = "600px"),
                                       plotOutput("legendEpisim",width="300px",height="150px")
                                ),
-                               column(6, 
+                               column(6,
+                                      br("Dedrogram of regulatory similarity among SNP sets. Clusters of SNP sets having strong regulatory similarity indicates these SNP sets are enriched in similar regulatory elements."),
+                                      br("Adjust the number of clusters to identify regulatory differences among them on the \"Differential regulatory analysis\" tab."),
                                       plotOutput("pltDend",width = "100%", height = "500px")
                                )
                              )
                            )),
                   tabPanel("Differential regulatory analysis",
-                           selectInput("cmbEpigenetics", "Select which results to show", choices = list("Results not ready yet.")),
-                           br(),br(),
-                           downloadButton('downloadEpigenetics', 'Download table in tab-separated format'),
+                           br("Differential regulatory analysis identifies regulatory elements differentially enriched between clusters of SNP sets (e.g., \"cX_vs_cY\"). Adjust the number of clusters and other clustering metrics on the \"Regulatory similarity heatmap\" tab."),
+                           br(),
+                           selectInput("cmbEpigenetics", "Select which comparison to show", choices = list("Results not ready yet.")),
+                           br(),
+                           downloadButton('downloadEpigenetics', 'Download table'),
                            br(),br(),
                            DT::dataTableOutput("tblEpigenetics")),
                   if (length(file.names.annotation)>0){
                     tabPanel("Annotation Analysis",
+                           br("Annotation analysis tables. Each SNP in a set (rows) is annotated for overlap with regulatory elements (columns). A non-zero value indicates a SNP overlaps corresponding regulatory element."),
+                           br("If more than 100 regulatory elements were selected, the annotation tables are split into multiple tables, each having 100 columns or less."),
+                           br(),
                            downloadButton('downloadAnnotation', 'Download Table'),
+                           br(),br(),
                            DT::dataTableOutput("tblAnnotation"))
                   }else{
                     conditionalPanel('False',tabPanel("Annotation Analysis")
                     )
                   },
-                  tabPanel("Cell-type enrichment tables",
-                           br(),br(),
-                           downloadButton('downloadCTEnrichment', 'Download table in tab-separated format'),
+                  tabPanel("Cell-type enrichment analysis",
+                           br("Cell-type enrichment analysis detects cell type specificity of the enrichments of SNP sets. It tests whether enrichments in cell type-specific regulatory elements (AvPvalCell) are significantly different from the average enrichments (AvPvalTot)."),
+                           br("This analysis requires several enrichment analyses per cell type. E.g., selecting \"DNase\" regulatory elements, with one regulatory set per cell type will provide insufficient information for cell type-specific enrichment analysis. Select categories of regulatory elements having multiple cell type-specific regulatory data, e.g., \"Histone\" and/or \"chromStates\"."),
+                           br(),
+                           downloadButton('downloadCTEnrichment', 'Download table'),
                            br(),br(),
                            DT::dataTableOutput("tblCTEnrichment")),
                   tabPanel("Download",
@@ -775,26 +791,33 @@ shinyServer(function(input, output,session) {
     } else{ # this UI is created when only a single GF result is returned
       tabsetPanel(id="tabsSingleGF",
                   tabPanel("Enrichment barplot",
+                           br("SNP set-specific enrichment results. Height of bars corresponds to the strength of enriched/depleted associations, top/bottom barplot, respectively."),
                            downloadButton('downloadEnrichBarPDF', 'Download PDF'),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
                            plotOutput("pltEnrichDown", width="100%", height= "350px")
                   ),
                   tabPanel("Enrichment tables",
-                           br(),br(),
-                           downloadButton('downloadEnrichTable', 'Download table in tab-separated format'),
+                           br("Enrichment analysis results in text format."),
+                           br(),
+                           downloadButton('downloadEnrichTable', 'Download table'),
                            br(),br(),
                            DT::dataTableOutput("tblEnrichment")),
                   if (length(file.names.annotation)>0){
                     tabPanel("Annotation Analysis",
+                             br("Annotation analysis tables. Each SNP in a set (rows) is annotated for overlap with regulatory elements (columns). A non-zero value indicates a SNP overlaps corresponding regulatory element."),
+                             br("If more than 100 regulatory elements were selected, the annotation tables are split into multiple tables, each having 100 columns or less."),
+                             br(),
                              downloadButton('downloadAnnotation', 'Download Table'),
                              DT::dataTableOutput("tblAnnotation"))
                   }else{
                     conditionalPanel('False',tabPanel("Annotation Analysis")
                     )
                   },
-                  tabPanel("Cell-type enrichment tables",
-                           br(),br(),
-                           downloadButton('downloadCTEnrichment', 'Download table in tab-separated format'),
+                  tabPanel("Cell-type enrichment analysis",
+                           br("Cell-type enrichment analysis detects cell type specificity of the enrichments of SNP sets. It tests whether enrichments in cell type-specific regulatory elements (AvPvalCell) are significantly different from the average enrichments (AvPvalTot)."),
+                           br("This analysis requires several enrichment analyses per cell type. E.g., selecting \"DNase\" regulatory elements, with one regulatory set per cell type will provide insufficient information for cell type-specific enrichment analysis. Select categories of regulatory elements having multiple cell type-specific regulatory data, e.g., \"Histone\" and/or \"chromStates\"."),
+                           br(),
+                           downloadButton('downloadCTEnrichment', 'Download table'),
                            br(),br(),
                            DT::dataTableOutput("tblCTEnrichment")),
                   tabPanel("Download",
@@ -813,16 +836,16 @@ shinyServer(function(input, output,session) {
     if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
     if (single.feature == FALSE){
       sidebarPanel(width = 4,h3("Data Settings"),
-                   conditionalPanel("input.tabsMultiple != 'Cell-type enrichment tables' && input.tabsMultiple != 'Download'  && input.tabsMultiple != 'Annotation Analysis'",
+                   conditionalPanel("input.tabsMultiple != 'Cell-type enrichment analysis' && input.tabsMultiple != 'Download'  && input.tabsMultiple != 'Annotation Analysis'",
                      selectInput("cmbMatrix", label = "Results to visualize", 
                                  choices = list("P-values" = "matrix_PVAL.txt", 
                                                 "Odds Ratios" = "matrix_OR.txt")),
                      bsTooltip("cmbMatrix", "Select significance or effect size", placement = "right", trigger = "hover")
                    ),
-                   conditionalPanel("input.tabsMultiple == 'Enrichment barplot' || input.tabsMultiple == 'Enrichment tables' || input.tabsMultiple == 'Cell-type enrichment tables'",
+                   conditionalPanel("input.tabsMultiple == 'Enrichment barplot' || input.tabsMultiple == 'Enrichment tables' || input.tabsMultiple == 'Cell-type enrichment analysis'",
                                     selectInput("cmbFOI", "Select which SNP set to visualize", choices =   mtx.col.names)
                                     ),
-                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt' && input.tabsMultiple != 'Cell-type enrichment tables' && input.tabsMultiple != 'Differential regulatory analysis'  && input.tabsMultiple != 'Download' && input.tabsMultiple != 'Annotation Analysis'",
+                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt' && input.tabsMultiple != 'Cell-type enrichment analysis' && input.tabsMultiple != 'Differential regulatory analysis'  && input.tabsMultiple != 'Download' && input.tabsMultiple != 'Annotation Analysis'",
                                     selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
                                                 choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))),
                    conditionalPanel("input.tabsMultiple == 'Annotation Analysis'",
@@ -857,7 +880,7 @@ shinyServer(function(input, output,session) {
       )
     }else{ # this is for a single column result file
       sidebarPanel(h3("Global Settings"), hr(),
-                   conditionalPanel("input.tabsSingleGF != 'Cell-type enrichment tables' && input.tabsSingleGF != 'Download' && input.tabsSingleGF != 'Annotation Analysis'",
+                   conditionalPanel("input.tabsSingleGF != 'Cell-type enrichment analysis' && input.tabsSingleGF != 'Download' && input.tabsSingleGF != 'Annotation Analysis'",
                      selectInput("cmbMatrix", label = "Results to visualize", 
                                  choices = list("P-values" = "matrix_PVAL.txt", 
                                                 "Odds Ratios" = "matrix_OR.txt"))
@@ -868,7 +891,7 @@ shinyServer(function(input, output,session) {
                                       selectInput("cmbAnnotation", label = "Annotation results to visualize", 
                                                   choices = file.names.annotation)
                                     }),
-                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt' && input.tabsSingleGF != 'Cell-type enrichment tables' && input.tabsSingleGF != 'Download' && input.tabsSingleGF != 'Annotation Analysis'",
+                   conditionalPanel("input.cmbMatrix=='matrix_PVAL.txt' && input.tabsSingleGF != 'Cell-type enrichment analysis' && input.tabsSingleGF != 'Download' && input.tabsSingleGF != 'Annotation Analysis'",
                                     if(nrow(mtx)>1){
                                       selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
                                                   choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))}
