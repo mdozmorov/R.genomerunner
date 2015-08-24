@@ -561,7 +561,7 @@ shinyServer(function(input, output,session) {
       hclustergram <- get.cor.hclust.dendrogram()
       par(cex.main=0.65, oma=c(2,0,0,5), mar=c(5, 4.1, 4.1, 5)) # Adjust margins
       coloring<-colorRampPalette(c("blue", "yellow", "red"))
-      heatmap.2(as.matrix(cor.mat), Colv = hclustergram,
+      heatmap.2(as.matrix(cor.mat), Colv = hclustergram, Rowv = hclustergram,
                 trace="none", density.info="none", col=colorRampPalette(c("blue", "yellow", "red")), main = "Episimilarity Heatmap",
                 cexRow=0.8, cexCol=1, margins = c(10,10), srtRow = 0, srtCol = 45)
       dev.off()
@@ -729,6 +729,7 @@ shinyServer(function(input, output,session) {
                   ), 
                   tabPanel("Enrichment barplot",
                            br("SNP set-specific enrichment results. Height of bars corresponds to the strength of enriched/depleted associations, top/bottom barplot, respectively."),
+                           br(),
                            downloadButton('downloadEnrichBarPDF', 'Download PDF'),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
                            plotOutput("pltEnrichDown", width="100%", height= "350px")
@@ -792,6 +793,7 @@ shinyServer(function(input, output,session) {
       tabsetPanel(id="tabsSingleGF",
                   tabPanel("Enrichment barplot",
                            br("SNP set-specific enrichment results. Height of bars corresponds to the strength of enriched/depleted associations, top/bottom barplot, respectively."),
+                           br(),
                            downloadButton('downloadEnrichBarPDF', 'Download PDF'),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
                            plotOutput("pltEnrichDown", width="100%", height= "350px")
