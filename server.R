@@ -716,14 +716,14 @@ shinyServer(function(input, output,session) {
     if (single.feature == FALSE){
       tabsetPanel(id="tabsMultiple",
                   tabPanel("Enrichment heatmap",
-                           br("Heatmap of the enrichment analysis results. Rows - names of regulatory elements, columns - names of SNP sets, cells - enrichment p-values/odds ratios. Blue/red gradient highlights depleted/enriched associations for corresponding regulatory elements and SNP sets, respectively"),
+                           br("Heatmap of the enrichment analysis results. Rows - names of regulatory elements, shown as \"cell-factor-source\". Columns - names of SNP sets. Cells contain enrichment p-values/odds ratios. Blue/red gradient highlights depleted/enriched associations, respectively, for the corresponding regulatory elements and SNP sets."),
                            br("Mouse over the heatmap to see numerical values. Click-and-drag to zoom in, single click to reset zoom."),
                            downloadButton('downloadEnrichHeatmap',"Download PDF"),
                            d3heatmapOutput("heatmapEnrich", width = "100%", height = "600px"),
                            plotOutput("legendEnrich",width="300px",height="150px")
                   ), 
                   tabPanel("Enrichment barplot",
-                           br("SNP set-specific enrichment results. Height of bars corresponds to the strength of enriched/depleted associations, top/bottom barplot, respectively."),
+                           br("Enrichment of SNP sets in regulatory elements, shown as \"cell-factor-source\" on X-axis. Height of bars corresponds to the significance of enrichment (top)/depletion (bottom)."),
                            br(),
                            downloadButton('downloadEnrichBarPDF', 'Download PDF'),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
@@ -746,7 +746,7 @@ shinyServer(function(input, output,session) {
                                       plotOutput("legendEpisim",width="300px",height="150px")
                                ),
                                column(6,
-                                      br("Dedrogram of regulatory similarity among SNP sets. Clusters of SNP sets having strong regulatory similarity indicates these SNP sets are enriched in similar regulatory elements."),
+                                      br("Dedrogram of regulatory similarity among SNP sets. Clusters indicate groups of SNP sets with similar regulatory enrichments."),
                                       br("Adjust the number of clusters to identify regulatory differences among them on the \"Differential regulatory analysis\" tab."),
                                       plotOutput("pltDend",width = "100%", height = "500px")
                                )
@@ -762,7 +762,7 @@ shinyServer(function(input, output,session) {
                            DT::dataTableOutput("tblEpigenetics")),
                   if (length(file.names.annotation)>0){
                     tabPanel("Annotation Analysis",
-                           br("Annotation analysis tables. Each SNP in a set (rows) is annotated for overlap with regulatory elements (columns). A non-zero value indicates a SNP overlaps corresponding regulatory element."),
+                           br("Annotation analysis tables. Here, the overlap between each SNP in a set (rows) and each regulatory element analyzed (columns) is shown (0=no overlap, 1=overlap)."),
                            br("If more than 100 regulatory elements were selected, the annotation tables are split into multiple tables, each having 100 columns or less."),
                            br(),
                            downloadButton('downloadAnnotation', 'Download Table'),
@@ -787,7 +787,7 @@ shinyServer(function(input, output,session) {
     } else{ # this UI is created when only a single GF result is returned
       tabsetPanel(id="tabsSingleGF",
                   tabPanel("Enrichment barplot",
-                           br("SNP set-specific enrichment results. Height of bars corresponds to the strength of enriched/depleted associations, top/bottom barplot, respectively."),
+                           br("Enrichment of SNP sets in regulatory elements, shown as \"cell-factor-source\" on X-axis. Height of bars corresponds to the significance of enrichment (top)/depletion (bottom)."),
                            br(),
                            downloadButton('downloadEnrichBarPDF', 'Download PDF'),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
@@ -801,7 +801,7 @@ shinyServer(function(input, output,session) {
                            DT::dataTableOutput("tblEnrichment")),
                   if (length(file.names.annotation)>0){
                     tabPanel("Annotation Analysis",
-                             br("Annotation analysis tables. Each SNP in a set (rows) is annotated for overlap with regulatory elements (columns). A non-zero value indicates a SNP overlaps corresponding regulatory element."),
+                             br("Annotation analysis tables. Here, the overlap between each SNP in a set (rows) and each regulatory element analyzed (columns) is shown (0=no overlap, 1=overlap)."),
                              br("If more than 100 regulatory elements were selected, the annotation tables are split into multiple tables, each having 100 columns or less."),
                              br(),
                              downloadButton('downloadAnnotation', 'Download Table'),
