@@ -716,14 +716,14 @@ shinyServer(function(input, output,session) {
     if (single.feature == FALSE){
       tabsetPanel(id="tabsMultiple",
                   tabPanel("Enrichment heatmap",
-                           br("Heatmap of the enrichment analysis results. Rows - names of regulatory elements, shown as \"cell-factor-source\". Columns - names of SNP sets. Cells contain enrichment p-values/odds ratios. Blue/red gradient highlights depleted/enriched associations, respectively, for the corresponding regulatory elements and SNP sets."),
+                           br("Heatmap of the enrichment analysis results. Rows - names of regulatory/epigenomic features, shown as \"cell-factor-source\". Columns - names of SNP sets. Cells contain enrichment p-values/odds ratios. Blue/red gradient highlights depleted/enriched associations, respectively, for the corresponding regulatory/epigenomic features and SNP sets."),
                            br("Mouse over the heatmap to see numerical values. Click-and-drag to zoom in, single click to reset zoom."),
                            downloadButton('downloadEnrichHeatmap',"Download PDF"),
                            d3heatmapOutput("heatmapEnrich", width = "100%", height = "600px"),
                            plotOutput("legendEnrich",width="300px",height="150px")
                   ), 
                   tabPanel("Enrichment barplot",
-                           br("Enrichment of SNP sets in regulatory elements, shown as \"cell-factor-source\" on X-axis. Height of bars corresponds to the significance of enrichment (top)/depletion (bottom)."),
+                           br("Enrichment of SNP sets in regulatory/epigenomic features, shown as \"cell-factor-source\" on X-axis. Height of bars corresponds to the significance of enrichment (top)/depletion (bottom)."),
                            br(),
                            downloadButton('downloadEnrichBarPDF', 'Download PDF'),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
@@ -753,7 +753,7 @@ shinyServer(function(input, output,session) {
                              )
                            )),
                   tabPanel("Differential regulatory analysis",
-                           br("Differential regulatory analysis identifies regulatory elements differentially enriched between clusters of SNP sets (e.g., \"cX_vs_cY\"). Adjust the number of clusters and other clustering metrics on the \"Regulatory similarity heatmap\" tab."),
+                           br("Differential regulatory analysis identifies regulatory/epigenomic features differentially enriched between clusters of SNP sets (e.g., \"cX_vs_cY\"). Adjust the number of clusters and other clustering metrics on the \"Regulatory similarity heatmap\" tab."),
                            br(),
                            selectInput("cmbEpigenetics", "Select which comparison to show", choices = list("Results not ready yet.")),
                            br(),
@@ -762,8 +762,8 @@ shinyServer(function(input, output,session) {
                            DT::dataTableOutput("tblEpigenetics")),
                   if (length(file.names.annotation)>0){
                     tabPanel("Annotation Analysis",
-                           br("Annotation analysis tables. Here, the overlap between each SNP in a set (rows) and each regulatory element analyzed (columns) is shown (0=no overlap, 1=overlap)."),
-                           br("If more than 100 regulatory elements were selected, the annotation tables are split into multiple tables, each having 100 columns or less."),
+                           br("Annotation analysis tables. Here, the overlap between each SNP in a set (rows) and each regulatory/epigenomic feature analyzed (columns) is shown (0=no overlap, 1=overlap)."),
+                           br("If more than 100 regulatory/epigenomic features were selected, the annotation tables are split into multiple tables, each having 100 columns or less."),
                            br(),
                            downloadButton('downloadAnnotation', 'Download Table'),
                            br(),br(),
@@ -773,8 +773,8 @@ shinyServer(function(input, output,session) {
                     )
                   },
                   tabPanel("Cell-type enrichment analysis",
-                           br("Cell-type enrichment analysis detects cell type specificity of the enrichments of SNP sets. It tests whether enrichments in cell type-specific regulatory elements (AvPvalCell) are significantly different from the average enrichments (AvPvalTot)."),
-                           br("This analysis requires several enrichment analyses per cell type. E.g., selecting \"DNase\" regulatory elements, with one regulatory set per cell type will provide insufficient information for cell type-specific enrichment analysis. Select categories of regulatory elements having multiple cell type-specific regulatory data, e.g., \"Histone\" and/or \"chromStates\"."),
+                           br("Cell-type enrichment analysis detects cell type specificity of the enrichments of SNP sets. It tests whether enrichments in cell type-specific regulatory/epigenomic features (AvPvalCell) are significantly different from the average enrichments (AvPvalTot)."),
+                           br("This analysis requires several enrichment analyses per cell type. E.g., selecting \"DNase\" category, with one regulatory feature per cell type will provide insufficient information for cell type-specific enrichment analysis. Select categories having multiple cell type-specific regulatory/epigenomic features, e.g., \"Histone\" and/or \"chromStates\"."),
                            br(),
                            downloadButton('downloadCTEnrichment', 'Download table'),
                            br(),br(),
@@ -787,7 +787,7 @@ shinyServer(function(input, output,session) {
     } else{ # this UI is created when only a single GF result is returned
       tabsetPanel(id="tabsSingleGF",
                   tabPanel("Enrichment barplot",
-                           br("Enrichment of SNP sets in regulatory elements, shown as \"cell-factor-source\" on X-axis. Height of bars corresponds to the significance of enrichment (top)/depletion (bottom)."),
+                           br("Enrichment of SNP sets in regulatory/epigenomic features, shown as \"cell-factor-source\" on X-axis. Height of bars corresponds to the significance of enrichment (top)/depletion (bottom)."),
                            br(),
                            downloadButton('downloadEnrichBarPDF', 'Download PDF'),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
@@ -801,8 +801,8 @@ shinyServer(function(input, output,session) {
                            DT::dataTableOutput("tblEnrichment")),
                   if (length(file.names.annotation)>0){
                     tabPanel("Annotation Analysis",
-                             br("Annotation analysis tables. Here, the overlap between each SNP in a set (rows) and each regulatory element analyzed (columns) is shown (0=no overlap, 1=overlap)."),
-                             br("If more than 100 regulatory elements were selected, the annotation tables are split into multiple tables, each having 100 columns or less."),
+                             br("Annotation analysis tables. Here, the overlap between each SNP in a set (rows) and each regulatory/epigenomic feature analyzed (columns) is shown (0=no overlap, 1=overlap)."),
+                             br("If more than 100 regulatory/epigenomic features were selected, the annotation tables are split into multiple tables, each having 100 columns or less."),
                              br(),
                              downloadButton('downloadAnnotation', 'Download Table'),
                              DT::dataTableOutput("tblAnnotation"))
@@ -811,8 +811,8 @@ shinyServer(function(input, output,session) {
                     )
                   },
                   tabPanel("Cell-type enrichment analysis",
-                           br("Cell-type enrichment analysis detects cell type specificity of the enrichments of SNP sets. It tests whether enrichments in cell type-specific regulatory elements (AvPvalCell) are significantly different from the average enrichments (AvPvalTot)."),
-                           br("This analysis requires several enrichment analyses per cell type. E.g., selecting \"DNase\" regulatory elements, with one regulatory set per cell type will provide insufficient information for cell type-specific enrichment analysis. Select categories of regulatory elements having multiple cell type-specific regulatory data, e.g., \"Histone\" and/or \"chromStates\"."),
+                           br("Cell-type enrichment analysis detects cell type specificity of the enrichments of SNP sets. It tests whether enrichments in cell type-specific regulatory/epigenomic features (AvPvalCell) are significantly different from the average enrichments (AvPvalTot)."),
+                           br("This analysis requires several enrichment analyses per cell type. E.g., selecting \"DNase\" category, with one regulatory feature per cell type will provide insufficient information for cell type-specific enrichment analysis. Select categories having multiple cell type-specific regulatory/epigenomic features, e.g., \"Histone\" and/or \"chromStates\"."),
                            br(),
                            downloadButton('downloadCTEnrichment', 'Download table'),
                            br(),br(),
