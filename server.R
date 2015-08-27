@@ -12,7 +12,7 @@ source("functions/mtx.cellspecific.R")
 results.dir <- "/home/lukas/db_2.00_06-10-2015/results/largerun/"
 # Mikhail paths
 # results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
-results.dir <- "/Users/mikhail/Documents/tmp/results/py4rdowe2jhj90jd9y1sy4c0gsz7t9bj/"
+results.dir <- "/Users/mikhail/Documents/tmp/results/eedsambb7fplmc3ovivmkycfloohh3l5/"
 
 genomerunner.mode <- F
 
@@ -140,6 +140,7 @@ shinyServer(function(input, output,session) {
     mtx.table = cbind(GF.Name = rownames(mtx.table),mtx.table) # make the GF.name a column instead of just the rowname so we can left_join
     rownames(mtx.table) <- NULL
     mtx.table <- left_join(mtx.table,gfAnnot[,(names(gfAnnot) %in% c("file_name", "cell", "cell_desc", "factor", "factor_desc", "source", "source_desc"))], by=c("GF.Name"="file_name"))
+    colnames(mtx.table)[1] <- "epigenomic_name"
     return(mtx.table)
   })
   
@@ -412,7 +413,8 @@ shinyServer(function(input, output,session) {
       }
     } else {
         mtx.deg[[selectedCor]][["adj.p.val"]] <- scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][["adj.p.val"]]))
-      }
+    }
+    colnames(mtx.deg[[selectedCor]])[1] <- "epigenomic_feature"
     mtx.deg[[selectedCor]][, !(colnames(mtx.deg[[1]]) %in% c("full_path", "URL", "full_description", "category", "category_desc"))]
   })
   
@@ -483,7 +485,10 @@ shinyServer(function(input, output,session) {
     if (is.character(mtx.CTE[[selectedCor]])) {
       return(data.frame(NoResults="Nothing significant"))
     }
-    return(mtx.CTE[[selectedCor]])
+    mtx.formatted <- data.frame(cell=rownames(mtx.CTE[[selectedCor]]), mtx.CTE[[selectedCor]])
+    rownames(mtx.formatted) <- NULL
+    colnames(mtx.formatted)[2:5] <- c("p.value", "num_of_tests", "av_pval_cell", "av_pval_tot") 
+    return(mtx.formatted)
   })
   
   output$tblCTEnrichment <- renderDataTable({
@@ -756,7 +761,7 @@ shinyServer(function(input, output,session) {
                            br("Differential regulatory analysis identifies regulatory/epigenomic features differentially enriched between clusters of SNP sets (e.g., \"cX_vs_cY\"). Adjust the number of clusters and other clustering metrics on the \"Regulatory similarity heatmap\" tab."),
                            br(),
                            selectInput("cmbEpigenetics", "Select which comparison to show", choices = list("Results not ready yet.")),
-                           br(),
+                           p("Table legend: \'epigenomic feature\' - names of regulatory/epigenomic features; \'adj.p.val\' - fdr adjusted p-value of the enrichment differences between clusters \'cX\' and \'cY\'; \'cX\'/\'cY\' - average enrichments in clusters \'cX\' and \'cY\', respectively. The following columns describe the regulatory/epigenomic features."),
                            downloadButton('downloadEpigenetics', 'Download table'),
                            br(),br(),
                            DT::dataTableOutput("tblEpigenetics")),
@@ -773,8 +778,8 @@ shinyServer(function(input, output,session) {
                     )
                   },
                   tabPanel("Cell-type enrichment analysis",
-                           br("Cell-type enrichment analysis detects cell type specificity of the enrichments of SNP sets. It tests whether enrichments in cell type-specific regulatory/epigenomic features (AvPvalCell) are significantly different from the average enrichments (AvPvalTot)."),
-                           br("This analysis requires several enrichment analyses per cell type. E.g., selecting \"DNase\" category, with one regulatory feature per cell type will provide insufficient information for cell type-specific enrichment analysis. Select categories having multiple cell type-specific regulatory/epigenomic features, e.g., \"Histone\" and/or \"chromStates\"."),
+                           br("Cell-type enrichment analysis detects cell type specificity of the enrichments of SNP sets, as compared with average overall enrichment. This analysis requires selection of categories with multiple epigenomic/regulatory features per cell type, e.g., \"Histone\" and/or \"chromStates\"."),
+                           br("Table legend: \'cell\' - cell type name; \'p.value\' - enrichment p-value; \'num_of_tests\' - how many cell type-specific enrichments were used to detect cell type-specific enrichment; \'av-pval-cell\' - average cell type-specific enrichment; \'av_pval_total\' - average overall enrichment; \'cell+desc\' - cell type description."),
                            br(),
                            downloadButton('downloadCTEnrichment', 'Download table'),
                            br(),br(),
@@ -811,8 +816,8 @@ shinyServer(function(input, output,session) {
                     )
                   },
                   tabPanel("Cell-type enrichment analysis",
-                           br("Cell-type enrichment analysis detects cell type specificity of the enrichments of SNP sets. It tests whether enrichments in cell type-specific regulatory/epigenomic features (AvPvalCell) are significantly different from the average enrichments (AvPvalTot)."),
-                           br("This analysis requires several enrichment analyses per cell type. E.g., selecting \"DNase\" category, with one regulatory feature per cell type will provide insufficient information for cell type-specific enrichment analysis. Select categories having multiple cell type-specific regulatory/epigenomic features, e.g., \"Histone\" and/or \"chromStates\"."),
+                           br("Cell-type enrichment analysis detects cell type specificity of the enrichments of SNP sets, as compared with average overall enrichment. This analysis requires selection of categories with multiple epigenomic/regulatory features per cell type, e.g., \"Histone\" and/or \"chromStates\"."),
+                           br("Table legend: \'cell\' - cell type name; \'p.value\' - enrichment p-value; \'num_of_tests\' - how many cell type-specific enrichments were used to detect cell type-specific enrichment; \'av-pval-cell\' - average cell type-specific enrichment; \'av_pval_total\' - average overall enrichment; \'cell+desc\' - cell type description."),
                            br(),
                            downloadButton('downloadCTEnrichment', 'Download table'),
                            br(),br(),
