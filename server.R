@@ -12,7 +12,7 @@ source("functions/mtx.cellspecific.R")
 results.dir <- "/home/lukas/db_2.00_06-10-2015/results/largerun/"
 # Mikhail paths
 # results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
-results.dir <- "/Users/mikhail/Documents/tmp/results/eedsambb7fplmc3ovivmkycfloohh3l5/"
+#results.dir <- "/Users/mikhail/Documents/tmp/results/eedsambb7fplmc3ovivmkycfloohh3l5/"
 
 genomerunner.mode <- F
 
@@ -88,7 +88,7 @@ shinyServer(function(input, output,session) {
         mtx.sd.order <- mtx.sd.order[1:n_limit,]
         mtx <- mtx.sd.order
       }
-      dend.path <- paste(get.results.dir(),"heatmap.dend.rds", sep="")
+      dend.path <- paste(get.results.dir(),"heatmap.enrich.dend.rds", sep="") # Dendrogram file is created by d3Heatmap
       par(cex.main=0.65, oma=c(2,0,0,5), mar=c(5, 4.1, 4.1, 5)) # Adjust margins
       coloring<-colorRampPalette(c("blue", "yellow", "red"))
      
@@ -334,7 +334,7 @@ shinyServer(function(input, output,session) {
     
    
    mtx <- rcorr(as.matrix(mtx), type=input$cmbEpisimCorType)[[1]]
-   write.table(x = mtx,file = paste(results.dir,"matrix_CORR.txt",sep=""))
+   write.table(x = mtx,file = paste(get.results.dir(),"matrix_CORR.txt",sep=""))
    mtx
   })
   
@@ -352,7 +352,7 @@ shinyServer(function(input, output,session) {
       hclustergram <- get.cor.hclust.dendrogram()
       coloring<-colorRampPalette(c("blue", "yellow", "red"))
       # TODO: Colv == Rowv?
-      d3heatmap::d3heatmap(as.matrix(cor.mat),Rowv=hclustergram,Colv='Rowv',colors = coloring(coloring.num),dendro.rds.path=paste(get.results.dir(),"heatmap.dend.rds", sep=""),
+      d3heatmap::d3heatmap(as.matrix(cor.mat),Rowv=hclustergram,Colv='Rowv',colors = coloring(coloring.num),dendro.rds.path=paste(get.results.dir(),"heatmap.episim.dend.rds", sep=""),
                            xaxis_font_size = "10pt", yaxis_font_size = "10pt",xaxis_height=200,yaxis_height=200)
     }, message = "Rendering heatmap",value = 1.0)
   })
@@ -370,9 +370,17 @@ shinyServer(function(input, output,session) {
   # this function is cut out from the tblEpigenetics renderer. It is a long calculation that is only run when # of clusters changes
   calculate.clust <- reactive({
     cor.mat <- get.corr.matrix() # this line ensure that dendrogram is redrawn when heatmap is
-    hclustergram <- get.cor.hclust.dendrogram() # ensures that dendrogram is redrawn when hclust method is changed
-    
-    dend = readRDS(file = paste(get.results.dir(), "heatmap.dend.rds",sep=""))
+   
+    # We need the d3heatmap's dendrogram (which is saved to the .rds file)
+    mat <- get.matrix()
+    validate(need(ncol(mat)>2,"Need at least 3 SNPs of interest files to perform clustering."))
+    validate(need(nrow(mat)>4,"Need at least 5 genome features to perform clustering."))
+    cor.mat <- get.corr.matrix()
+    hclustergram <- get.cor.hclust.dendrogram()
+    d3heatmap::d3heatmap(as.matrix(cor.mat),Rowv=hclustergram,Colv='Rowv',dendro.rds.path=paste(get.results.dir(),"heatmap.episim.dend.rds", sep=""),
+                         xaxis_font_size = "10pt", yaxis_font_size = "10pt",xaxis_height=200,yaxis_height=200)
+    dend = readRDS(file = paste(get.results.dir(), "heatmap.episim.dend.rds",sep="")) # Dendrogram file is created by d3Heatmap
+
     cl_num <- input$sldEpisimNumClust # Empirically set desired numter of clusters
     hcut <- heights_per_k.dendrogram(dend)[cl_num] # extract the height to cut based on # of groups
     # get the cluster labels
@@ -385,8 +393,6 @@ shinyServer(function(input, output,session) {
     mtx.deg <- suppressWarnings(mtx.degfs(mtx[, mtx.clust$eset.labels], mtx.clust, isOR = is.OR))
     
     updateSelectInput(session,"cmbEpigenetics","Select which comparison to show",choices = names(mtx.deg))
-    mtx.deg.path = paste(get.results.dir(),"mtx.deg.episim.RDS",sep = "")
-    saveRDS(mtx.deg,file=mtx.deg.path)
     return(mtx.deg)
   })
   
@@ -445,6 +451,7 @@ shinyServer(function(input, output,session) {
   )
   
   output$pltDend <- renderPlot({ 
+    
     withProgress({
       mtx <- get.matrix()
       validate(need(ncol(mtx)>2,""))
@@ -453,7 +460,7 @@ shinyServer(function(input, output,session) {
       cor.mat <- get.corr.matrix() # this line ensure that dendrogram is redrawn when heatmap is
       hclustergram <- get.cor.hclust.dendrogram() # ensures that dendrogram is redrawn when hclust method is changed
       
-      dend = readRDS(file = paste(get.results.dir(), "heatmap.dend.rds",sep=""))
+      dend = readRDS(file = paste(get.results.dir(), "heatmap.episim.dend.rds",sep=""))  # Dendrogram file is created by d3Heatmap
       plot(as.dendrogram(dend, hang=-1)) # Plot dendrogram
       cl_num <- input$sldEpisimNumClust # Empirically set desired numter of clusters
       cols <- rainbow(cl_num) # Make colos for clusters
@@ -461,7 +468,7 @@ shinyServer(function(input, output,session) {
       # get the cluster labels
       mtx.clust <-validate(need(try(dend %>% mtx.clusters(height=hcut, minmembers=3)),"Try using a lower number of clusters"))
       # write.table(as.data.frame(mtx.clust), "/home/lukas/clustering_all.txt", sep="\t", row.names=FALSE, quote=FALSE)
-      mtx = load_gr_data(paste(get.results.dir(), input$cmbMatrix,sep="")) # load the original matrix
+      
       
       # Define the clusters by rectangles
       validate(need(try(rect.hclust( as.hclust(dend), k=cl_num, border=cols)),"Try a different clustering method."))
@@ -877,7 +884,7 @@ shinyServer(function(input, output,session) {
                   
                    conditionalPanel("input.tabsMultiple == 'Regulatory similarity heatmap'",
                                     hr(),h3("Regulatory similarity"),
-                                    sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 2)
+                                    sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 4)
                    )
       )
     }else{ # this is for a single column result file
