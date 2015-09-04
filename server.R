@@ -400,14 +400,15 @@ shinyServer(function(input, output,session) {
     withProgress({
       mtx.deg <- calculate.clust()
       
+      cat("Running vis", file="~/logs/shiny.log")
     }, message = "Calculating regulatory differences",value = 1.0)
     selectedCor = input$cmbEpigenetics
+    cat(input$cmbEpigenetics, file="~/logs/shiny.log")
     # check if any results were returned. Note this will always be the case the first time the tabe is loaded
     # as this code is run twice by Shiny due to updateSelectInput being a lazy evaluation
     if (is.null(names(mtx.deg)) | selectedCor == "Results not ready yet."){ 
-      return(data.frame(NoResult="There is nothing signficant to show"))
+      return("Results not ready yet.")
     }
-   
        
   
     #convert values to numeric form for sorting purposes
@@ -424,10 +425,15 @@ shinyServer(function(input, output,session) {
   
   output$tblEpigenetics <-renderDataTable({
     mtx <- get.matrix()
+    cat("Table, made it", file="~/logs/shiny.log")
     validate(need(ncol(mtx)>2,"Need at least 3 SNPs of interest files to perform clustering."))
     validate(need(nrow(mtx)>4,"Need at 5 least genome features to perform clustering."))
-    validate(need(try(get.epigenetics.table()),"Either nothing is significant, or there are too few SNP sets per cluster. Re-run the analysis using more SNP sets, or try a different clustering method."))
+    #validate(need(try(get.epigenetics.table()),"Either nothing is significant, or there are too few SNP sets per cluster. Re-run the analysis using more SNP sets, or try a different clustering method."))
     table.epi <- get.epigenetics.table()
+    #validate(need(table.epi != "Results not ready yet.", "Results not ready yet."))
+    if (table.epi == "Results not ready yet." | length(table.epi) == 0){
+	return(data.frame(NoResult="There is nothing signficant to show"))
+    }
     num.char <- 50
     table.epi <- apply( table.epi,c(1,2),function(x) {
       if (!is.na(x) & nchar(x)>num.char){
@@ -435,7 +441,11 @@ shinyServer(function(input, output,session) {
       } else{
         return(x)
       }
+    
     })
+    cat(table.epi[[1]],file="~/logs/shiny.log")
+    cat("Table2, made it", file="~/logs/shiny.log")
+    table.epi
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
                     pageLength = 10))
   
