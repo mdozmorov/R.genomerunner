@@ -492,11 +492,7 @@ shinyServer(function(input, output,session) {
       
   })
   
-  calculateCTEnrichment <- reactive({
-  })
-  
   output$tblCTEnrichment <- renderDataTable({
-    cat("Starting CT", file = "~/logs/shiny.log")
     withProgress({
       mtx <- load_gr_data(paste(get.results.dir(), 'matrix_PVAL.txt',sep=""))
       validate(need(nrow(mtx)>5,"Insufficient data for performing cell type-specific enrichment analysis"))
@@ -530,7 +526,10 @@ shinyServer(function(input, output,session) {
   },
   content = function(file) {
     selectedCor <- input$cmbFOI
-    mtx.CTE <- calculateCTEnrichment()
+    mtx <- load_gr_data(paste(get.results.dir(), 'matrix_PVAL.txt',sep=""))
+    validate(need(nrow(mtx)>5,"Insufficient data for performing cell type-specific enrichment analysis"))
+    #running function
+    mtx.CTE <- mtx.cellspecific(mtx)
     if (is.character(mtx.CTE)) {
       table.CTE <- data.frame(NoResults="Insufficient data for performing cell type-specific enrichment analysis")
     }
@@ -542,7 +541,7 @@ shinyServer(function(input, output,session) {
       colnames(table.CTE)[2:5] <- c("p.value", "num_of_tests", "av_pval_cell", "av_pval_tot") 
     }
     
-    write.table(x = table.CTE,file =  file ,sep = "\t",quote = F,row.names = T,col.names=NA)
+    write.table(x = table.CTE,file =  file ,sep = "\t",quote = F,row.names = F)
   })
   # --download button code --------------------------------------------------
   
