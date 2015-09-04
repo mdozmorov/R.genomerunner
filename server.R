@@ -9,12 +9,12 @@ source("functions/mtx.degfs.R")
 source("functions/mtx.cellspecific.R")
 #shiny::runApp(host='0.0.0.0',port=4494)
 
-# results.dir <- "/home/lukas/db_2.00_06-10-2015/results/encTFBS_cellspecific/"
+ results.dir <- "/home/lukas/db_2.00_06-10-2015/results/encTFBS_cellspecific/"
 # Mikhail paths
-results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
+#results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
 #results.dir <- "/Users/mikhail/Documents/tmp/results/eedsambb7fplmc3ovivmkycfloohh3l5/"
 
-genomerunner.mode <- T
+genomerunner.mode <- F
 
 coloring.num = 50
 shinyServer(function(input, output,session) {
@@ -400,23 +400,20 @@ shinyServer(function(input, output,session) {
     withProgress({
       mtx.deg <- calculate.clust()
       
-      cat("Running vis", file="~/logs/shiny.log")
     }, message = "Calculating regulatory differences",value = 1.0)
     mtx.deg
   })
   
   output$tblEpigenetics <-renderDataTable({
     mtx <- get.matrix()
-    cat("Table, made it", file="~/logs/shiny.log")
     validate(need(ncol(mtx)>2,"Need at least 3 SNPs of interest files to perform clustering."))
     validate(need(nrow(mtx)>4,"Need at 5 least genome features to perform clustering."))
     #validate(need(try(get.epigenetics.table()),"Either nothing is significant, or there are too few SNP sets per cluster. Re-run the analysis using more SNP sets, or try a different clustering method."))
     mtx.deg <- get.epigenetics.table()
     selectedCor = input$cmbEpigenetics
-    cat(input$cmbEpigenetics, file="~/logs/shiny.log")
     #validate(need(table.epi != "Results not ready yet.", "Results not ready yet."))
-    if (mtx.deg == "Results lot ready yet." | length(mtx.deg) == 0){
-	return(data.frame(NoResult="There is nothing signficant to show"))
+    if (selectedCor == "Results not ready yet." | length(mtx.deg) == 0){
+    	return(data.frame(NoResult=""))
     }
   
     #convert values to numeric form for sorting purposes
@@ -438,8 +435,7 @@ shinyServer(function(input, output,session) {
       }
     
     })
-    cat("Table2, made it", file="~/logs/shiny.log")
-    DT::datatable(table.epi)
+    table.epi
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
                     pageLength = 10))
   
@@ -448,7 +444,25 @@ shinyServer(function(input, output,session) {
       return("Regulatory_table.txt")
     },
     content = function(file) {
-      write.table(x = get.epigenetics.table(),file =  file ,sep = "\t",quote = F,row.names = F)
+      mtx.deg <- get.epigenetics.table()
+      selectedCor = input$cmbEpigenetics
+      #validate(need(table.epi != "Results not ready yet.", "Results not ready yet."))
+      if (mtx.deg == "Results lot ready yet." | length(mtx.deg) == 0){
+        return(data.frame(NoResult="There is nothing signficant to show"))
+      }
+      #convert values to numeric form for sorting purposes
+      if(input$cmbMatrix == "matrix_PVAL.txt"){
+        for(x in list("adj.p.val",3,4)){
+          mtx.deg[[selectedCor]][[x]] <- scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][[x]]))
+        }
+      } else {
+        mtx.deg[[selectedCor]][["adj.p.val"]] <- scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][["adj.p.val"]]))
+      }
+      colnames(mtx.deg[[selectedCor]])[1] <- "epigenomic_feature"
+      table.epi <- mtx.deg[[selectedCor]][, !(colnames(mtx.deg[[1]]) %in% c("full_path", "URL", "full_description", "category", "category_desc"))]
+      num.char <- 50
+      table.epi
+      write.table(x = table.epi,file =  file ,sep = "\t",quote = F,row.names = F)
     }
   )
   
@@ -501,6 +515,7 @@ shinyServer(function(input, output,session) {
   })
   
   output$tblCTEnrichment <- renderDataTable({
+    selectedCor <- input$cmbFOI
     withProgress({
       table.CTE <-  get.CTEnrichment.table()
       num.char <- 50
