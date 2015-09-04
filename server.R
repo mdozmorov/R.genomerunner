@@ -9,12 +9,12 @@ source("functions/mtx.degfs.R")
 source("functions/mtx.cellspecific.R")
 #shiny::runApp(host='0.0.0.0',port=4494)
 
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/largerun/"
+# results.dir <- "/home/lukas/db_2.00_06-10-2015/results/encTFBS_cellspecific/"
 # Mikhail paths
-# results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
+results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
 #results.dir <- "/Users/mikhail/Documents/tmp/results/eedsambb7fplmc3ovivmkycfloohh3l5/"
 
-genomerunner.mode <- F
+genomerunner.mode <- T
 
 coloring.num = 50
 shinyServer(function(input, output,session) {
@@ -391,27 +391,25 @@ shinyServer(function(input, output,session) {
       is.OR = F
     }
     mtx.deg <- suppressWarnings(mtx.degfs(mtx[, mtx.clust$eset.labels], mtx.clust, isOR = is.OR))
+    updateSelectInput(session,"cmbEpigenetics","Select which comparison to show",choices = names(mtx.deg), selected = names(mtx.deg)[1])
     
-    updateSelectInput(session,"cmbEpigenetics","Select which comparison to show",choices = names(mtx.deg))
     return(mtx.deg)
   })
   
   get.epigenetics.table <- reactive({
     withProgress({
       mtx.deg <- calculate.clust()
-      # check if any results were returned
-      if (is.null(names(mtx.deg))){ 
-        return(data.frame(NoResult="There is nothing signficant to show"))
-      }
-      selectedCor = names(mtx.deg)[1]
-      # save last selected value
-      if (input$cmbEpigenetics != "Results not ready yet.") {
-        if (input$cmbEpigenetics %in% names(mtx.deg)){
-          selectedCor = input$cmbEpigenetics
-        }
-        updateSelectInput(session,"cmbEpigenetics",choices=names(mtx.deg),selected = selectedCor)
-      }
+      
     }, message = "Calculating regulatory differences",value = 1.0)
+    selectedCor = input$cmbEpigenetics
+    # check if any results were returned. Note this will always be the case the first time the tabe is loaded
+    # as this code is run twice by Shiny due to updateSelectInput being a lazy evaluation
+    if (is.null(names(mtx.deg)) | selectedCor == "Results not ready yet."){ 
+      return(data.frame(NoResult="There is nothing signficant to show"))
+    }
+   
+       
+  
     #convert values to numeric form for sorting purposes
     if(input$cmbMatrix == "matrix_PVAL.txt"){
       for(x in list("adj.p.val",3,4)){
