@@ -9,12 +9,12 @@ source("functions/mtx.degfs.R")
 source("functions/mtx.cellspecific.R")
 #shiny::runApp(host='0.0.0.0',port=4494)
 
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/encTFBS_cellspecific/"
+#results.dir <- "/home/lukas/db_2.00_06-10-2015/results/encTFBS_cellspecific/"
 # Mikhail paths
-#results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
+results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
 #results.dir <- "/Users/mikhail/Documents/tmp/results/eedsambb7fplmc3ovivmkycfloohh3l5/"
 
-genomerunner.mode <- F
+genomerunner.mode <- T
 
 coloring.num = 50
 shinyServer(function(input, output,session) {
