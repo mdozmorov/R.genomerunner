@@ -493,15 +493,15 @@ shinyServer(function(input, output,session) {
   })
   
   calculateCTEnrichment <- reactive({
-    mtx <- load_gr_data(paste(get.results.dir(), 'matrix_PVAL.txt',sep=""))
-    validate(need(nrow(mtx)>5,"Insufficient data for performing cell type-specific enrichment analysis"))
-    #running function
-    mtx.CTE <- mtx.cellspecific(mtx)
   })
   
   output$tblCTEnrichment <- renderDataTable({
+    cat("Starting CT", file = "~/logs/shiny.log")
     withProgress({
-      mtx.CTE <- calculateCTEnrichment()
+      mtx <- load_gr_data(paste(get.results.dir(), 'matrix_PVAL.txt',sep=""))
+      validate(need(nrow(mtx)>5,"Insufficient data for performing cell type-specific enrichment analysis"))
+      #running function
+      mtx.CTE <- mtx.cellspecific(mtx)
     }, message = "Loading table", value = 1.0)
     if (is.character(mtx.CTE)) {
       return(data.frame(NoResults="Insufficient data for performing cell type-specific enrichment analysis"))
