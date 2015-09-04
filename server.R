@@ -11,10 +11,10 @@ source("functions/mtx.cellspecific.R")
 
 results.dir <- "/home/lukas/db_2.00_06-10-2015/results/encTFBS_cellspecific/"
 # Mikhail paths
-results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
+#results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
 #results.dir <- "/Users/mikhail/Documents/tmp/results/eedsambb7fplmc3ovivmkycfloohh3l5/"
 
-genomerunner.mode <- T
+genomerunner.mode <- F
 
 coloring.num = 50
 shinyServer(function(input, output,session) {
@@ -499,25 +499,20 @@ shinyServer(function(input, output,session) {
     mtx.CTE <- mtx.cellspecific(mtx)
   })
   
-  get.CTEnrichment.table <- reactive({
-    mtx.CTE <- calculateCTEnrichment()
-    if (is.character(mtx.CTE)) {
-      return(data.frame(NoResults="Insufficient data for performing cell type-specific enrichment analysis"))
-    }
-    selectedCor <- input$cmbFOI
-    if (is.character(mtx.CTE[[selectedCor]])) {
-      return(data.frame(NoResults="Nothing significant"))
-    }
-    mtx.formatted <- data.frame(cell=rownames(mtx.CTE[[selectedCor]]), mtx.CTE[[selectedCor]])
-    rownames(mtx.formatted) <- NULL
-    colnames(mtx.formatted)[2:5] <- c("p.value", "num_of_tests", "av_pval_cell", "av_pval_tot") 
-    return(mtx.formatted)
-  })
-  
   output$tblCTEnrichment <- renderDataTable({
     selectedCor <- input$cmbFOI
     withProgress({
-      table.CTE <-  get.CTEnrichment.table()
+      mtx.CTE <- calculateCTEnrichment()
+      if (is.character(mtx.CTE)) {
+        return(data.frame(NoResults="Insufficient data for performing cell type-specific enrichment analysis"))
+      }
+      if (is.character(mtx.CTE[[selectedCor]])) {
+        return(data.frame(NoResults="Nothing significant"))
+      }
+      table.CTE <- data.frame(cell=rownames(mtx.CTE[[selectedCor]]), mtx.CTE[[selectedCor]])
+      rownames(table.CTE) <- NULL
+      colnames(table.CTE)[2:5] <- c("p.value", "num_of_tests", "av_pval_cell", "av_pval_tot") 
+      
       num.char <- 50
       table.CTE  <- apply( table.CTE ,c(1,2),function(x) {
         if (!is.na(x) & nchar(x)>num.char){
@@ -535,7 +530,20 @@ shinyServer(function(input, output,session) {
     return("EnrichmentCT_table.txt")
   },
   content = function(file) {
-    write.table(x = get.CTEnrichment.table(),file =  file ,sep = "\t",quote = F,row.names = T,col.names=NA)
+    selectedCor <- input$cmbFOI
+    mtx.CTE <- calculateCTEnrichment()
+    if (is.character(mtx.CTE)) {
+      table.CTE <- data.frame(NoResults="Insufficient data for performing cell type-specific enrichment analysis")
+    }
+    else if (is.character(mtx.CTE[[selectedCor]])) {
+      table.CTE <- data.frame(NoResults="Nothing significant")
+    } else{
+      table.CTE <- data.frame(cell=rownames(mtx.CTE[[selectedCor]]), mtx.CTE[[selectedCor]])
+      rownames(table.CTE) <- NULL
+      colnames(table.CTE)[2:5] <- c("p.value", "num_of_tests", "av_pval_cell", "av_pval_tot") 
+    }
+    
+    write.table(x = table.CTE,file =  file ,sep = "\t",quote = F,row.names = T,col.names=NA)
   })
   # --download button code --------------------------------------------------
   
