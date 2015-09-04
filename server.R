@@ -500,28 +500,27 @@ shinyServer(function(input, output,session) {
   })
   
   output$tblCTEnrichment <- renderDataTable({
-    selectedCor <- input$cmbFOI
     withProgress({
       mtx.CTE <- calculateCTEnrichment()
-      if (is.character(mtx.CTE)) {
-        return(data.frame(NoResults="Insufficient data for performing cell type-specific enrichment analysis"))
-      }
-      if (is.character(mtx.CTE[[selectedCor]])) {
-        return(data.frame(NoResults="Nothing significant"))
-      }
-      table.CTE <- data.frame(cell=rownames(mtx.CTE[[selectedCor]]), mtx.CTE[[selectedCor]])
-      rownames(table.CTE) <- NULL
-      colnames(table.CTE)[2:5] <- c("p.value", "num_of_tests", "av_pval_cell", "av_pval_tot") 
-      
-      num.char <- 50
-      table.CTE  <- apply( table.CTE ,c(1,2),function(x) {
-        if (!is.na(x) & nchar(x)>num.char){
-          return(paste(substring(x,1,num.char),  "..."))
-        } else{
-          return(x)
-        }
-      })
     }, message = "Loading table", value = 1.0)
+    if (is.character(mtx.CTE)) {
+      return(data.frame(NoResults="Insufficient data for performing cell type-specific enrichment analysis"))
+    }
+    if (is.character(mtx.CTE[[input$cmbFOI]])) {
+      return(data.frame(NoResults="Nothing significant"))
+    }
+    table.CTE <- data.frame(cell=rownames(mtx.CTE[[input$cmbFOI]]), mtx.CTE[[input$cmbFOI]])
+    rownames(table.CTE) <- NULL
+    colnames(table.CTE)[2:5] <- c("p.value", "num_of_tests", "av_pval_cell", "av_pval_tot") 
+    
+    num.char <- 50
+    table.CTE  <- apply( table.CTE ,c(1,2),function(x) {
+      if (!is.na(x) & nchar(x)>num.char){
+        return(paste(substring(x,1,num.char),  "..."))
+      } else{
+        return(x)
+      }
+    })
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
                      pageLength = 10))
   
