@@ -8,4 +8,6 @@ library(scales)
 library(dplyr)
 library(gplots)
 
-gfAnnot <- read.table("data/gf_descriptions.txt",sep="\t",header=T, stringsAsFactors = FALSE, fileEncoding="UTF-8")
+# gfAnnot <- read.table("data/gf_descriptions.txt",sep="\t",header=T, stringsAsFactors = FALSE, fileEncoding="UTF-8")
+# saveRDS(gfAnnot, "data/gfAnnot.Rds")
+gfAnnot <- readRDS("data/gfAnnot.Rds")
