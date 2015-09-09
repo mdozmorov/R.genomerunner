@@ -12,7 +12,7 @@ source("functions/mtx.cellspecific.R")
 #results.dir <- "/home/lukas/db_2.00_06-10-2015/results/encTFBS_cellspecific/"
 # Mikhail paths
 results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
-#results.dir <- "/Users/mikhail/Documents/tmp/results/eedsambb7fplmc3ovivmkycfloohh3l5/"
+#results.dir <- "/Users/mikhail/Documents/Work/VCU_work/Coleen/Breast_cancer/data/Tim/grweb_DMR-global_vs_encTFBS_cellspecific_bkgalldmrs/"
 
 genomerunner.mode <- T
 
@@ -424,7 +424,7 @@ shinyServer(function(input, output,session) {
     } else {
         mtx.deg[[selectedCor]][["adj.p.val"]] <- scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][["adj.p.val"]]))
     }
-    colnames(mtx.deg[[selectedCor]])[1] <- "epigenomic_feature"
+    colnames(mtx.deg[[selectedCor]])[1] <- "epigenomic_name"
     table.epi <- mtx.deg[[selectedCor]][, !(colnames(mtx.deg[[1]]) %in% c("full_path", "URL", "full_description", "category", "category_desc"))]
     num.char <- 50
     table.epi<- apply( table.epi,c(1,2),function(x) {
@@ -458,7 +458,7 @@ shinyServer(function(input, output,session) {
       } else {
         mtx.deg[[selectedCor]][["adj.p.val"]] <- scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][["adj.p.val"]]))
       }
-      colnames(mtx.deg[[selectedCor]])[1] <- "epigenomic_feature"
+      colnames(mtx.deg[[selectedCor]])[1] <- "epigenomic_name"
       table.epi <- mtx.deg[[selectedCor]][, !(colnames(mtx.deg[[1]]) %in% c("full_path", "URL", "full_description", "category", "category_desc"))]
       num.char <- 50
       table.epi
@@ -758,7 +758,7 @@ shinyServer(function(input, output,session) {
                            plotOutput("legendEnrich",width="300px",height="150px")
                   ), 
                   tabPanel("Enrichment barplot",
-                           br("Enrichment of SNP sets in regulatory/epigenomic features, shown as \"cell-factor-source\" on X-axis. Height of bars corresponds to the significance of enrichment (top)/depletion (bottom)."),
+                           br("Enrichment of the SNP sets in regulatory/epigenomic features, shown as \"cell-factor-source\" on the X-axis. The height of the bars corresponds to the significance of enriched (top)/depleted (bottom) associations."),
                            br(),
                            downloadButton('downloadEnrichBarPDF', 'Download PDF'),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
@@ -766,6 +766,7 @@ shinyServer(function(input, output,session) {
                   ),
                   tabPanel("Enrichment tables",
                            br("Enrichment analysis results in text format."),
+                           br("Table legend: 'epigenomic_name' - names of regulatory/epigenomic features; 'p.value/adj.p.val' - non-adjusted/fdr adjusted p-value of the enrichments; 'direction' - the directionality of the enrichments. The following columns describe the cell types, factors and regulatory/epigenomic features."),
                            br(),
                            downloadButton('downloadEnrichTable', 'Download table'),
                            br(),br(),
@@ -774,14 +775,14 @@ shinyServer(function(input, output,session) {
                            fluidPage(
                              fluidRow(
                                column(6,
-                                      br("Heatmap of regulatory similarity among SNP sets. Cells show correlation coefficients for each pair-wise correlation of SNP set-specific regulatory profiles."),
+                                      br("Heatmap of the regulatory similarity among the SNP sets. Cells show correlation coefficients for each pair-wise correlation of the SNP set-specific regulatory profiles."),
                                       br("Mouse over the heatmap to see numerical values. Click-and-drag to zoom in, single click to reset zoom."),
                                       downloadButton('downloadEpisimHeatmap', 'Download PDF'),
                                       d3heatmapOutput("heatmapEpisim", width = "100%", height = "600px"),
                                       plotOutput("legendEpisim",width="300px",height="150px")
                                ),
                                column(6,
-                                      br("Dedrogram of regulatory similarity among SNP sets. Clusters indicate groups of SNP sets with similar regulatory enrichments."),
+                                      br("Dedrogram of the regulatory similarity among the SNP sets. Clusters indicate groups of SNP sets with similar regulatory enrichments."),
                                       br("Adjust the number of clusters to identify regulatory differences among them on the \"Differential regulatory analysis\" tab."),
                                       plotOutput("pltDend",width = "100%", height = "500px")
                                )
@@ -791,7 +792,7 @@ shinyServer(function(input, output,session) {
                            br("Differential regulatory analysis identifies regulatory/epigenomic features differentially enriched between clusters of SNP sets (e.g., \"cX_vs_cY\"). Adjust the number of clusters and other clustering metrics on the \"Regulatory similarity heatmap\" tab."),
                            br(),
                            selectInput("cmbEpigenetics", "Select which comparison to show", choices = list("Results not ready yet.")),
-                           p("Table legend: \'epigenomic feature\' - names of regulatory/epigenomic features; \'adj.p.val\' - fdr adjusted p-value of the enrichment differences between clusters \'cX\' and \'cY\'; \'cX\'/\'cY\' - average enrichments in clusters \'cX\' and \'cY\', respectively. The following columns describe the regulatory/epigenomic features."),
+                           p("Table legend: 'epigenomic_name' - names of regulatory/epigenomic features; 'adj.p.val' - fdr adjusted p-value of the enrichment differences between clusters 'cX' and 'cY'; 'cX'/'cY' - average enrichment p-values in the clusters 'cX' and 'cY', respectively. The following columns describe the regulatory/epigenomic features."),
                            downloadButton('downloadEpigenetics', 'Download table'),
                            br(),br(),
                            DT::dataTableOutput("tblEpigenetics")),
@@ -809,7 +810,7 @@ shinyServer(function(input, output,session) {
                   },
                   tabPanel("Cell-type enrichment analysis",
                            br("Cell-type enrichment analysis detects cell type specificity of the enrichments of SNP sets, as compared with average overall enrichment. This analysis requires selection of categories with multiple epigenomic/regulatory features per cell type, e.g., \"Histone\" and/or \"chromStates\"."),
-                           br("Table legend: \'cell\' - cell type name; \'p.value\' - enrichment p-value; \'num_of_tests\' - how many cell type-specific enrichments were used to detect cell type-specific enrichment; \'av-pval-cell\' - average cell type-specific enrichment; \'av_pval_total\' - average overall enrichment; \'cell+desc\' - cell type description."),
+                           br("Table legend: \'cell\' - cell type name; \'p.value\' - the significance p-value of the differences between the average overall enrichment ('av_pval_tot') and the average cell type-specific enrichment ('av_pval_cell'); \'num_of_tests\' - how many cell type-specific enrichment tests were used to calculate the average cell type-specific enrichment ('av_pval_cell'); 'cell_desc' - the description of the cell type."),
                            br(),
                            downloadButton('downloadCTEnrichment', 'Download table'),
                            br(),br(),
@@ -822,7 +823,7 @@ shinyServer(function(input, output,session) {
     } else{ # this UI is created when only a single GF result is returned
       tabsetPanel(id="tabsSingleGF",
                   tabPanel("Enrichment barplot",
-                           br("Enrichment of SNP sets in regulatory/epigenomic features, shown as \"cell-factor-source\" on X-axis. Height of bars corresponds to the significance of enrichment (top)/depletion (bottom)."),
+                           br("Enrichment of the SNP sets in regulatory/epigenomic features, shown as \"cell-factor-source\" on the X-axis. The height of the bars corresponds to the significance of enriched (top)/depleted (bottom) associations."),
                            br(),
                            downloadButton('downloadEnrichBarPDF', 'Download PDF'),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
@@ -830,6 +831,7 @@ shinyServer(function(input, output,session) {
                   ),
                   tabPanel("Enrichment tables",
                            br("Enrichment analysis results in text format."),
+                           br("Table legend: 'epigenomic_name' - names of regulatory/epigenomic features; 'p.value/adj.p.val' - non-adjusted/fdr adjusted p-value of the enrichments; 'direction' - the directionality of the enrichments. The following columns describe the cell types, factors and regulatory/epigenomic features."),
                            br(),
                            downloadButton('downloadEnrichTable', 'Download table'),
                            br(),br(),
@@ -847,7 +849,7 @@ shinyServer(function(input, output,session) {
                   },
                   tabPanel("Cell-type enrichment analysis",
                            br("Cell-type enrichment analysis detects cell type specificity of the enrichments of SNP sets, as compared with average overall enrichment. This analysis requires selection of categories with multiple epigenomic/regulatory features per cell type, e.g., \"Histone\" and/or \"chromStates\"."),
-                           br("Table legend: \'cell\' - cell type name; \'p.value\' - enrichment p-value; \'num_of_tests\' - how many cell type-specific enrichments were used to detect cell type-specific enrichment; \'av-pval-cell\' - average cell type-specific enrichment; \'av_pval_total\' - average overall enrichment; \'cell+desc\' - cell type description."),
+                           br("Table legend: \'cell\' - cell type name; \'p.value\' - the significance p-value of the differences between the average overall enrichment ('av_pval_tot') and the average cell type-specific enrichment ('av_pval_cell'); \'num_of_tests\' - how many cell type-specific enrichment tests were used to calculate the average cell type-specific enrichment ('av_pval_cell'); 'cell_desc' - the description of the cell type."),
                            br(),
                            downloadButton('downloadCTEnrichment', 'Download table'),
                            br(),br(),
