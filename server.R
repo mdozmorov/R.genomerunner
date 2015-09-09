@@ -9,12 +9,12 @@ source("functions/mtx.degfs.R")
 source("functions/mtx.cellspecific.R")
 #shiny::runApp(host='0.0.0.0',port=4494)
 
-results.dir <- "/home/lukas/db_2.00_06-10-2015/results/largerun/"
+#results.dir <- "/home/lukas/db_2.00_06-10-2015/results/encTFBS_cellspecific/"
 # Mikhail paths
-# results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
+results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
 #results.dir <- "/Users/mikhail/Documents/tmp/results/eedsambb7fplmc3ovivmkycfloohh3l5/"
 
-genomerunner.mode <- F
+genomerunner.mode <- T
 
 coloring.num = 50
 shinyServer(function(input, output,session) {
@@ -391,27 +391,31 @@ shinyServer(function(input, output,session) {
       is.OR = F
     }
     mtx.deg <- suppressWarnings(mtx.degfs(mtx[, mtx.clust$eset.labels], mtx.clust, isOR = is.OR))
+    updateSelectInput(session,"cmbEpigenetics","Select which comparison to show",choices = names(mtx.deg), selected = names(mtx.deg)[1])
     
-    updateSelectInput(session,"cmbEpigenetics","Select which comparison to show",choices = names(mtx.deg))
     return(mtx.deg)
   })
   
   get.epigenetics.table <- reactive({
     withProgress({
       mtx.deg <- calculate.clust()
-      # check if any results were returned
-      if (is.null(names(mtx.deg))){ 
-        return(data.frame(NoResult="There is nothing signficant to show"))
-      }
-      selectedCor = names(mtx.deg)[1]
-      # save last selected value
-      if (input$cmbEpigenetics != "Results not ready yet.") {
-        if (input$cmbEpigenetics %in% names(mtx.deg)){
-          selectedCor = input$cmbEpigenetics
-        }
-        updateSelectInput(session,"cmbEpigenetics",choices=names(mtx.deg),selected = selectedCor)
-      }
+      
     }, message = "Calculating regulatory differences",value = 1.0)
+    mtx.deg
+  })
+  
+  output$tblEpigenetics <-renderDataTable({
+    mtx <- get.matrix()
+    validate(need(ncol(mtx)>2,"Need at least 3 SNPs of interest files to perform clustering."))
+    validate(need(nrow(mtx)>4,"Need at 5 least genome features to perform clustering."))
+    #validate(need(try(get.epigenetics.table()),"Either nothing is significant, or there are too few SNP sets per cluster. Re-run the analysis using more SNP sets, or try a different clustering method."))
+    mtx.deg <- get.epigenetics.table()
+    selectedCor = input$cmbEpigenetics
+    #validate(need(table.epi != "Results not ready yet.", "Results not ready yet."))
+    if (selectedCor == "Results not ready yet." | length(mtx.deg) == 0){
+    	return(data.frame(NoResult=""))
+    }
+  
     #convert values to numeric form for sorting purposes
     if(input$cmbMatrix == "matrix_PVAL.txt"){
       for(x in list("adj.p.val",3,4)){
@@ -421,23 +425,17 @@ shinyServer(function(input, output,session) {
         mtx.deg[[selectedCor]][["adj.p.val"]] <- scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][["adj.p.val"]]))
     }
     colnames(mtx.deg[[selectedCor]])[1] <- "epigenomic_feature"
-    mtx.deg[[selectedCor]][, !(colnames(mtx.deg[[1]]) %in% c("full_path", "URL", "full_description", "category", "category_desc"))]
-  })
-  
-  output$tblEpigenetics <-renderDataTable({
-    mtx <- get.matrix()
-    validate(need(ncol(mtx)>2,"Need at least 3 SNPs of interest files to perform clustering."))
-    validate(need(nrow(mtx)>4,"Need at 5 least genome features to perform clustering."))
-    validate(need(try(get.epigenetics.table()),"Either nothing is significant, or there are too few SNP sets per cluster. Re-run the analysis using more SNP sets, or try a different clustering method."))
-    table.epi <- get.epigenetics.table()
+    table.epi <- mtx.deg[[selectedCor]][, !(colnames(mtx.deg[[1]]) %in% c("full_path", "URL", "full_description", "category", "category_desc"))]
     num.char <- 50
-    table.epi <- apply( table.epi,c(1,2),function(x) {
+    table.epi<- apply( table.epi,c(1,2),function(x) {
       if (!is.na(x) & nchar(x)>num.char){
         return(paste(substring(x,1,num.char),  "..."))
       } else{
         return(x)
       }
+    
     })
+    table.epi
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
                     pageLength = 10))
   
@@ -446,7 +444,25 @@ shinyServer(function(input, output,session) {
       return("Regulatory_table.txt")
     },
     content = function(file) {
-      write.table(x = get.epigenetics.table(),file =  file ,sep = "\t",quote = F,row.names = F)
+      mtx.deg <- get.epigenetics.table()
+      selectedCor = input$cmbEpigenetics
+      #validate(need(table.epi != "Results not ready yet.", "Results not ready yet."))
+      if (mtx.deg == "Results lot ready yet." | length(mtx.deg) == 0){
+        return(data.frame(NoResult="There is nothing signficant to show"))
+      }
+      #convert values to numeric form for sorting purposes
+      if(input$cmbMatrix == "matrix_PVAL.txt"){
+        for(x in list("adj.p.val",3,4)){
+          mtx.deg[[selectedCor]][[x]] <- scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][[x]]))
+        }
+      } else {
+        mtx.deg[[selectedCor]][["adj.p.val"]] <- scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][["adj.p.val"]]))
+      }
+      colnames(mtx.deg[[selectedCor]])[1] <- "epigenomic_feature"
+      table.epi <- mtx.deg[[selectedCor]][, !(colnames(mtx.deg[[1]]) %in% c("full_path", "URL", "full_description", "category", "category_desc"))]
+      num.char <- 50
+      table.epi
+      write.table(x = table.epi,file =  file ,sep = "\t",quote = F,row.names = F)
     }
   )
   
@@ -476,40 +492,31 @@ shinyServer(function(input, output,session) {
       
   })
   
-  calculateCTEnrichment <- reactive({
-    mtx <- load_gr_data(paste(get.results.dir(), 'matrix_PVAL.txt',sep=""))
-    validate(need(nrow(mtx)>5,"Insufficient data for performing cell type-specific enrichment analysis"))
-    #running function
-    mtx.CTE <- mtx.cellspecific(mtx)
-  })
-  
-  get.CTEnrichment.table <- reactive({
-    mtx.CTE <- calculateCTEnrichment()
+  output$tblCTEnrichment <- renderDataTable({
+    withProgress({
+      mtx <- load_gr_data(paste(get.results.dir(), 'matrix_PVAL.txt',sep=""))
+      validate(need(nrow(mtx)>5,"Insufficient data for performing cell type-specific enrichment analysis"))
+      #running function
+      mtx.CTE <- mtx.cellspecific(mtx)
+    }, message = "Loading table", value = 1.0)
     if (is.character(mtx.CTE)) {
       return(data.frame(NoResults="Insufficient data for performing cell type-specific enrichment analysis"))
     }
-    selectedCor <- input$cmbFOI
-    if (is.character(mtx.CTE[[selectedCor]])) {
+    if (is.character(mtx.CTE[[input$cmbFOI]])) {
       return(data.frame(NoResults="Nothing significant"))
     }
-    mtx.formatted <- data.frame(cell=rownames(mtx.CTE[[selectedCor]]), mtx.CTE[[selectedCor]])
-    rownames(mtx.formatted) <- NULL
-    colnames(mtx.formatted)[2:5] <- c("p.value", "num_of_tests", "av_pval_cell", "av_pval_tot") 
-    return(mtx.formatted)
-  })
-  
-  output$tblCTEnrichment <- renderDataTable({
-    withProgress({
-      table.CTE <-  get.CTEnrichment.table()
-      num.char <- 50
-      table.CTE  <- apply( table.CTE ,c(1,2),function(x) {
-        if (!is.na(x) & nchar(x)>num.char){
-          return(paste(substring(x,1,num.char),  "..."))
-        } else{
-          return(x)
-        }
-      })
-    }, message = "Loading table", value = 1.0)
+    table.CTE <- data.frame(cell=rownames(mtx.CTE[[input$cmbFOI]]), mtx.CTE[[input$cmbFOI]])
+    rownames(table.CTE) <- NULL
+    colnames(table.CTE)[2:5] <- c("p.value", "num_of_tests", "av_pval_cell", "av_pval_tot") 
+    
+    num.char <- 50
+    table.CTE  <- apply( table.CTE ,c(1,2),function(x) {
+      if (!is.na(x) & nchar(x)>num.char){
+        return(paste(substring(x,1,num.char),  "..."))
+      } else{
+        return(x)
+      }
+    })
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
                      pageLength = 10))
   
@@ -518,7 +525,23 @@ shinyServer(function(input, output,session) {
     return("EnrichmentCT_table.txt")
   },
   content = function(file) {
-    write.table(x = get.CTEnrichment.table(),file =  file ,sep = "\t",quote = F,row.names = T,col.names=NA)
+    selectedCor <- input$cmbFOI
+    mtx <- load_gr_data(paste(get.results.dir(), 'matrix_PVAL.txt',sep=""))
+    validate(need(nrow(mtx)>5,"Insufficient data for performing cell type-specific enrichment analysis"))
+    #running function
+    mtx.CTE <- mtx.cellspecific(mtx)
+    if (is.character(mtx.CTE)) {
+      table.CTE <- data.frame(NoResults="Insufficient data for performing cell type-specific enrichment analysis")
+    }
+    else if (is.character(mtx.CTE[[selectedCor]])) {
+      table.CTE <- data.frame(NoResults="Nothing significant")
+    } else{
+      table.CTE <- data.frame(cell=rownames(mtx.CTE[[selectedCor]]), mtx.CTE[[selectedCor]])
+      rownames(table.CTE) <- NULL
+      colnames(table.CTE)[2:5] <- c("p.value", "num_of_tests", "av_pval_cell", "av_pval_tot") 
+    }
+    
+    write.table(x = table.CTE,file =  file ,sep = "\t",quote = F,row.names = F)
   })
   # --download button code --------------------------------------------------
   
