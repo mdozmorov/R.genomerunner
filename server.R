@@ -12,7 +12,7 @@ source("functions/mtx.cellspecific.R")
 #results.dir <- "/home/lukas/db_2.00_06-10-2015/results/encTFBS_cellspecific/"
 # Mikhail paths
 results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
-#results.dir <- "/Users/mikhail/Documents/Work/VCU_work/Coleen/Breast_cancer/data/Tim/grweb_DMR-global_vs_encTFBS_cellspecific_bkgalldmrs/"
+#results.dir <- "/Users/mikhail/Documents/Work/VCU_work/Coleen/Breast_cancer/data/Tim/grweb_DMR-global-hyperhypo_vs_encTFBS_cellspecific_bkgalldmrs/"
 
 genomerunner.mode <- T
 
@@ -60,7 +60,7 @@ shinyServer(function(input, output,session) {
         }
       }  
     }
-    mtx <- sign.mtx*mtx[,2:total.columns+1]
+    mtx <- sign.mtx*mtx[,2:(total.columns+1)]
     mtx
   })
   
