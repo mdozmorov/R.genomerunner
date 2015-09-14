@@ -14,7 +14,7 @@ source("functions/mtx.cellspecific.R")
 results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
 #results.dir <- "/Users/mikhail/Documents/tmp/results/eedsambb7fplmc3ovivmkycfloohh3l5/"
 
-genomerunner.mode <- T
+genomerunner.mode <- T 
 
 coloring.num = 50
 shinyServer(function(input, output,session) {
@@ -492,12 +492,17 @@ shinyServer(function(input, output,session) {
       
   })
   
+  get.mtx.cellspecific <- reactive({
+    mtx <- load_gr_data(paste(get.results.dir(), 'matrix_PVAL.txt',sep=""))
+    mtx.CTE <- mtx.cellspecific(mtx)
+  })
+  
   output$tblCTEnrichment <- renderDataTable({
     withProgress({
       mtx <- load_gr_data(paste(get.results.dir(), 'matrix_PVAL.txt',sep=""))
       validate(need(nrow(mtx)>5,"Insufficient data for performing cell type-specific enrichment analysis"))
       #running function
-      mtx.CTE <- mtx.cellspecific(mtx)
+      mtx.CTE <- get.mtx.cellspecific()
     }, message = "Loading table", value = 1.0)
     if (is.character(mtx.CTE)) {
       return(data.frame(NoResults="Insufficient data for performing cell type-specific enrichment analysis"))
