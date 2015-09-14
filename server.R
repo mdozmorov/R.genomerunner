@@ -14,7 +14,7 @@ source("functions/mtx.cellspecific.R")
 results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
 #results.dir <- "/Users/mikhail/Documents/Work/VCU_work/Coleen/Breast_cancer/data/Tim/grweb_DMR-global-hyperhypo_vs_encTFBS_cellspecific_bkgalldmrs/"
 
-genomerunner.mode <- T 
+genomerunner.mode <- T
 
 coloring.num = 50
 shinyServer(function(input, output,session) {
@@ -88,13 +88,14 @@ shinyServer(function(input, output,session) {
         mtx.sd.order <- mtx.sd.order[1:n_limit,]
         mtx <- mtx.sd.order
       }
+    }, message = "Rendering heatmap",value = 1.0)
       dend.path <- paste(get.results.dir(),"heatmap.enrich.dend.rds", sep="") # Dendrogram file is created by d3Heatmap
       par(cex.main=0.65, oma=c(2,0,0,5), mar=c(5, 4.1, 4.1, 5)) # Adjust margins
       coloring<-colorRampPalette(c("blue", "yellow", "red"))
      
       d3heatmap::d3heatmap(as.matrix(mtx),hclust=function(tmp) {hclust(tmp, method = input$cmbClustMethod)}, colors = coloring(coloring.num), tip_transformation = untransform.method,
                          xaxis_font_size = "10pt", yaxis_font_size = "10pt",xaxis_height=200,yaxis_height=200,dendro.rds.path=dend.path)
-      }, message = "Rendering heatmap",value = 1.0)
+
   })
   
   
@@ -350,11 +351,13 @@ shinyServer(function(input, output,session) {
       validate(need(nrow(mat)>4,"Need at least 5 genome features to perform clustering."))
       cor.mat <- get.corr.matrix()
       hclustergram <- get.cor.hclust.dendrogram()
+    }, message = "Rendering heatmap",value = 1.0)
+    
       coloring<-colorRampPalette(c("blue", "yellow", "red"))
       # TODO: Colv == Rowv?
       d3heatmap::d3heatmap(as.matrix(cor.mat),Rowv=hclustergram,Colv='Rowv',colors = coloring(coloring.num),dendro.rds.path=paste(get.results.dir(),"heatmap.episim.dend.rds", sep=""),
                            xaxis_font_size = "10pt", yaxis_font_size = "10pt",xaxis_height=200,yaxis_height=200)
-    }, message = "Rendering heatmap",value = 1.0)
+   
   })
   
   output$legendEpisim <- renderPlot({
@@ -467,15 +470,12 @@ shinyServer(function(input, output,session) {
   )
   
   output$pltDend <- renderPlot({ 
-    
-    withProgress({
       mtx <- get.matrix()
       validate(need(ncol(mtx)>2,""))
       validate(need(nrow(mtx)>4,""))
-      
       cor.mat <- get.corr.matrix() # this line ensure that dendrogram is redrawn when heatmap is
       hclustergram <- get.cor.hclust.dendrogram() # ensures that dendrogram is redrawn when hclust method is changed
-      
+
       dend = readRDS(file = paste(get.results.dir(), "heatmap.episim.dend.rds",sep=""))  # Dendrogram file is created by d3Heatmap
       plot(as.dendrogram(dend, hang=-1)) # Plot dendrogram
       cl_num <- input$sldEpisimNumClust # Empirically set desired numter of clusters
@@ -485,25 +485,25 @@ shinyServer(function(input, output,session) {
       mtx.clust <-validate(need(try(dend %>% mtx.clusters(height=hcut, minmembers=3)),"Try using a lower number of clusters"))
       # write.table(as.data.frame(mtx.clust), "/home/lukas/clustering_all.txt", sep="\t", row.names=FALSE, quote=FALSE)
       
-      
       # Define the clusters by rectangles
       validate(need(try(rect.hclust( as.hclust(dend), k=cl_num, border=cols)),"Try a different clustering method."))
-    }, message = "Rendering dendrogram", value = 1.0)
+   
       
   })
   
   get.mtx.cellspecific <- reactive({
-    mtx <- load_gr_data(paste(get.results.dir(), 'matrix_PVAL.txt',sep=""))
-    mtx.CTE <- mtx.cellspecific(mtx)
+    withProgress({
+      mtx <- load_gr_data(paste(get.results.dir(), 'matrix_PVAL.txt',sep=""))
+      mtx.CTE <- mtx.cellspecific(mtx)
+    }, message = "Loading table", value = 1.0)
   })
   
   output$tblCTEnrichment <- renderDataTable({
-    withProgress({
-      mtx <- load_gr_data(paste(get.results.dir(), 'matrix_PVAL.txt',sep=""))
-      validate(need(nrow(mtx)>5,"Insufficient data for performing cell type-specific enrichment analysis"))
-      #running function
-      mtx.CTE <- get.mtx.cellspecific()
-    }, message = "Loading table", value = 1.0)
+    inputtmp <- input$cmbFOI
+    mtx <- load_gr_data(paste(get.results.dir(), 'matrix_PVAL.txt',sep=""))
+    validate(need(nrow(mtx)>5,"Insufficient data for performing cell type-specific enrichment analysis"))
+    #running function
+    mtx.CTE <- get.mtx.cellspecific()
     if (is.character(mtx.CTE)) {
       return(data.frame(NoResults="Insufficient data for performing cell type-specific enrichment analysis"))
     }
