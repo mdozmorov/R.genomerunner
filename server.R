@@ -9,9 +9,9 @@ source("functions/mtx.degfs.R")
 source("functions/mtx.cellspecific.R")
 #shiny::runApp(host='0.0.0.0',port=4494)
 
-#results.dir <- "/home/lukas/db_2.00_06-10-2015/results/encTFBS_cellspecific/"
+results.dir <- "/home/lukas/db_5.00_06-10-2015/results/test"
 # Mikhail paths
-results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
+#results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
 #results.dir <- "/Users/mikhail/Documents/Work/VCU_work/Coleen/Breast_cancer/data/Tim/grweb_DMR-global-hyperhypo_vs_encTFBS_cellspecific_bkgalldmrs/"
 
 genomerunner.mode <- T
@@ -128,8 +128,11 @@ shinyServer(function(input, output,session) {
       pval.sig[ mtx[, selectedFOI] < 0.05 & mtx[, selectedFOI] > 0] <- "Overrepresented" 
       pval.sig[mtx[, selectedFOI] > -0.05 & mtx[, selectedFOI] < 0] <- "Underrepresented"
       
-      mtx.table <- cbind(scientific_format(3)(abs(mtx[selectedFOI])), pval.sig, scientific_format(3)(mtx.adjust))
+      
+      mtx.table <- cbind(signif(abs(mtx[selectedFOI]),digits = 3), pval.sig, signif(mtx.adjust,digits = 3))
       colnames(mtx.table) <- c("p.value","direction","adj.p.val")
+      mtx.table$p.value <- as.numeric( as.character(mtx.table$p.value))
+      mtx.table$adj.p.val <- as.numeric(as.character(mtx.table$adj.p.val))
     }else{ 
       # for odds ratio
       or.sig <- rep("Not significant", nrow(mtx))
@@ -137,25 +140,33 @@ shinyServer(function(input, output,session) {
       or.sig[mtx[, selectedFOI] < 1] <- "Depleted"
       mtx.table <- cbind(scientific_format(3)(abs(mtx[selectedFOI])), or.sig)
       colnames(mtx.table) <- c("odds.ratio","direction")
+      mtx.table$odds.ratio <- as.numeric(as.character(mtx.table$odds.ratio))
     }
     mtx.table = cbind(GF.Name = rownames(mtx.table),mtx.table) # make the GF.name a column instead of just the rowname so we can left_join
     rownames(mtx.table) <- NULL
-    mtx.table <- left_join(mtx.table,gfAnnot[,(names(gfAnnot) %in% c("file_name", "cell", "cell_desc", "factor", "factor_desc", "source", "source_desc"))], by=c("GF.Name"="file_name"))
+    gfano <- gfAnnot[,(names(gfAnnot) %in% c("file_name", "cell", "cell_desc", "factor", "factor_desc", "source", "source_desc"))]
+    mtx.table <- left_join(mtx.table,gfano, by=c("GF.Name"="file_name"))
     colnames(mtx.table)[1] <- "epigenomic_name"
     return(mtx.table)
   })
-  
+  # 
   output$tblEnrichment <-renderDataTable({
     withProgress({
-      num.char <- 50
       table.enrich <- get.enrichment.table()
-      table.enrich <- apply(table.enrich,c(1,2),function(x) {
+      
+      # shortens descriptions that are longer than 50 characters
+      num.char <- 50
+      func.trunc <- function(x) {
         if (!is.na(x) & nchar(x)>num.char){
           return(paste(substring(x,1,num.char),  "..."))
         } else{
           return(x)
         }
-      })
+      }
+      table.enrich$cell_desc <- lapply(table.enrich$cell_desc,func.trunc)
+      table.enrich$factor_desc <- lapply(table.enrich$factor_desc,func.trunc)
+      table.enrich$source_desc <- lapply(table.enrich$source_desc,func.trunc)   
+      table.enrich
     }, message = "Loading enrichment table",value=1.0)
   }, options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
                      pageLength = 10))
@@ -422,22 +433,28 @@ shinyServer(function(input, output,session) {
     #convert values to numeric form for sorting purposes
     if(input$cmbMatrix == "matrix_PVAL.txt"){
       for(x in list("adj.p.val",3,4)){
-        mtx.deg[[selectedCor]][[x]] <- scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][[x]]))
+        # scientific format returns a factor, use as.character before as.numeric to ensure that the actual number is converted rather than the factor level
+        #mtx.deg[[selectedCor]][[x]] <- as.numeric(as.character(scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][[x]]))))
+        mtx.deg[[selectedCor]][[x]] <- signif(as.numeric(mtx.deg[[selectedCor]][[x]],digits = 3))
       }
     } else {
-        mtx.deg[[selectedCor]][["adj.p.val"]] <- scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][["adj.p.val"]]))
+        #mtx.deg[[selectedCor]][["adj.p.val"]] <- as.numeric(as.character(scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][["adj.p.val"]]))))
+      mtx.deg[[selectedCor]][["adj.p.val"]] <- signif(as.numeric(mtx.deg[[selectedCor]][["adj.p.val"]],digits = 3))
     }
+    
     colnames(mtx.deg[[selectedCor]])[1] <- "epigenomic_name"
     table.epi <- mtx.deg[[selectedCor]][, !(colnames(mtx.deg[[1]]) %in% c("full_path", "URL", "full_description", "category", "category_desc"))]
     num.char <- 50
-    table.epi<- apply( table.epi,c(1,2),function(x) {
+    func.trunc <- function(x) {
       if (!is.na(x) & nchar(x)>num.char){
         return(paste(substring(x,1,num.char),  "..."))
       } else{
         return(x)
       }
-    
-    })
+    }
+    table.epi$cell_desc <- lapply(table.epi$cell_desc,func.trunc)
+    table.epi$factor_desc <- lapply(table.epi$factor_desc,func.trunc)
+    table.epi$source_desc <- lapply(table.epi$source_desc,func.trunc)   
     table.epi
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
                     pageLength = 10))
@@ -463,7 +480,6 @@ shinyServer(function(input, output,session) {
       }
       colnames(mtx.deg[[selectedCor]])[1] <- "epigenomic_name"
       table.epi <- mtx.deg[[selectedCor]][, !(colnames(mtx.deg[[1]]) %in% c("full_path", "URL", "full_description", "category", "category_desc"))]
-      num.char <- 50
       table.epi
       write.table(x = table.epi,file =  file ,sep = "\t",quote = F,row.names = F)
     }
@@ -513,15 +529,20 @@ shinyServer(function(input, output,session) {
     table.CTE <- data.frame(cell=rownames(mtx.CTE[[input$cmbFOI]]), mtx.CTE[[input$cmbFOI]])
     rownames(table.CTE) <- NULL
     colnames(table.CTE)[2:5] <- c("p.value", "num_of_tests", "av_pval_cell", "av_pval_tot") 
+    table.CTE$p.value <- as.numeric(table.CTE$p.value)
+    table.CTE$av_pval_cell <- as.numeric(table.CTE$av_pval_cell)
+    table.CTE$av_pval_tot <- as.numeric(table.CTE$av_pval_tot)
     
     num.char <- 50
-    table.CTE  <- apply( table.CTE ,c(1,2),function(x) {
+    func.trunc <- function(x) {
       if (!is.na(x) & nchar(x)>num.char){
         return(paste(substring(x,1,num.char),  "..."))
       } else{
         return(x)
       }
-    })
+    }
+    table.CTE$cell_desc <- lapply(table.CTE$cell_desc,func.trunc)
+    table.CTE
   },options = list( lengthMenu = list(c(10, 50, 100,-1), c('10', '50','100', 'All')),
                      pageLength = 10))
   
