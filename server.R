@@ -115,9 +115,9 @@ output$legendEnrich <- renderPlot({
        pch = 15, cex = 10, main = "Depletion/Enrichment Significance", 
        ylab = "", xlab = "", yaxt = "n", xaxt = "n")
   if (input$cmbMatrix == "matrix_PVAL.txt") {
-    axis(side = 1, at = my.breaks, labels = scientific_format(2)(1/10^abs(my.breaks)), las = 1)
+    axis(side = 1, at = my.breaks, labels = scales::scientific_format(2)(1/10^abs(my.breaks)), las = 1)
   } else {
-    axis(side = 1, at = my.breaks, labels = scientific_format(2)(2^my.breaks), las = 1)
+    axis(side = 1, at = my.breaks, labels = scales::scientific_format(2)(2^my.breaks), las = 1)
   }
 })
   
@@ -144,7 +144,7 @@ get.enrichment.table <- reactive({
     or.sig <- rep("Not significant", nrow(mtx))
     or.sig[mtx[, selectedFOI] > 1] <- "Enriched"
     or.sig[mtx[, selectedFOI] < 1] <- "Depleted"
-    mtx.table <- cbind(scientific_format(3)(abs(mtx[selectedFOI])), or.sig)
+    mtx.table <- cbind(scales::scientific_format(3)(abs(mtx[selectedFOI])), or.sig)
     colnames(mtx.table) <- c("odds.ratio", "direction")
     mtx.table$odds.ratio <- as.numeric(as.character(mtx.table$odds.ratio))
   }
@@ -286,10 +286,10 @@ output$pltEnrichUp <- renderPlot({
   # draw y labels
   if (input$cmbMatrix == "matrix_PVAL.txt") {
     mtext("P-value", side = 2, line = 4)
-    axis(side = 2, at = axis.values, labels = scientific_format(2)(1/10^abs(axis.values)), las = 1)
+    axis(side = 2, at = axis.values, labels = scales::scientific_format(2)(1/10^abs(axis.values)), las = 1)
   } else {
     mtext("Odds-ratio", side = 2, line = 5)
-    axis(side = 2, at = axis.values, labels = scientific_format(2)(2^axis.values), las = 1)
+    axis(side = 2, at = axis.values, labels = scales::scientific_format(2)(2^axis.values), las = 1)
   }
   # draw rotated x-labels
   axis(side = 1, labels = FALSE, tick = F)
@@ -326,10 +326,10 @@ output$pltEnrichDown <- renderPlot({
   axis.values = seq(0, max(mtx.down.sorted), length.out = 10)
   if (input$cmbMatrix == "matrix_PVAL.txt") {
     mtext("P-value", side = 2, line = 4)
-    axis(side = 2, at = axis.values, labels = scientific_format(2)(1/10^abs(axis.values)), las = 1)
+    axis(side = 2, at = axis.values, labels = scales::scientific_format(2)(1/10^abs(axis.values)), las = 1)
   } else {
     mtext("Odds-ratio", side = 2, line = 5)
-    axis(side = 2, at = axis.values, label = scientific_format(2)(2^(-axis.values)), las = 1)
+    axis(side = 2, at = axis.values, label = scales::scientific_format(2)(2^(-axis.values)), las = 1)
   }
   # draw rotated x-labels
   axis(side = 1, labels = FALSE, tick = F)
@@ -459,12 +459,12 @@ output$tblEpigenetics <- renderDataTable({
       # scientific format returns a factor, use as.character before
       # as.numeric to ensure that the actual number is converted rather than
       # the factor level mtx.deg[[selectedCor]][[x]] <-
-      # as.numeric(as.character(scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][[x]]))))
+      # as.numeric(as.character(scales::scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][[x]]))))
       mtx.deg[[selectedCor]][[x]] <- signif(as.numeric(mtx.deg[[selectedCor]][[x]], digits = 3))
     }
   } else {
     # mtx.deg[[selectedCor]][['adj.p.val']] <-
-    # as.numeric(as.character(scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][['adj.p.val']]))))
+    # as.numeric(as.character(scales::scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][['adj.p.val']]))))
     mtx.deg[[selectedCor]][["adj.p.val"]] <- signif(as.numeric(mtx.deg[[selectedCor]][["adj.p.val"]],  digits = 3))
   }
   #colnames(mtx.deg[[selectedCor]])[1] <- "epigenomic_name"
@@ -489,10 +489,10 @@ output$downloadEpigenetics <- downloadHandler(filename = function() {
   # convert values to numeric form for sorting purposes
   if (input$cmbMatrix == "matrix_PVAL.txt") {
     for (x in list("adj.p.val", 3, 4)) {
-      mtx.deg[[selectedCor]][[x]] <- scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][[x]]))
+      mtx.deg[[selectedCor]][[x]] <- scales::scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][[x]]))
     }
   } else {
-    mtx.deg[[selectedCor]][["adj.p.val"]] <- scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][["adj.p.val"]]))
+    mtx.deg[[selectedCor]][["adj.p.val"]] <- scales::scientific_format(3)(as.numeric(mtx.deg[[selectedCor]][["adj.p.val"]]))
   }
   colnames(mtx.deg[[selectedCor]])[1] <- "epigenomic_name"
   table.epi <- mtx.deg[[selectedCor]][, !(colnames(mtx.deg[[1]]) %in% 
@@ -662,10 +662,10 @@ output$downloadEnrichBarPDF <- downloadHandler(filename = function() {
     axis.values = seq(0, max(mtx.up.sorted), length.out = 10)
     if (input$cmbMatrix == "matrix_PVAL.txt") {
       mtext("P-value", side = 2, line = 4)
-      axis(side = 2, at = axis.values, labels = scientific_format(1)(1/10^abs(axis.values)), las = 1)
+      axis(side = 2, at = axis.values, labels = scales::scientific_format(1)(1/10^abs(axis.values)), las = 1)
     } else {
       mtext("Odds-ratio", side = 2, line = 5)
-      axis(side = 2, at = axis.values, labels = scientific_format(2)(2^axis.values), las = 1)
+      axis(side = 2, at = axis.values, labels = scales::scientific_format(2)(2^axis.values), las = 1)
     }
     # draw rotated x-labels
     axis(side = 1, labels = FALSE, tick = F)
@@ -697,10 +697,10 @@ output$downloadEnrichBarPDF <- downloadHandler(filename = function() {
     axis.values = seq(0, max(mtx.down.sorted), length.out = 10)
     if (input$cmbMatrix == "matrix_PVAL.txt") {
       mtext("P-value", side = 2, line = 4)
-      axis(side = 2, at = axis.values, labels = scientific_format(1)(1/10^abs(axis.values)), las = 1)
+      axis(side = 2, at = axis.values, labels = scales::scientific_format(1)(1/10^abs(axis.values)), las = 1)
     } else {
       mtext("Odds-ratio", side = 2, line = 5)
-      axis(side = 2, at = axis.values, labels = scientific_format(2)(2^axis.values), las = 1)
+      axis(side = 2, at = axis.values, labels = scales::scientific_format(2)(2^axis.values), las = 1)
     }
     # draw rotated x-labels
     axis(side = 1, labels = FALSE, tick = F)
