@@ -777,14 +777,14 @@ output$downloadZIP <- downloadHandler(filename = function() {
     if (single.feature == FALSE){
       tabsetPanel(id="tabsMultiple",
                   tabPanel("Enrichment heatmap",
-                           br("Heatmap of the enrichment analysis results. Rows - names of regulatory/epigenomic features, shown as \"cell-factor-source\". Columns - names of SNP sets. Cells contain enrichment p-values/odds ratios. Blue/red gradient highlights depleted/enriched associations, respectively, for the corresponding regulatory/epigenomic features and SNP sets."),
+                           br("Heatmap of the enrichment analysis results. Rows - names of regulatory/epigenomic features, shown as \"cell-factor-source\" scheme. Columns - names of SNP sets. Cells contain enrichment p-values/odds ratios. Blue/red gradient highlights depleted/enriched associations, respectively."),
                            br("Mouse over the heatmap to see numerical values. Click-and-drag to zoom in, single click to reset zoom."),
                            downloadButton('downloadEnrichHeatmap',"Download PDF"),
                            d3heatmapOutput("heatmapEnrich", width = "100%", height = "600px"),
                            plotOutput("legendEnrich",width="300px",height="150px")
                   ), 
                   tabPanel("Enrichment barplot",
-                           br("Enrichment of the SNP sets in regulatory/epigenomic features, shown as \"cell-factor-source\" on the X-axis. The height of the bars corresponds to the significance of enriched (top)/depleted (bottom) associations."),
+                           br("Enrichment of the SNP sets in regulatory/epigenomic features, shown as \"cell-factor-source\" names on the X-axis. The height of the bars corresponds to the significance of enriched (top)/depleted (bottom) associations."),
                            br(),
                            downloadButton('downloadEnrichBarPDF', 'Download PDF'),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
@@ -792,7 +792,8 @@ output$downloadZIP <- downloadHandler(filename = function() {
                   ),
                   tabPanel("Enrichment tables",
                            br("Enrichment analysis results in text format."),
-                           br("Table legend: 'epigenomic_name' - names of regulatory/epigenomic features; 'p.value/adj.p.val' - non-adjusted/fdr adjusted p-value of the enrichments; 'direction' - the directionality of the enrichments. The following columns describe the cell types, factors and regulatory/epigenomic features."),
+                           br("Table legend: 'epigenomic_name' - names of regulatory/epigenomic features; 'p.value/adj.p.val' - non-adjusted/adjusted for multiple testing p-value of the enrichments; 'direction' - the directionality of the enrichments. The following columns describe cell types, factors and regulatory/epigenomic features."),
+                           br("Click on a column header (e.g., 'adj.p.val') to sort the table"),
                            br(),
                            downloadButton('downloadEnrichTable', 'Download table'),
                            br(),br(),
@@ -801,33 +802,33 @@ output$downloadZIP <- downloadHandler(filename = function() {
                            fluidPage(
                              fluidRow(
                                column(6,
-                                      br("Heatmap of the regulatory similarity among the SNP sets. Cells show correlation coefficients for each pair-wise correlation of the SNP set-specific regulatory profiles."),
+                                      br("Heatmap of regulatory similarity among SNP sets. Cells show correlation coefficients for each pair-wise correlation of the SNP set-specific regulatory profiles."),
                                       br("Mouse over the heatmap to see numerical values. Click-and-drag to zoom in, single click to reset zoom."),
                                       downloadButton('downloadEpisimHeatmap', 'Download PDF'),
                                       d3heatmapOutput("heatmapEpisim", width = "100%", height = "600px"),
                                       plotOutput("legendEpisim",width="300px",height="150px")
                                ),
                                column(6,
-                                      br("Dedrogram of the regulatory similarity among the SNP sets. Clusters indicate groups of SNP sets with similar regulatory enrichments."),
-                                      br("Adjust the number of clusters to identify regulatory differences among them on the \"Differential regulatory analysis\" tab."),
+                                      br("Dedrogram of regulatory similarity among SNP sets. Clusters define groups of SNP sets with similar regulatory enrichments."),
+                                      br("Adjust the number of clusters to identify regulatory/epigenomic differences among them on the \"Differential regulatory analysis\" tab."),
                                       plotOutput("pltDend",width = "100%", height = "500px")
                                )
                              )
                            )),
                   tabPanel("Differential regulatory analysis",
-                           br("Differential regulatory analysis identifies regulatory/epigenomic features differentially enriched between clusters of SNP sets (e.g., \"cX_vs_cY\"). Adjust the number of clusters and other clustering metrics on the \"Regulatory similarity heatmap\" tab."),
+                           br("Differential regulatory analysis identifies regulatory/epigenomic features differentially enriched between clusters of SNP sets (e.g., \"cX_vs_cY\"). Adjust the number of clusters and other clustering metrics on the \"Regulatory similarity heatmap\" tab, if needed."),
                            br(),
                            selectInput("cmbEpigenetics", "Select which comparison to show", choices = list("Results not ready yet.")),
-                           p("Table legend: 'epigenomic_name' - names of regulatory/epigenomic features; 'adj.p.val' - fdr adjusted p-value of the enrichment differences between clusters 'cX' and 'cY'; 'cX'/'cY' - average enrichment p-values in the clusters 'cX' and 'cY', respectively. The following columns describe the regulatory/epigenomic features."),
+                           p("Table legend: 'epigenomic_name' - names of regulatory/epigenomic features; 'adj.p.val' - adjusted for multiple testing p-value of the enrichment differences between clusters 'cX' and 'cY'; 'cX'/'cY' - average enrichments (p-values or odds ratios) in clusters 'cX' and 'cY', respectively. The following columns describe regulatory/epigenomic features."),
                            downloadButton('downloadEpigenetics', 'Download table'),
                            br(),br(),
                            DT::dataTableOutput("tblEpigenetics")),
                   if (length(file.names.annotation)>0){
                     tabPanel("Annotation Analysis",
                            br("Annotation analysis tables. Here, the overlap between each SNP in a set (rows) and each regulatory/epigenomic feature analyzed (columns) is shown (0=no overlap, 1=overlap)."),
-                           br("If more than 100 regulatory/epigenomic features were selected, the annotation tables are split into multiple tables, each having 100 columns or less."),
+                           br("If more than a 100 regulatory/epigenomic features were selected, the annotation tables are split into multiple tables, each having 100 columns or less."),
                            br(),
-                           downloadButton('downloadAnnotation', 'Download Table'),
+                           downloadButton('downloadAnnotation', 'Download table'),
                            br(),br(),
                            DT::dataTableOutput("tblAnnotation"))
                   }else{
@@ -835,8 +836,8 @@ output$downloadZIP <- downloadHandler(filename = function() {
                     )
                   },
                   tabPanel("Cell-type enrichment analysis",
-                           br("Cell-type enrichment analysis detects cell type specificity of the enrichments of SNP sets, as compared with average overall enrichment. This analysis requires selection of categories with multiple epigenomic/regulatory features per cell type, e.g., \"Histone\" and/or \"chromStates\"."),
-                           br("Table legend: \'cell\' - cell type name; \'p.value\' - the significance p-value of the differences between the average overall enrichment ('av_pval_tot') and the average cell type-specific enrichment ('av_pval_cell'); \'num_of_tests\' - how many cell type-specific enrichment tests were used to calculate the average cell type-specific enrichment ('av_pval_cell'); 'cell_desc' - the description of the cell type."),
+                           br("Cell-type enrichment analysis detects cell type specificity of enrichments of SNP sets. It compares whether cell type-specific enrichment is significantly different from overall enrichment of a SNP set. This analysis requires selection of categories with multiple epigenomic/regulatory features per cell type, e.g., \"Histone\" and/or \"chromStates\"."),
+                           br("Table legend: \'cell\' - cell type name; \'p.value\' - significance p-value of the differences between average overall enrichment ('av_pval_tot') and average cell type-specific enrichment ('av_pval_cell'); \'num_of_tests\' - how many cell type-specific enrichment tests were used to calculate average cell type-specific enrichment ('av_pval_cell'); 'cell_desc' - description of cell type."),
                            br(),
                            downloadButton('downloadCTEnrichment', 'Download table'),
                            br(),br(),
@@ -849,7 +850,7 @@ output$downloadZIP <- downloadHandler(filename = function() {
     } else{ # this UI is created when only a single GF result is returned
       tabsetPanel(id="tabsSingleGF",
                   tabPanel("Enrichment barplot",
-                           br("Enrichment of the SNP sets in regulatory/epigenomic features, shown as \"cell-factor-source\" on the X-axis. The height of the bars corresponds to the significance of enriched (top)/depleted (bottom) associations."),
+                           br("Enrichment of the SNP sets in regulatory/epigenomic features, shown as \"cell-factor-source\" names on the X-axis. The height of the bars corresponds to the significance of enriched (top)/depleted (bottom) associations."),
                            br(),
                            downloadButton('downloadEnrichBarPDF', 'Download PDF'),
                            plotOutput("pltEnrichUp",width="100%",height = "350px"),
@@ -857,7 +858,8 @@ output$downloadZIP <- downloadHandler(filename = function() {
                   ),
                   tabPanel("Enrichment tables",
                            br("Enrichment analysis results in text format."),
-                           br("Table legend: 'epigenomic_name' - names of regulatory/epigenomic features; 'p.value/adj.p.val' - non-adjusted/fdr adjusted p-value of the enrichments; 'direction' - the directionality of the enrichments. The following columns describe the cell types, factors and regulatory/epigenomic features."),
+                           br("Table legend: 'epigenomic_name' - names of regulatory/epigenomic features; 'p.value/adj.p.val' - non-adjusted/adjusted for multiple testing p-value of the enrichments; 'direction' - the directionality of the enrichments. The following columns describe cell types, factors and regulatory/epigenomic features."),
+                           br("Click on a column header (e.g., 'adj.p.val') to sort the table"),
                            br(),
                            downloadButton('downloadEnrichTable', 'Download table'),
                            br(),br(),
@@ -865,17 +867,17 @@ output$downloadZIP <- downloadHandler(filename = function() {
                   if (length(file.names.annotation)>0){
                     tabPanel("Annotation Analysis",
                              br("Annotation analysis tables. Here, the overlap between each SNP in a set (rows) and each regulatory/epigenomic feature analyzed (columns) is shown (0=no overlap, 1=overlap)."),
-                             br("If more than 100 regulatory/epigenomic features were selected, the annotation tables are split into multiple tables, each having 100 columns or less."),
+                             br("If more than a 100 regulatory/epigenomic features were selected, the annotation tables are split into multiple tables, each having 100 columns or less."),
                              br(),
-                             downloadButton('downloadAnnotation', 'Download Table'),
+                             downloadButton('downloadAnnotation', 'Download table'),
                              DT::dataTableOutput("tblAnnotation"))
                   }else{
                     conditionalPanel('False',tabPanel("Annotation Analysis")
                     )
                   },
                   tabPanel("Cell-type enrichment analysis",
-                           br("Cell-type enrichment analysis detects cell type specificity of the enrichments of SNP sets, as compared with average overall enrichment. This analysis requires selection of categories with multiple epigenomic/regulatory features per cell type, e.g., \"Histone\" and/or \"chromStates\"."),
-                           br("Table legend: \'cell\' - cell type name; \'p.value\' - the significance p-value of the differences between the average overall enrichment ('av_pval_tot') and the average cell type-specific enrichment ('av_pval_cell'); \'num_of_tests\' - how many cell type-specific enrichment tests were used to calculate the average cell type-specific enrichment ('av_pval_cell'); 'cell_desc' - the description of the cell type."),
+                           br("Cell-type enrichment analysis detects cell type specificity of enrichments of SNP sets. It compares whether cell type-specific enrichment is significantly different from overall enrichment of a SNP set. This analysis requires selection of categories with multiple epigenomic/regulatory features per cell type, e.g., \"Histone\" and/or \"chromStates\"."),
+                           br("Table legend: \'cell\' - cell type name; \'p.value\' - significance p-value of the differences between average overall enrichment ('av_pval_tot') and average cell type-specific enrichment ('av_pval_cell'); \'num_of_tests\' - how many cell type-specific enrichment tests were used to calculate average cell type-specific enrichment ('av_pval_cell'); 'cell_desc' - description of cell type."),
                            br(),
                            downloadButton('downloadCTEnrichment', 'Download table'),
                            br(),br(),
@@ -900,7 +902,7 @@ output$downloadZIP <- downloadHandler(filename = function() {
                      selectInput("cmbMatrix", label = "Results to visualize", 
                                  choices = list("P-values" = "matrix_PVAL.txt", 
                                                 "Odds Ratios" = "matrix_OR.txt")),
-                     bsTooltip("cmbMatrix", "Select significance or effect size", placement = "right", trigger = "hover")
+                     bsTooltip("cmbMatrix", "Select enrichment significance or effect size to visualize/analyze", placement = "top", trigger = "hover")
                    ),
                    conditionalPanel("input.tabsMultiple == 'Enrichment barplot' || input.tabsMultiple == 'Enrichment tables' || input.tabsMultiple == 'Cell-type enrichment analysis'",
                                     selectInput("cmbFOI", "Select which SNP set to visualize", choices =   mtx.col.names)
@@ -926,7 +928,7 @@ output$downloadZIP <- downloadHandler(filename = function() {
                                                                "centroid")
                                     )
                    ),
-                   bsTooltip("cmbClustMethod", "Select clustering method", placement = "right", trigger = "hover"),
+                   bsTooltip("cmbClustMethod", "Select clustering method", placement = "top", trigger = "hover"),
                    conditionalPanel("input.tabsMultiple == 'Regulatory similarity heatmap'",
                                     selectInput('cmbEpisimCorType',label = "Correlation coefficient type",
                                                 choices = list("Pearson's" = "pearson",
@@ -936,9 +938,10 @@ output$downloadZIP <- downloadHandler(filename = function() {
                    conditionalPanel("input.tabsMultiple == 'Regulatory similarity heatmap'",
                                     hr(),h3("Regulatory similarity"),
                                     sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 4)
-                   )
+                   ),
+                   p("Note: Refresh the page is the application stops responding")
       )
-    }else{ # this is for a single column result file
+    } else { # this is for a single column result file
       sidebarPanel(h3("Global Settings"), hr(),
                    conditionalPanel("input.tabsSingleGF != 'Cell-type enrichment analysis' && input.tabsSingleGF != 'Download' && input.tabsSingleGF != 'Annotation Analysis'",
                      selectInput("cmbMatrix", label = "Results to visualize", 
