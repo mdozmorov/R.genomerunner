@@ -1,4 +1,6 @@
 library(MDmisc)
+library(shinyBS)
+library(dplyr)
 #shiny::runApp(host='0.0.0.0',port=4494)
 
 #results.dir <- "/home/lukas/db_5.00_06-10-2015/results/test"
