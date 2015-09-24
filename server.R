@@ -958,7 +958,8 @@ output$downloadZIP <- downloadHandler(filename = function() {
                                     if(nrow(mtx)>1){
                                       selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
                                                   choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))}
-                   )
+                   ),
+                   p("Note: Refresh the page is the application stops responding")
       )
     }
   })
