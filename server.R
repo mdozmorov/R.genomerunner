@@ -40,7 +40,7 @@ get.adjust.matrix <- reactive({
   total.columns <- ncol(mtx)
   # Join with annotations
   mtx <- data.frame(GF = adjust.rownames, mtx)  # Attach GF names
-  mtx <- left_join(mtx, gfAnnot[, c("file_name", "cell")], by = c(GF = "file_name"))
+  mtx <- dplyr::left_join(mtx, gfAnnot[, c("file_name", "cell")], by = c(GF = "file_name"))
   row.names(mtx) <- adjust.rownames
   class(mtx$cell) <- "character"
   # If some file names is not in the gfAnnot dataframe (e.g., user-provided data), 
@@ -153,7 +153,7 @@ get.enrichment.table <- reactive({
   rownames(mtx.table) <- NULL
   gfano <- gfAnnot[, (names(gfAnnot) %in% c("file_name", "cell", "cell_desc", 
                                             "factor", "factor_desc", "source", "source_desc"))]
-  mtx.table <- left_join(mtx.table, gfano, by = c(GF.Name = "file_name"))
+  mtx.table <- dplyr::left_join(mtx.table, gfano, by = c(GF.Name = "file_name"))
   colnames(mtx.table)[1] <- "epigenomic_name"
   return(mtx.table)
 })
@@ -721,14 +721,14 @@ output$downloadZIP <- downloadHandler(filename = function() {
   # Append gfAnnot columns to the end of the PVAL and OR matrix
   mtx <- read.csv(paste(get.results.dir(), "matrix_PVAL.txt", sep = ""), sep = "\t")
   mtx <- data.frame(GF = rownames(mtx), mtx)
-  mtx <- left_join(mtx, gfAnnot, by = c(GF = "file_name"))
+  mtx <- dplyr::left_join(mtx, gfAnnot, by = c(GF = "file_name"))
   rownames(mtx) <- mtx$GF
   mtx$GF <- NULL
   write.table(mtx, file = paste(get.results.dir(), "matrix_PVAL_annot.txt", 
                                 sep = ""), sep = "\t", quote = FALSE, col.names = NA)
   mtx <- read.csv(paste(get.results.dir(), "matrix_OR.txt", sep = ""), sep = "\t")
   mtx <- data.frame(GF = rownames(mtx), mtx)
-  mtx <- left_join(mtx, gfAnnot, by = c(GF = "file_name"))
+  mtx <- dplyr::left_join(mtx, gfAnnot, by = c(GF = "file_name"))
   rownames(mtx) <- mtx$GF
   mtx$GF <- NULL
   write.table(mtx, file = paste(get.results.dir(), "matrix_OR_annot.txt", 
