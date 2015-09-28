@@ -342,7 +342,7 @@ output$pltEnrichDown <- renderPlot({
 # episimilarity
 # ---------------------------------------------------------------
 get.corr.matrix <- reactive({
-  mtx <- gr_load_data(paste(get.results.dir(), input$cmbMatrix, sep = ""))
+  mtx <- gr_load_data(paste(get.results.dir(), input$cmbMatrix, sep = ""), p2z = TRUE)
   # If there are columns with SD=0, add jitter to it. Needed for
   # pair-wise column correlation analysis (regulatory similarity
   # analysis). Only valid if there's more than 1 row
@@ -420,7 +420,7 @@ calculate.clust <- reactive({
   hcut <- dendextend::heights_per_k.dendrogram(dend)[cl_num]  # extract the height to cut based on # of groups
   # get the cluster labels
   mtx.clust <- dend %>% gr_clusters(height = hcut, minmembers = 3)
-  mtx = gr_load_data(paste(get.results.dir(), input$cmbMatrix, sep = ""))  # load the original matrix
+  mtx = gr_load_data(paste(get.results.dir(), input$cmbMatrix, sep = ""), p2z = TRUE)  # load the original matrix
   is.OR = T
   if (input$cmbMatrix == "matrix_PVAL.txt") {
     is.OR = F
