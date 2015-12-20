@@ -7,7 +7,7 @@ library(dplyr)
 # Mikhail paths
 results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
 #results.dir <- "/Users/mikhail/Documents/Work/VCU_work/Coleen/Breast_cancer/data/Tim/grweb_DMR-global-hyperhypo_vs_encTFBS_cellspecific_bkgalldmrs/"
-#results.dir <- "/Users/mikhail/Documents/Work/GenomeRunner/gwas2bed/autoimmune/R.GR.autoimmune/data.gr.05/grweb_roadmapChrom25/"
+# results.dir <- "/Users/mikhail/Documents/Work/VCU_work/Jianlin/data.new.gr/gr_3d_chr1_GERP/"
 
 genomerunner.mode <- T
 coloring.num = 50
@@ -131,7 +131,7 @@ get.enrichment.table <- reactive({
   selectedFOI <- input$cmbFOI
   if (input$cmbMatrix == "matrix_PVAL.txt") {
     mtx.adjust <- apply(mtx[selectedFOI], 2, 
-                        function(x) p.adjust(abs(x), method = input$cmbPvalAdjustMethod))
+                        function(x) p.adjust(abs(x), method = input$cmbPvalAdjustMethod)) %>% as.matrix(drop = F)
     pval.sig <- rep("Not significant", nrow(mtx.adjust))
     pval.sig[mtx[, selectedFOI] < 0.05 & mtx[, selectedFOI] > 0] <- "Overrepresented"
     pval.sig[mtx[, selectedFOI] > -0.05 & mtx[, selectedFOI] < 0] <- "Underrepresented"
