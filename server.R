@@ -7,7 +7,7 @@ library(dplyr)
 # Mikhail paths
 results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
 #results.dir <- "/Users/mikhail/Documents/Work/VCU_work/Coleen/Breast_cancer/data/Tim/grweb_DMR-global-hyperhypo_vs_encTFBS_cellspecific_bkgalldmrs/"
-# results.dir <- "/Users/mikhail/Documents/Work/VCU_work/Jianlin/data.new.gr/gr_3d_chr1_GERP/"
+# results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Amr/SLE methylation/R.SLE_methylation/data.gr/gr_cpg-sledai_tfbsEncode/"
 
 genomerunner.mode <- T
 coloring.num = 50
@@ -582,14 +582,14 @@ output$downloadCTEnrichment <- downloadHandler(filename = function() {
 output$downloadEnrichHeatmap <- downloadHandler(filename = function() {
   return("EnrichmentHeatmap.pdf")
 }, content = function(file) {
-  pdf(file = file, width = 10, height = 10)
+  pdf(file = file)
   par(mfrow = c(3, 3))
   if (input$cmbMatrix == "matrix_PVAL.txt") {
     mtx <- get.adjust.matrix()
   } else {
     mtx <- get.matrix()
   }
-  n_limit = 20
+  n_limit = 30
   # if n > 100, calculate SD for each row.
   if (nrow(mtx) > n_limit) {
     # calculate SD for each row.
