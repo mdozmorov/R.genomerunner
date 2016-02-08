@@ -600,6 +600,7 @@ output$downloadEnrichHeatmap <- downloadHandler(filename = function() {
     mtx.sd.order <- mtx.sd.order[1:n_limit, ]
     mtx <- mtx.sd.order
   }
+  pdf(file = file, width = 0.25*ncol(mtx)+5, height = 0.25*nrow(mtx)+5)
   par(cex.main = 0.65, oma = c(2, 0, 0, 5), mar = c(5, 4.1, 4.1, 5))  # Adjust margins
   gplots::heatmap.2(as.matrix(mtx), hclust = function(tmp) {
     hclust(tmp, method = input$cmbClustMethod)
@@ -618,6 +619,7 @@ output$downloadEpisimHeatmap <- downloadHandler(filename = function() {
   validate(need(ncol(mat) > 2, "Need at least 3 SNPs of interest files to perform clustering."))
   validate(need(nrow(mat) > 4, "Need at least 5 genome features to perform clustering."))
   cor.mat <- get.corr.matrix()
+  pdf(file = file, width = 0.25*ncol(cor.mat)+5, height = 0.25*nrow(cor.mat)+5)
   hclustergram <- get.cor.hclust.dendrogram()
   par(cex.main = 0.65, oma = c(2, 0, 0, 5), mar = c(5, 4.1, 4.1, 5))  # Adjust margins
   coloring <- colorRampPalette(c("blue", "yellow", "red"))
