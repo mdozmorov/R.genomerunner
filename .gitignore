@@ -1,11 +1,14 @@
+.DS_store
 *.Rproj
 .Rhistory
 .RData
-.Rproj.user
+.Rproj.user*
 *.tex
 cache/*
 img/*
 *.gz
 *.log
 *.sty
+data/*
 results/*
+
