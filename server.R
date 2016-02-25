@@ -719,7 +719,7 @@ output$downloadZIP <- downloadHandler(filename = function() {
 }, content = function(file) {
   # ensure correlation matrix is created
   mtx <- get.matrix()
-  if (ncol(mtx) > 1 & nrow(mtx) > 1) {
+  if (ncol(mtx) > 1 & nrow(mtx) > 4) {
     get.corr.matrix()
   }
   # Append gfAnnot columns to the end of the PVAL and OR matrix
