@@ -3,11 +3,11 @@ library(shinyBS)
 library(dplyr)
 #shiny::runApp(host='0.0.0.0',port=4494)
 
-#results.dir <- "/home/lukas/db_5.00_06-10-2015/results/test"
+# results.dir <- "/home/lukas/db_5.00_06-10-2015/results/test"
 # Mikhail paths
 results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
-#results.dir <- "/Users/mikhail/Documents/Work/VCU_work/Coleen/Breast_cancer/data/Tim/grweb_DMR-global-hyperhypo_vs_encTFBS_cellspecific_bkgalldmrs/"
-# results.dir <- "/Users/mikhail/Documents/Work/WorkOMRF/Amr/SLE methylation/R.SLE_methylation/data.gr/gr_cpg-sledai_tfbsEncode/"
+# results.dir <- "/Users/mikhail/Documents/tmp/results/diseases_vs_rdmHistone_gPk-imputed/"
+# results.dir <- "/Users/mikhail/Documents/tmp/results/example2/"
 
 genomerunner.mode <- T
 coloring.num = 50
@@ -529,7 +529,7 @@ output$pltDend <- renderPlot({
 get.gr_cellspecific <- reactive({
   withProgress({
     mtx <- gr_load_data(paste(get.results.dir(), "matrix_PVAL.txt", sep = ""))
-    mtx.CTE <- gr_cellspecific(mtx)
+    mtx.CTE <- gr_cellspecific(mtx, cutoff.pval = 0.05)
   }, message = "Loading table", value = 1)
 })
 
