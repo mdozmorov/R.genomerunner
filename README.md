@@ -23,3 +23,18 @@ Scripts for processing the enrichment analysis matrixes produced by [GenomeRunne
 
 * `01_heatmap_corr.R` - Code snippets to perform enrichment- and regulatory similarity analyses clustering and visualization, as well as some exploratory tests.
 
+Instead of all available cell lines, subsets of tissue-specific cell lines can be used.
+
+* Blood cell lines, any karyotype: c("K562", "Gm12878", "Gm12891", "Gm12892", "Gm06990", "Nb4", "Hl60", "Cd20", "Th1", "Gm12865", "Jurkat", "Dnd41", "Gm12864", "Th2", "Gm19239", "Cd20ro01778", "Cmk", "Gm19240", "Gm12875", "Gm12873", "Gm12872")
+* Blood cell lines, normal karyotype: c("Gm12878", "Cd20ro01778", "Cd20", "Cd20ro01794")
+* Blood vessel cell lines: c("Huvec", "Hpaf", "Aoaf", "Hbmec", "Hmvecdblad", "Aosmc")
+* Blood and T-cell, Roadmap mnemonics: c("E033", "E034", "E037", "E038", "E039", "E040", "E041", "E042", "E043", "E044", "E045", "E047", "E048", "E062")
+* HSC and B-cells, Roadmap mnemonics: c("E029", "E030", "E031", "E032", "E035", "E036", "E046", "E050", "E051")
+* Brain cell lines, Roadmap mnemonics: c("E067", "E068", "E069", "E070", "E071", "E072", "E073", "E074", "E081", "E082", "E125", "E053", "E054")
+* Brain cell lines, any karyotype: c("Sknsh", "Nha", "Pfsk1", "Sknmc", "Be2c", "U87", "Hah", "Gliobla", "M059j")
+* Brain cell lines, normal karyotype: c("Nha", "Hah", "Bcbrainh11058n")
+* Breast cell lines: c("Mcf7", "Hmec", "T47d", "Mcf10aes")
+* Breast cell lines: c("E119", "E027", "E028")
+* Embryonic cell lines: c("H1hesc", "Hsmm", "H1neurons", "H7es", "H9es")
+* Lung cell lines: c("A549", "Imr90", "Hpae", "Hpaf", "Hpf", "Nhbe", "Nhlf", "Saec", "Wi38")
+
