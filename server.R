@@ -5,11 +5,11 @@ library(dplyr)
 
 # results.dir <- "/home/lukas/db_5.00_06-10-2015/results/test"
 # Mikhail paths
-results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
+results.dir <- "/home/lukas/Sample_runs/gr_ADME_rdmchromStates15"
 # results.dir <- "/Users/mikhail/Documents/tmp/results/diseases_vs_rdmHistone_gPk-imputed/"
 # results.dir <- "/Users/mikhail/Documents/tmp/results/example2/"
-
-genomerunner.mode <- T
+# 
+genomerunner.mode <- F
 coloring.num = 50
 num.char <- 50
 
@@ -19,7 +19,7 @@ shinyServer(function(input, output,session) {
 get.results.dir <- reactive({
   if (genomerunner.mode) {
     query <- parseQueryString(session$clientData$url_search)
-    return(paste(results.dir, query$id, "/", sep = ""))
+    return(paste(results.dir, query$job_id, "/", sep = ""))
   } else {
     return(results.dir)
   }
