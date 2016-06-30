@@ -3,13 +3,13 @@ library(shinyBS)
 library(dplyr)
 #shiny::runApp(host='0.0.0.0',port=4494)
 
-# results.dir <- "/home/lukas/db_5.00_06-10-2015/results/test"
+results.dir <- "/home/lukas/db_2.00_06.14.2016/results/"
 # Mikhail paths
-results.dir <- "/home/lukas/Sample_runs/gr_ADME_rdmchromStates15"
+#results.dir <- "/home/lukas/Sample_runs/gr_ADME_rdmHistone_bPk-processed/"
 # results.dir <- "/Users/mikhail/Documents/tmp/results/diseases_vs_rdmHistone_gPk-imputed/"
 # results.dir <- "/Users/mikhail/Documents/tmp/results/example2/"
 # 
-genomerunner.mode <- F
+genomerunner.mode <- T
 coloring.num = 50
 num.char <- 50
 
@@ -529,8 +529,16 @@ output$pltDend <- renderPlot({
 get.gr_cellspecific <- reactive({
   withProgress({
     mtx <- gr_load_data(paste(get.results.dir(), "matrix_PVAL.txt", sep = ""))
-    mtx.CTE <- gr_cellspecific(mtx, cutoff.pval = 0.05)
+    cellspec_path = paste(get.results.dir(), "cellspecific.rds", sep = "") # this file save the results so we only have to calculate cellspec one time
+    print(cellspec_path)
+    if (file.exists(cellspec_path)[1] == F){
+      mtx.CTE <-  gr_cellspecific(mtx, cutoff.pval = 0.05)
+      saveRDS(mtx.CTE, file=cellspec_path)
+    } else {
+      mtx.CTE <- readRDS(cellspec_path)
+    }
   }, message = "Loading table", value = 1)
+  return(mtx.CTE)
 })
 
 
@@ -773,7 +781,6 @@ output$downloadZIP <- downloadHandler(filename = function() {
     # manually load matrix since controls are not loaded yet
     validate(need(try(mtx <- gr_load_data(paste(get.results.dir(), "matrix_PVAL.txt",sep=""))),"Error loading files. Either no significant results are available, or data files are corrupted. Please, re-run the analysis using larger number of genome annotation datasets."))
     file.names.annotation <- list.files(paste(get.results.dir(),"annotations/",sep=""))
-    
     single.feature = TRUE;
     if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
     if (single.feature == FALSE){
@@ -941,7 +948,8 @@ output$downloadZIP <- downloadHandler(filename = function() {
                                     hr(),h3("Regulatory similarity"),
                                     sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 4)
                    ),
-                   p("Note: Refresh the page is the application stops responding")
+                   p("Note: Refresh the page if the application stops responding"),
+                   img(src='GRLogo.png', width="100%",heigh="100%")
       )
     } else { # this is for a single column result file
       sidebarPanel(h3("Global Settings"), hr(),
@@ -961,9 +969,14 @@ output$downloadZIP <- downloadHandler(filename = function() {
                                       selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
                                                   choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))}
                    ),
-                   p("Note: Refresh the page is the application stops responding")
+                   p("Note: Refresh the page if the application stops responding"),
+                   img(src='GRLogo.png', width="100%",heigh="100%")
       )
     }
   })
+  # Show UI
+  hide("loading_page")
+  show("main_content")
+  
 })
 

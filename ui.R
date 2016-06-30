@@ -1,6 +1,7 @@
 library(shiny)
 library(d3heatmap)
 library(DT)
+library(shinyjs)
 
 shinyUI(
   tags$head(
@@ -21,13 +22,20 @@ shinyUI(
     background-color: #FFCC00;
    }
   "))),
+  useShinyjs(),
+  div(
+    id = "loading_page",
+    img(src="loading.gif",style="position: fixed;top: 50%;left: 50%;transform: translate(-50%, -50%);"),
+    h3("Loading...",style="position: fixed;top: 60%;left: 50%;transform: translate(-50%, -50%);")
+    ),
+  hidden(div(id = "main_content",
     sidebarLayout(
       uiOutput("sidebar"),
       mainPanel(
         tags$head(tags$style("td {align:center;}")),
         uiOutput("mainpage")
       )
-    )
- ,
+    ))
+  ),
   HTML("<script  type='text/javascript'>var False = false, True = true</script>")
 ))
