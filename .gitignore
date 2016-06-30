@@ -15,3 +15,6 @@ results/*
 .Rproj.user
 packrat/lib*/
 packrat/src/
+packrat/init.R
+packrat/.Rhistory
+packrat/packrate.opts
