@@ -906,7 +906,9 @@ output$downloadZIP <- downloadHandler(filename = function() {
     single.feature = TRUE
     if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
     if (single.feature == FALSE){
-      sidebarPanel(width = 4,h3("Data Settings"),
+      sidebarPanel(width = 4,
+                   img(src='GRLogo.png', width="300px", href="http://integrativegenomics.org/"),
+                   h3("Data Settings"),
                    conditionalPanel("input.tabsMultiple != 'Cell-type enrichment analysis' && input.tabsMultiple != 'Download'  && input.tabsMultiple != 'Annotation Analysis'",
                      selectInput("cmbMatrix", label = "Results to visualize", 
                                  choices = list("P-values" = "matrix_PVAL.txt", 
@@ -948,11 +950,11 @@ output$downloadZIP <- downloadHandler(filename = function() {
                                     hr(),h3("Regulatory similarity"),
                                     sliderInput("sldEpisimNumClust","Number of clusters",min = 2,max=10,value = 4)
                    ),
-                   p("Note: Refresh the page if the application stops responding"),
-                   img(src='GRLogo.png', width="100%",heigh="100%")
+                   p("Note: Refresh the page if the application stops responding")
       )
     } else { # this is for a single column result file
-      sidebarPanel(h3("Global Settings"), hr(),
+      sidebarPanel(img(src='GRLogo.png', width="300px", href="http://integrativegenomics.org/"),
+                  h3("Global Settings"), hr(),
                    conditionalPanel("input.tabsSingleGF != 'Cell-type enrichment analysis' && input.tabsSingleGF != 'Download' && input.tabsSingleGF != 'Annotation Analysis'",
                      selectInput("cmbMatrix", label = "Results to visualize", 
                                  choices = list("P-values" = "matrix_PVAL.txt", 
@@ -969,8 +971,7 @@ output$downloadZIP <- downloadHandler(filename = function() {
                                       selectInput("cmbPvalAdjustMethod",label = "P-value multiple testing correction method",
                                                   choices = c( "fdr","none","BH","holm", "hochberg", "hommel", "bonferroni","BY"))}
                    ),
-                   p("Note: Refresh the page if the application stops responding"),
-                   img(src='GRLogo.png', width="100%",heigh="100%")
+                   p("Note: Refresh the page if the application stops responding")
       )
     }
   })
