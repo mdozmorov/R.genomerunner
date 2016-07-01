@@ -1,15 +1,17 @@
 library(MDmisc)
 library(shinyBS)
 library(dplyr)
+library(ggvis)
+library(tidyr)
 #shiny::runApp(host='0.0.0.0',port=4494)
 
-results.dir <- "/home/lukas/db_2.00_06.14.2016/results/"
+#results.dir <- "/home/lukas/db_2.00_06.14.2016/results/"
 # Mikhail paths
-#results.dir <- "/home/lukas/Sample_runs/gr_ADME_rdmHistone_bPk-processed/"
+results.dir <- "/home/lukas/Sample_runs/gr_ADME_rdmHistone_bPk-processed/"
 # results.dir <- "/Users/mikhail/Documents/tmp/results/diseases_vs_rdmHistone_gPk-imputed/"
 # results.dir <- "/Users/mikhail/Documents/tmp/results/example2/"
 # 
-genomerunner.mode <- T
+genomerunner.mode <- F
 coloring.num = 50
 num.char <- 50
 
@@ -259,8 +261,7 @@ getEnrichmentDown <- reactive({
   }
   mtx.down.sorted <- mtx.down[order(mtx.down, decreasing = F), , drop = FALSE]
 })
-  
-  
+
 # the same barplot is used for single FOI results and multiple FOI results
 output$pltEnrichUp <- renderPlot({
   mtx.up.sorted = getEnrichmentUp()
@@ -298,6 +299,84 @@ output$pltEnrichUp <- renderPlot({
   text(x.loc, par("usr")[3], adj = c(1, 1), srt = 45, 
        labels = head(rownames(mtx.up.sorted), 30), xpd = TRUE)
 })
+
+
+
+
+tbEnrichUp  <-reactive({
+  tb.barplot <- tbl_df(data.frame(get.barplot.matrix())) %>% tibble::rownames_to_column(var='gfs')
+  if (input$cmbMatrix == "matrix_PVAL.txt") {
+    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs) %>% filter(fois==input$cmbFOI,vals>0) %>% arrange(desc(vals)) %>% slice(1:20)
+  } else {
+    #FIX for OR
+    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs) %>% filter(fois==input$cmbFOI,vals>0) %>% arrange(desc(abs(vals))) %>% slice(1:20)
+  }
+  return(tb.barplot)
+})
+
+output$pltEnrichUp_ui <- renderUI({
+  tblEnr <- tbEnrichUp()
+  if (input$cmbMatrix == "matrix_PVAL.txt") {
+    tblEnr %>% ggvis(x=~gfs,y=~vals, fill := "#1c9600") %>% layer_bars() %>% 
+      add_axis("x",title="", properties = axis_props(labels = list(angle = -45, align = "right", fontSize = 17))) %>% 
+      set_options(width = "auto", height = "400px", resizable=T) %>%
+      add_tooltip( function(x) {
+        if(is.null(x)) return(NULL)
+        paste("Genomic Feature: ", x[1],'<br>',"P-value: ", x[3],sep=" ")
+      }, "hover") %>% 
+      bind_shiny("pltEnrichUp","pltEnrichUp_ui")
+    
+  } else{
+    tblEnr %>% ggvis(x=~gfs,y=~vals, fill := "#1c9600") %>% layer_bars() %>%
+      add_axis("x",title="", properties = axis_props(labels = list(angle = -45, align = "right", fontSize = 17))) %>%
+      set_options(width = "auto", height = "400px", resizable=T) %>%
+      add_tooltip( function(x) {
+        if(is.null(x)) return(NULL)
+        paste("Genomic Feature: ", x[1],'<br>',"Odds-ratio ", x[3],sep=" ")
+      }, "hover") %>% 
+      bind_shiny("pltEnrichUp","pltEnrichUp_ui")
+  }
+})
+
+tbEnrichDown <-reactive({
+  tb.barplot <- tbl_df(data.frame(get.barplot.matrix())) %>% tibble::rownames_to_column(var='gfs')
+  if (input$cmbMatrix == "matrix_PVAL.txt") {
+   tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs) %>% filter(fois==input$cmbFOI,vals<0) %>% arrange(desc(abs(vals))) %>% slice(1:20)
+  }else{
+    # fix for OR
+    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs) %>% filter(fois==input$cmbFOI,vals<0) %>% arrange(asc(abs(vals))) %>% slice(1:20)
+  }
+  return(tb.barplot)
+})
+
+output$pltEnrichDown_ui <- renderUI({
+  tblEnr <- tbEnrichDown()
+  axis.values = seq(0, max(tblEnr$vals), length.out = 10)
+  fact_vals = factor(tblEnr$vals, labels = scales::scientific_format(2)(1/10^abs(tblEnr$vals)))
+  if (input$cmbMatrix == "matrix_PVAL.txt") {
+    tblEnr %>% ggvis(x=~gfs,y=abs(~vals), fill := "#e30000") %>% layer_bars() %>%
+      add_axis("x",title="", properties = axis_props(labels = list(angle = -45, align = "right", fontSize = 17))) %>%
+      add_axis("y",title="P-value",values = axis.values) %>%
+      set_options(width = "1000px", height = "400px", resizable=T) %>%
+      add_tooltip( function(x) {
+        if(is.null(x)) return(NULL)
+        paste("Genomic Feature: ", x[1],'<br>',"P-value: ", x[3],sep=" ")
+      }, "hover") %>% 
+      bind_shiny("pltEnrichDown","pltEnrichDown_ui")
+  } else {
+    tblEnr %>% ggvis(x=~gfs,y=~vals, fill := "#e30000") %>% layer_bars() %>%
+      add_axis("x",title="", properties = axis_props(labels = list(angle = -45, align = "right", fontSize = 17))) %>%
+      set_options(width = "800px", height = "400px", resizable=T) %>%
+      add_tooltip( function(x) {
+        if(is.null(x)) return(NULL)
+        paste("Genomic Feature: ", x[1],'<br>',"Odds-ratio ", x[3],sep=" ")
+      }, "hover") %>% 
+      bind_shiny("pltEnrichDown","pltEnrichDown_ui")
+  }
+})
+
+
+
 
 
 output$pltEnrichDown <- renderPlot({
@@ -796,8 +875,10 @@ output$downloadZIP <- downloadHandler(filename = function() {
                            br("Enrichment of the SNP sets in regulatory/epigenomic features, shown as \"cell-factor-source\" names on the X-axis. The height of the bars corresponds to the significance of enriched (top)/depleted (bottom) associations."),
                            br(),
                            downloadButton('downloadEnrichBarPDF', 'Download PDF'),
-                           plotOutput("pltEnrichUp",width="100%",height = "350px"),
-                           plotOutput("pltEnrichDown", width="100%", height= "350px")
+                           ggvisOutput("pltEnrichUp"),
+                           uiOutput("pltEnrichUp_ui"),
+                           ggvisOutput("pltEnrichDown"),
+                           uiOutput("pltEnrichDown_ui")
                   ),
                   tabPanel("Enrichment tables",
                            br("Enrichment analysis results in text format."),
@@ -862,8 +943,10 @@ output$downloadZIP <- downloadHandler(filename = function() {
                            br("Enrichment of the SNP sets in regulatory/epigenomic features, shown as \"cell-factor-source\" names on the X-axis. The height of the bars corresponds to the significance of enriched (top)/depleted (bottom) associations."),
                            br(),
                            downloadButton('downloadEnrichBarPDF', 'Download PDF'),
-                           plotOutput("pltEnrichUp",width="100%",height = "350px"),
-                           plotOutput("pltEnrichDown", width="100%", height= "350px")
+                           ggvisOutput("pltEnrichUp"),
+                           uiOutput("pltEnrichUp_ui"),
+                           ggvisOutput("pltEnrichDown"),
+                           uiOutput("pltEnrichDown_ui")
                   ),
                   tabPanel("Enrichment tables",
                            br("Enrichment analysis results in text format."),
