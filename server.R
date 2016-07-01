@@ -907,7 +907,7 @@ output$downloadZIP <- downloadHandler(filename = function() {
     if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
     if (single.feature == FALSE){
       sidebarPanel(width = 4,
-                   img(src='GRLogo.png', width="300px", href="http://integrativegenomics.org/"),
+                   tags$a(href="http://integrativegenomics.org", img(src='GRLogo.png', width="300px")),
                    h3("Data Settings"),
                    conditionalPanel("input.tabsMultiple != 'Cell-type enrichment analysis' && input.tabsMultiple != 'Download'  && input.tabsMultiple != 'Annotation Analysis'",
                      selectInput("cmbMatrix", label = "Results to visualize", 
@@ -953,7 +953,7 @@ output$downloadZIP <- downloadHandler(filename = function() {
                    p("Note: Refresh the page if the application stops responding")
       )
     } else { # this is for a single column result file
-      sidebarPanel(img(src='GRLogo.png', width="300px", href="http://integrativegenomics.org/"),
+      sidebarPanel(tags$a(href="http://integrativegenomics.org", img(src='GRLogo.png', width="300px")),
                   h3("Global Settings"), hr(),
                    conditionalPanel("input.tabsSingleGF != 'Cell-type enrichment analysis' && input.tabsSingleGF != 'Download' && input.tabsSingleGF != 'Annotation Analysis'",
                      selectInput("cmbMatrix", label = "Results to visualize", 
