@@ -7,7 +7,7 @@ library(tidyr)
 
 #results.dir <- "/home/lukas/db_2.00_06.14.2016/results/"
 # Mikhail paths
-results.dir <- "/home/lukas/Sample_runs/encTFBS_cellspecific/"
+results.dir <- "/home/lukas/Sample_runs/wo5hpnesw948o05v84lpq05lx6yyaarp/"
 #results.dir <- "/home/lukas/db_2.00_06.14.2016/results/gr_ADME_rdmHistone_bPk-processed/"
 # results.dir <- "/Users/mikhail/Documents/tmp/results/diseases_vs_rdmHistone_gPk-imputed/"
 # results.dir <- "/Users/mikhail/Documents/tmp/results/example2/"
@@ -239,9 +239,6 @@ output$pltEnrichUp_ui <- renderUI({
     ) %>% bind_shiny("pltEnrichDown","pltEnrichDown_ui")
     return("")
   }
-  #print(tblEnr$gfs)
-  #tblEnr$gfs <- shortenString(tblEnr$gfs,7)
-  #print(tblEnr$gfs)
   
   tblEnr$gfs <- structure(1:length(tblEnr$vals), .Label = tblEnr$gfs, class = "factor")
   if (input$cmbMatrix == "matrix_PVAL.txt") {
@@ -256,15 +253,15 @@ output$pltEnrichUp_ui <- renderUI({
       bind_shiny("pltEnrichUp","pltEnrichUp_ui")
     
   } else{
-  #  tblEnr %>% ggvis(x=~gfs,y=~vals, fill := "#e30000") %>% layer_bars(width=.9) %>%
-  #   add_axis("x",title="", properties = axis_props(labels = list(angle = -45, align = "right", fontSize = 17))) %>%
-  #    add_axis("y",title="Odds-ratio") %>%
-  #    set_options(width = 50*length(tblEnr$vals)+100, height = "400px", resizable=T) %>%
-  #    add_tooltip( function(x) {
-  #      if(is.null(x)) return(NULL)
-  #      paste("Genomic Feature: ", x[1],'<br>',"Odds-ratio ", scales::scientific_format(2)(2^x[3]),sep=" ")
-  #    }, "hover") %>% 
-  #    bind_shiny("pltEnrichUp","pltEnrichUp_ui")
+    tblEnr %>% ggvis(x=~gfs,y=~vals, fill := "#e30000") %>% layer_bars(width=.7) %>%
+     add_axis("x",title="", properties = axis_props(labels = list(angle = -45, align = "right", fontSize = 17))) %>%
+      add_axis("y",title="Odds-ratio") %>%
+      set_options(width = 50*length(tblEnr$vals)+100, height = axis_text_scaling * maxGFchar + 200, resizable=T) %>%
+      add_tooltip( function(x) {
+        if(is.null(x)) return(NULL)
+        paste("Genomic Feature: ", x[1],'<br>',"Odds-ratio ", scales::scientific_format(2)(2^x[3]),sep=" ")
+      }, "hover") %>% 
+      bind_shiny("pltEnrichUp","pltEnrichUp_ui")
   }
   return('')
 })
@@ -313,15 +310,15 @@ output$pltEnrichDown_ui <- renderUI({
       }, "hover") %>% 
       bind_shiny("pltEnrichDown","pltEnrichDown_ui")
   } else {
-  #tblEnr %>% ggvis(x=~gfs,y=~vals, fill := "#1c9600") %>% layer_bars(width=.7) %>%
-  #   add_axis("x",title="", properties = axis_props(labels = list(angle = -45, align = "right", fontSize = 17))) %>%
-   #   add_axis("y",title="Odds-ratio") %>%
-  #    set_options(width = 50*length(tblEnr$vals)+100, height = "400px", resizable=T) %>%
-  #    add_tooltip( function(x) {
-  #      if(is.null(x)) return(NULL)
-  #      paste("Genomic Feature: ", x[1],'<br>',"Odds-ratio ",  scales::scientific_format(2)(2^x[3]),sep=" ")
-  #   }, "hover") %>% 
-  #    bind_shiny("pltEnrichDown","pltEnrichDown_ui")
+  tblEnr %>% ggvis(x=~gfs,y=~abs(vals), fill := "#1c9600") %>% layer_bars(width=.7) %>%
+     add_axis("x",title="", properties = axis_props(labels = list(angle = -45, align = "right", fontSize = 17))) %>%
+     add_axis("y",title="Odds-ratio") %>%
+      set_options(width = 50*length(tblEnr$vals)+100, height =axis_text_scaling * maxGFchar + 200, resizable=T) %>%
+      add_tooltip( function(x) {
+        if(is.null(x)) return(NULL)
+        paste("Genomic Feature: ", x[1],'<br>',"Odds-ratio ",  scales::scientific_format(2)(2^(-x[3])),sep=" ")
+     }, "hover") %>% 
+      bind_shiny("pltEnrichDown","pltEnrichDown_ui")
   }
   return('') # line required to prevent "ERROR: cannot coerce type 'closure' to vector of type 'character'" from showing
 })
@@ -519,7 +516,6 @@ get.gr_cellspecific <- reactive({
   withProgress({
     mtx <- gr_load_data(paste(get.results.dir(), "matrix_PVAL.txt", sep = ""))
     cellspec_path = paste(get.results.dir(), "cellspecific.rds", sep = "") # this file save the results so we only have to calculate cellspec one time
-    print(cellspec_path)
     if (file.exists(cellspec_path)[1] == F){
       mtx.CTE <-  gr_cellspecific(mtx, cutoff.pval = 0.05)
       saveRDS(mtx.CTE, file=cellspec_path)
