@@ -7,7 +7,7 @@ library(tidyr)
 
 #results.dir <- "/home/lukas/db_2.00_06.14.2016/results/"
 # Mikhail paths
-results.dir <- "/home/lukas/Sample_runs/gr_ADME_rdmHistone_bPk-processed/"
+results.dir <- "/home/lukas/Sample_runs/encTFBS_cellspecific/"
 #results.dir <- "/home/lukas/db_2.00_06.14.2016/results/gr_ADME_rdmHistone_bPk-processed/"
 # results.dir <- "/Users/mikhail/Documents/tmp/results/diseases_vs_rdmHistone_gPk-imputed/"
 # results.dir <- "/Users/mikhail/Documents/tmp/results/example2/"
@@ -209,13 +209,71 @@ get.barplot.matrix <- reactive({
   mtx <- gr_load_data(paste(get.results.dir(), input$cmbMatrix, sep = ""))
 })
   
+
+shortenString <- function(x, n){
+    # returns the first n characters and the last n characters of the string x and puts '...' between them
+     paste(substr(x,1,n),substr(x, nchar(x)-n+1, nchar(x)),sep = "...")
+}
+
+tbEnrichUp  <-reactive({
+  tb.barplot <- tbl_df(data.frame(get.barplot.matrix())) %>% tibble::rownames_to_column(var='gfs')
+  if (input$cmbMatrix == "matrix_PVAL.txt") {
+    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs,convert = T) %>% filter(fois==input$cmbFOI,vals>0) %>% arrange(desc(vals)) %>% slice(1:20)
+  } else {
+    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs, convert = T) %>% filter(fois==input$cmbFOI,vals>0) %>% arrange(desc(vals)) %>% slice(1:20)
+  }
+  return(tb.barplot)
+})
+
+output$pltEnrichUp_ui <- renderUI({
+  tblEnr <- tbEnrichUp()
+  if (length(tblEnr$vals) == 0){
+    data.frame(x = 10, y = 10,text = "") %>% ggvis(~x, ~y,text:=~text) %>% layer_text(
+      x = prop("x", ~x, scale = "xcenter"),
+      y = prop("y", ~y, scale = "ytop"),
+      text:=~text, fontSize := 17, fill:="black", baseline:="middle", align:="center"
+    ) %>% bind_shiny("pltEnrichDown","pltEnrichDown_ui")
+    return("")
+  }
+  #print(tblEnr$gfs)
+  #tblEnr$gfs <- shortenString(tblEnr$gfs,7)
+  #print(tblEnr$gfs)
+  
+  tblEnr$gfs <- structure(1:length(tblEnr$vals), .Label = tblEnr$gfs, class = "factor")
+  if (input$cmbMatrix == "matrix_PVAL.txt") {
+    tblEnr %>% ggvis(x=~gfs,y=~vals, fill := "#e30000") %>% layer_bars(width=.7) %>% 
+      add_axis("x",title="", properties = axis_props(labels = list(angle = -45, align = "right", fontSize = 17))) %>% 
+      add_axis("y",title="P-value",title_offset = 50) %>%
+      set_options(width = 50*length(tblEnr$vals)+100, height = "400px", resizable=T) %>%
+      add_tooltip( function(x) {
+        if(is.null(x)) return(NULL)
+        paste("Genomic Feature: ", x[1],'<br>',"P-value: ", scales::scientific_format(2)(1/10^abs(x[3])),sep=" ")
+      }, "hover") %>% 
+      bind_shiny("pltEnrichUp","pltEnrichUp_ui")
+    
+  } else{
+  #  tblEnr %>% ggvis(x=~gfs,y=~vals, fill := "#e30000") %>% layer_bars(width=.9) %>%
+  #   add_axis("x",title="", properties = axis_props(labels = list(angle = -45, align = "right", fontSize = 17))) %>%
+  #    add_axis("y",title="Odds-ratio") %>%
+  #    set_options(width = 50*length(tblEnr$vals)+100, height = "400px", resizable=T) %>%
+  #    add_tooltip( function(x) {
+  #      if(is.null(x)) return(NULL)
+  #      paste("Genomic Feature: ", x[1],'<br>',"Odds-ratio ", scales::scientific_format(2)(2^x[3]),sep=" ")
+  #    }, "hover") %>% 
+  #    bind_shiny("pltEnrichUp","pltEnrichUp_ui")
+  }
+  return('')
+})
+
+
+
 tbEnrichDown <-reactive({
   tb.barplot <- tbl_df(data.frame(get.barplot.matrix())) %>% tibble::rownames_to_column(var='gfs')
   if (input$cmbMatrix == "matrix_PVAL.txt") {
-    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs) %>% filter(fois==input$cmbFOI,vals<0) %>% arrange(desc(abs(vals))) %>% slice(1:20)
+    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs, convert = T) %>% filter(fois==input$cmbFOI,vals<0) %>% arrange(desc(abs(vals))) %>% slice(1:20)
   }else{
     # fix for OR
-    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs) %>% filter(fois==input$cmbFOI,vals<1) %>% arrange(asc(abs(vals))) %>% slice(1:20)
+    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs, convert = T) %>% filter(fois==input$cmbFOI,vals<0) %>% arrange(desc(abs(vals))) %>% slice(1:20)
   }
   return(tb.barplot)
 })
@@ -235,7 +293,7 @@ output$pltEnrichDown_ui <- renderUI({
   if (input$cmbMatrix == "matrix_PVAL.txt") {
     tblEnr %>% ggvis(x=~gfs,y=~abs(vals), fill := "#1c9600") %>% layer_bars(width=.7) %>%
       add_axis("x",title="", properties = axis_props(labels = list(angle = -45, align = "right", fontSize = 17))) %>%
-      add_axis("y",title="P-value") %>%
+      add_axis("y",title="P-value",title_offset = 50) %>%
       set_options(width = 50*length(tblEnr$vals)+100, height = "400px", resizable=T) %>%
       add_tooltip( function(x) {
         if(is.null(x)) return(NULL)
@@ -243,57 +301,17 @@ output$pltEnrichDown_ui <- renderUI({
       }, "hover") %>% 
       bind_shiny("pltEnrichDown","pltEnrichDown_ui")
   } else {
-   # tblEnr %>% ggvis(x=~gfs,y=~vals, fill := "#1c9600") %>% layer_bars(width=.7) %>%
-  #    add_axis("x",title="", properties = axis_props(labels = list(angle = -45, align = "right", fontSize = 17))) %>%
-  #    add_axis("y",title="Odds-ratio") %>%
-  #    set_optionswidth = 50*length(tblEnr$vals)+100, height = "400px", resizable=T) %>%
+  #tblEnr %>% ggvis(x=~gfs,y=~vals, fill := "#1c9600") %>% layer_bars(width=.7) %>%
+  #   add_axis("x",title="", properties = axis_props(labels = list(angle = -45, align = "right", fontSize = 17))) %>%
+   #   add_axis("y",title="Odds-ratio") %>%
+  #    set_options(width = 50*length(tblEnr$vals)+100, height = "400px", resizable=T) %>%
   #    add_tooltip( function(x) {
   #      if(is.null(x)) return(NULL)
-  #      paste("Genomic Feature: ", x[1],'<br>',"Odds-ratio ",  scales::scientific_format(2)(2^axis.values),sep=" ")
-   #   }, "hover") %>% 
+  #      paste("Genomic Feature: ", x[1],'<br>',"Odds-ratio ",  scales::scientific_format(2)(2^x[3]),sep=" ")
+  #   }, "hover") %>% 
   #    bind_shiny("pltEnrichDown","pltEnrichDown_ui")
   }
   return('') # line required to prevent "ERROR: cannot coerce type 'closure' to vector of type 'character'" from showing
-})
-
-
-tbEnrichUp  <-reactive({
-  tb.barplot <- tbl_df(data.frame(get.barplot.matrix())) %>% tibble::rownames_to_column(var='gfs')
-  if (input$cmbMatrix == "matrix_PVAL.txt") {
-    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs) %>% filter(fois==input$cmbFOI,vals>0) %>% arrange(desc(vals)) %>% slice(1:5)
-  } else {
-    #FIX for OR
-    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs) %>% filter(fois==input$cmbFOI,vals>1) %>% arrange(desc(vals)) %>% slice(1:20)
-  }
-  return(tb.barplot)
-})
-
-output$pltEnrichUp_ui <- renderUI({
-  tblEnr <- tbEnrichUp()
-  tblEnr$gfs <- structure(1:length(tblEnr$vals), .Label = tblEnr$gfs, class = "factor")
-  if (input$cmbMatrix == "matrix_PVAL.txt") {
-    tblEnr %>% ggvis(x=~gfs,y=~vals, fill := "#e30000") %>% layer_bars(width=.7) %>% 
-      add_axis("x",title="", properties = axis_props(labels = list(angle = -45, align = "right", fontSize = 17))) %>% 
-      add_axis("y",title="P-value") %>%
-      set_options(width = 50*length(tblEnr$vals)+100, height = "400px", resizable=T) %>%
-      add_tooltip( function(x) {
-        if(is.null(x)) return(NULL)
-        paste("Genomic Feature: ", x[1],'<br>',"P-value: ", scales::scientific_format(2)(1/10^abs(x[3])),sep=" ")
-      }, "hover") %>% 
-      bind_shiny("pltEnrichUp","pltEnrichUp_ui")
-    
-  } else{
-   # tblEnr %>% ggvis(x=~gfs,y=~vals, fill := "#e30000") %>% layer_bars(width=.9) %>%
-  #    add_axis("x",title="", properties = axis_props(labels = list(angle = -45, align = "right", fontSize = 17))) %>%
-   #   add_axis("y",title="Odds-ratio") %>%
-    #  set_options(width = 50*length(tblEnr$vals)+100, height = "400px", resizable=T) %>%
-     # add_tooltip( function(x) {
-      #  if(is.null(x)) return(NULL)
-    #    paste("Genomic Feature: ", x[1],'<br>',"Odds-ratio ", scales::scientific_format(2)(2^axis.values),sep=" ")
-    #  }, "hover") %>% 
-    #  bind_shiny("pltEnrichUp","pltEnrichUp_ui")
-  }
-  return('')
 })
 
 
@@ -603,82 +621,7 @@ output$downloadAnnotation <- downloadHandler(filename = function() {
 }, content = function(file) {
   write.table(x = get.annotation.table(), file = file, sep = "\t", quote = F, row.names = F)
 })
-output$downloadEnrichBarPDF <- downloadHandler(filename = function() {
-  return("EnrichmentBarPlot.pdf")
-}, content = function(file) {
-  pdf(file = file, width = 9, height = 5)
-  # print EnrichmentUp to PDF
-  mtx.up.sorted = getEnrichmentUp()
-  if (nrow(mtx.up.sorted) == 0) {
-    # plot raw text
-    par(mar = c(0, 0, 0, 0))
-    plot(c(0, 1), c(0, 1), ann = F, bty = "n", type = "n", xaxt = "n", yaxt = "n")
-    text(x = 0.5, y = 0.5, paste("Nothing overrepresented to plot."), cex = 1.6, col = "black")
-    box()
-  } else {
-    par(mar = c(10, 7, 4.1, 2.1))
-    if (nrow(mtx.up.sorted) < 3) {
-      x.loc <- barplot(as.matrix(t(head(mtx.up.sorted, 30))), beside = T, 
-                       col = "red3", space = c(0.2, 1), cex.names = 1, las = 2, 
-                       names.arg = head(rownames(mtx.up.sorted), 30), xaxt = "n", 
-                       main = "Enriched regulatory associations", 
-                       xlim = c(0, 10 * nrow(mtx.up.sorted)), axes = F)
-    } else {
-      x.loc <- barplot(as.matrix(t(head(mtx.up.sorted, 30))), beside = T, 
-                       col = "red3", space = c(0.2, 1), cex.names = 1, las = 2, 
-                       names.arg = head(rownames(mtx.up.sorted), 30), xaxt = "n", 
-                       main = "Enriched regulatory associations", axes = F)
-    }
-    abline(a = 0, b = 0)
-    axis.values = seq(0, max(mtx.up.sorted), length.out = 10)
-    if (input$cmbMatrix == "matrix_PVAL.txt") {
-      mtext("P-value", side = 2, line = 4)
-      axis(side = 2, at = axis.values, labels = scales::scientific_format(1)(1/10^abs(axis.values)), las = 1)
-    } else {
-      mtext("Odds-ratio", side = 2, line = 5)
-      axis(side = 2, at = axis.values, labels = scales::scientific_format(2)(2^axis.values), las = 1)
-    }
-    # draw rotated x-labels
-    axis(side = 1, labels = FALSE, tick = F)
-    text(x.loc, par("usr")[3], srt = 45, adj = c(1, 1), labels = head(rownames(mtx.up.sorted), 30), xpd = TRUE)
-  }
-  # print Enrichmentdown bar plot to PDF
-  mtx.down.sorted <- abs(getEnrichmentDown())
-  if (nrow(mtx.down.sorted) == 0) {
-    # plot raw text
-    par(mar = c(0, 0, 0, 0))
-    plot(c(0, 1), c(0, 1), ann = F, bty = "n", type = "n", xaxt = "n", yaxt = "n")
-    text(x = 0.5, y = 0.5, paste("Nothing overrepresented to plot."), cex = 1.6, col = "black")
-    box()
-  } else {
-    par(mar = c(10, 7, 4.1, 2.1))
-    if (nrow(mtx.down.sorted) < 3) {
-      x.loc <- barplot(as.matrix(t(head(mtx.down.sorted, 30))), beside = T, 
-                       col = "green4", space = c(0.2, 1), cex.names = 1, las = 2, 
-                       names.arg = head(rownames(mtx.down.sorted), 30), xaxt = "n", 
-                       main = "Depleted regulatory associations", 
-                       xlim = c(0, 10 * nrow(mtx.down.sorted)), axes = F)
-    } else {
-      x.loc <- barplot(as.matrix(t(head(mtx.down.sorted, 30))), beside = T, 
-                       col = "green4", space = c(0.2, 1), cex.names = 1, las = 2, 
-                       names.arg = head(rownames(mtx.down.sorted), 30), xaxt = "n", 
-                       main = "Depleted regulatory associations", axes = F)
-    }
-    abline(a = 0, b = 0)
-    axis.values = seq(0, max(mtx.down.sorted), length.out = 10)
-    if (input$cmbMatrix == "matrix_PVAL.txt") {
-      mtext("P-value", side = 2, line = 4)
-      axis(side = 2, at = axis.values, labels = scales::scientific_format(1)(1/10^abs(axis.values)), las = 1)
-    } else {
-      mtext("Odds-ratio", side = 2, line = 5)
-      axis(side = 2, at = axis.values, labels = scales::scientific_format(2)(2^axis.values), las = 1)
-    }
-    # draw rotated x-labels
-    axis(side = 1, labels = FALSE, tick = F)
-    text(x.loc, par("usr")[3], srt = 45, adj = c(1, 1), labels = head(rownames(mtx.down.sorted), 30), xpd = TRUE)
-  }
-  dev.off()
-}, contentType = "application/pdf")
+
 
 
 output$downloadZIP <- downloadHandler(filename = function() {
@@ -754,7 +697,6 @@ output$downloadZIP <- downloadHandler(filename = function() {
                   tabPanel("Enrichment barplot",
                            br("Enrichment of the SNP sets in regulatory/epigenomic features, shown as \"cell-factor-source\" names on the X-axis. The height of the bars corresponds to the significance of enriched (top)/depleted (bottom) associations."),
                            br(),
-                           downloadButton('downloadEnrichBarPDF', 'Download PDF'),
                            ggvisOutput("pltEnrichUp"),
                            uiOutput("pltEnrichUp_ui"),
                            ggvisOutput("pltEnrichDown"),
@@ -822,7 +764,6 @@ output$downloadZIP <- downloadHandler(filename = function() {
                   tabPanel("Enrichment barplot",
                            br("Enrichment of the SNP sets in regulatory/epigenomic features, shown as \"cell-factor-source\" names on the X-axis. The height of the bars corresponds to the significance of enriched (top)/depleted (bottom) associations."),
                            br(),
-                           downloadButton('downloadEnrichBarPDF', 'Download PDF'),
                            ggvisOutput("pltEnrichUp"),
                            uiOutput("pltEnrichUp_ui"),
                            ggvisOutput("pltEnrichDown"),
