@@ -208,25 +208,29 @@ get.barplot.matrix <- reactive({
   file.names.enrichment <- tools::file_path_sans_ext(list.files(paste(get.results.dir(), "enrichment/", sep = "")))
   mtx <- gr_load_data(paste(get.results.dir(), input$cmbMatrix, sep = ""))
 })
-  
 
-shortenString <- function(x, n){
-    # returns the first n characters and the last n characters of the string x and puts '...' between them
-     paste(substr(x,1,n),substr(x, nchar(x)-n+1, nchar(x)),sep = "...")
-}
-
+axis_text_scaling = 9;
+count_barplot = 20;
 tbEnrichUp  <-reactive({
   tb.barplot <- tbl_df(data.frame(get.barplot.matrix())) %>% tibble::rownames_to_column(var='gfs')
   if (input$cmbMatrix == "matrix_PVAL.txt") {
-    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs,convert = T) %>% filter(fois==input$cmbFOI,vals>0) %>% arrange(desc(vals)) %>% slice(1:20)
+    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs,convert = T) %>% filter(fois==input$cmbFOI,vals>0) %>% arrange(desc(vals)) %>% slice(1:count_barplot)
   } else {
-    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs, convert = T) %>% filter(fois==input$cmbFOI,vals>0) %>% arrange(desc(vals)) %>% slice(1:20)
+    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs, convert = T) %>% filter(fois==input$cmbFOI,vals>0) %>% arrange(desc(vals)) %>% slice(1:count_barplot)
+  }
+  # Fill bar char with 0 data rows up till number of less GFs than count_barplot
+  le <- length(tb.barplot$vals)
+  num <- count_barplot-le
+  for (i in seq_len(length.out = num)){
+    tb.barplot <-  bind_rows(tb.barplot,data.frame(gfs = toString(i),fois="",vals = 0))
   }
   return(tb.barplot)
 })
 
+
 output$pltEnrichUp_ui <- renderUI({
   tblEnr <- tbEnrichUp()
+  maxGFchar <- max(sapply(tblEnr$gfs,function(x) nchar(x)))
   if (length(tblEnr$vals) == 0){
     data.frame(x = 10, y = 10,text = "") %>% ggvis(~x, ~y,text:=~text) %>% layer_text(
       x = prop("x", ~x, scale = "xcenter"),
@@ -244,7 +248,7 @@ output$pltEnrichUp_ui <- renderUI({
     tblEnr %>% ggvis(x=~gfs,y=~vals, fill := "#e30000") %>% layer_bars(width=.7) %>% 
       add_axis("x",title="", properties = axis_props(labels = list(angle = -45, align = "right", fontSize = 17))) %>% 
       add_axis("y",title="P-value",title_offset = 50) %>%
-      set_options(width = 50*length(tblEnr$vals)+100, height = "400px", resizable=T) %>%
+      set_options(width = 50*length(tblEnr$vals)+100, height = axis_text_scaling * maxGFchar + 200, resizable=T) %>%
       add_tooltip( function(x) {
         if(is.null(x)) return(NULL)
         paste("Genomic Feature: ", x[1],'<br>',"P-value: ", scales::scientific_format(2)(1/10^abs(x[3])),sep=" ")
@@ -270,16 +274,25 @@ output$pltEnrichUp_ui <- renderUI({
 tbEnrichDown <-reactive({
   tb.barplot <- tbl_df(data.frame(get.barplot.matrix())) %>% tibble::rownames_to_column(var='gfs')
   if (input$cmbMatrix == "matrix_PVAL.txt") {
-    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs, convert = T) %>% filter(fois==input$cmbFOI,vals<0) %>% arrange(desc(abs(vals))) %>% slice(1:20)
+    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs, convert = T) %>% filter(fois==input$cmbFOI,vals<0) %>% arrange(desc(abs(vals))) %>% slice(1:count_barplot)
   }else{
     # fix for OR
-    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs, convert = T) %>% filter(fois==input$cmbFOI,vals<0) %>% arrange(desc(abs(vals))) %>% slice(1:20)
+    tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs, convert = T) %>% filter(fois==input$cmbFOI,vals<0) %>% arrange(desc(abs(vals))) %>% slice(1:count_barplot)
+  }
+  # Fill bar char with 0 data rows up till number of less GFs than count_barplot
+  le <- length(tb.barplot$vals)
+  num <- count_barplot-le
+  for (i in seq_len(length.out = num)){
+    tb.barplot <-  bind_rows(tb.barplot,data.frame(gfs = toString(i),fois="",vals = 0))
   }
   return(tb.barplot)
 })
 
+
+
 output$pltEnrichDown_ui <- renderUI({
   tblEnr <- tbEnrichDown()
+  maxGFchar <- max(sapply(tblEnr$gfs,function(x) nchar(x)))
   if (length(tblEnr$vals) == 0){
     data.frame(x = 10, y = 10,text = "") %>% ggvis(~x, ~y,text:=~text) %>% layer_text(
       x = prop("x", ~x, scale = "xcenter"),
@@ -288,13 +301,12 @@ output$pltEnrichDown_ui <- renderUI({
     ) %>% bind_shiny("pltEnrichDown","pltEnrichDown_ui")
     return("")
   }
-  #axis.values = seq(0, max(abs(tblEnr$vals)), length.out = 10)
   tblEnr$gfs <- structure(1:length(tblEnr$vals), .Label = tblEnr$gfs, class = "factor")
   if (input$cmbMatrix == "matrix_PVAL.txt") {
     tblEnr %>% ggvis(x=~gfs,y=~abs(vals), fill := "#1c9600") %>% layer_bars(width=.7) %>%
       add_axis("x",title="", properties = axis_props(labels = list(angle = -45, align = "right", fontSize = 17))) %>%
       add_axis("y",title="P-value",title_offset = 50) %>%
-      set_options(width = 50*length(tblEnr$vals)+100, height = "400px", resizable=T) %>%
+      set_options(width = 50*length(tblEnr$vals)+100, height = axis_text_scaling * maxGFchar + 200, resizable=T) %>%
       add_tooltip( function(x) {
         if(is.null(x)) return(NULL)
         paste("Genomic Feature: ", x[1],'<br>',"P-value: ", scales::scientific_format(2)(1/10^abs(x[3])),sep=" ")
@@ -697,8 +709,10 @@ output$downloadZIP <- downloadHandler(filename = function() {
                   tabPanel("Enrichment barplot",
                            br("Enrichment of the SNP sets in regulatory/epigenomic features, shown as \"cell-factor-source\" names on the X-axis. The height of the bars corresponds to the significance of enriched (top)/depleted (bottom) associations."),
                            br(),
+                           h3("Overrepresented",align="center"),
                            ggvisOutput("pltEnrichUp"),
                            uiOutput("pltEnrichUp_ui"),
+                           h3("Underrepresented",align="center"),
                            ggvisOutput("pltEnrichDown"),
                            uiOutput("pltEnrichDown_ui")
                   ),
@@ -764,8 +778,10 @@ output$downloadZIP <- downloadHandler(filename = function() {
                   tabPanel("Enrichment barplot",
                            br("Enrichment of the SNP sets in regulatory/epigenomic features, shown as \"cell-factor-source\" names on the X-axis. The height of the bars corresponds to the significance of enriched (top)/depleted (bottom) associations."),
                            br(),
+                           h3("Overrepresented",align="center"),
                            ggvisOutput("pltEnrichUp"),
                            uiOutput("pltEnrichUp_ui"),
+                           h3("Underrepresented",align="center"),
                            ggvisOutput("pltEnrichDown"),
                            uiOutput("pltEnrichDown_ui")
                   ),
