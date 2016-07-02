@@ -7,7 +7,7 @@ library(tidyr)
 
 #results.dir <- "/home/lukas/db_2.00_06.14.2016/results/"
 # Mikhail paths
-results.dir <- "/home/lukas/Sample_runs/wo5hpnesw948o05v84lpq05lx6yyaarp/"
+results.dir <- "/home/lukas/Sample_runs/example1/"
 #results.dir <- "/home/lukas/db_2.00_06.14.2016/results/gr_ADME_rdmHistone_bPk-processed/"
 # results.dir <- "/Users/mikhail/Documents/tmp/results/diseases_vs_rdmHistone_gPk-imputed/"
 # results.dir <- "/Users/mikhail/Documents/tmp/results/example2/"
@@ -212,7 +212,9 @@ get.barplot.matrix <- reactive({
 axis_text_scaling = 9;
 count_barplot = 20;
 tbEnrichUp  <-reactive({
-  tb.barplot <- tbl_df(data.frame(get.barplot.matrix())) %>% tibble::rownames_to_column(var='gfs')
+  mtx <- get.barplot.matrix()
+  tb.barplot <- tbl_df(data.frame(gfs = rownames(mtx),  mtx, stringsAsFactors = F)) 
+  row.names(tb.barplot) = NULL
   if (input$cmbMatrix == "matrix_PVAL.txt") {
     tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs,convert = T) %>% filter(fois==input$cmbFOI,vals>0) %>% arrange(desc(vals)) %>% slice(1:count_barplot)
   } else {
@@ -269,7 +271,9 @@ output$pltEnrichUp_ui <- renderUI({
 
 
 tbEnrichDown <-reactive({
-  tb.barplot <- tbl_df(data.frame(get.barplot.matrix())) %>% tibble::rownames_to_column(var='gfs')
+  mtx <- get.barplot.matrix()
+  tb.barplot <- tbl_df(data.frame(gfs = rownames(mtx),  mtx, stringsAsFactors = F)) 
+  row.names(tb.barplot) = NULL
   if (input$cmbMatrix == "matrix_PVAL.txt") {
     tb.barplot <-  tb.barplot %>% gather(fois,vals,-gfs, convert = T) %>% filter(fois==input$cmbFOI,vals<0) %>% arrange(desc(abs(vals))) %>% slice(1:count_barplot)
   }else{
