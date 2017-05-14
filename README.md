@@ -17,6 +17,8 @@ Scripts for processing the enrichment analysis matrixes produced by [GenomeRunne
 
 * `gfAnnot.R` - semi-manual way of creating annotation RData object
 
+* `stats_tests.R` - correlate GR results obtained with different statistical tests
+
 * `utils.R` - Functions used by main scripts. Main function plotting tme majority of the results.
 
 * `utils1.R` - Version 1 of the main function that treats the results from same cell-factor experiments from different institutions as replicates, and plots the most significant results. 
