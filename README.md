@@ -27,6 +27,8 @@ Scripts for processing the enrichment analysis matrixes produced by [GenomeRunne
 
 * `01_heatmap_corr.R` - Code snippets to perform enrichment- and regulatory similarity analyses clustering and visualization, as well as some exploratory tests.
 
+* `GenomeRunner.xlsx` - GenomeRunner data and ideas
+
 * `jaccard` folder - BedTools script to calculate a matrix of Jaccard coefficients on all BED files in the folder
 
 Instead of all available cell lines, subsets of tissue-specific cell lines can be used.
