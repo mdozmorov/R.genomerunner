@@ -9,12 +9,12 @@ library(tidyr)
 # Mikhail paths
 #results.dir <- "/home/lukas/db_2.00_06.14.2016/results/gr_ADME_rdmHistone_bPk-processed/"
 # results.dir <- "/Users/mikhail/Documents/tmp/results/diseases_vs_rdmHistone_gPk-imputed/"
-# results.dir <- "/Users/mikhail/Documents/tmp/results/example2/"
+results.dir <- "/Users/mdozmorov/Documents/Work/VCU_work/Kellie/data.gr/gr_cpg_rdmHistone_bPk-processed/"
 # 
-results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
-genomerunner.mode <- T
+# results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
+genomerunner.mode <- F
 coloring.num = 50
-num.char <- 50
+num.char <- 30
 
 shinyServer(function(input, output,session) {
 
