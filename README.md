@@ -27,6 +27,8 @@ Scripts for processing the enrichment analysis matrixes produced by [GenomeRunne
 
 * `01_heatmap_corr.R` - Code snippets to perform enrichment- and regulatory similarity analyses clustering and visualization, as well as some exploratory tests.
 
+* `jaccard` folder - BedTools script to calculate a matrix of Jaccard coefficients on all BED files in the folder
+
 Instead of all available cell lines, subsets of tissue-specific cell lines can be used.
 
 * Blood cell lines, any karyotype: c("K562", "Gm12878", "Gm12891", "Gm12892", "Gm06990", "Nb4", "Hl60", "Cd20", "Th1", "Gm12865", "Jurkat", "Dnd41", "Gm12864", "Th2", "Gm19239", "Cd20ro01778", "Cmk", "Gm19240", "Gm12875", "Gm12873", "Gm12872")
