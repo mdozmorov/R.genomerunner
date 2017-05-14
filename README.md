@@ -15,6 +15,8 @@ Scripts for processing the enrichment analysis matrixes produced by [GenomeRunne
 
 * `genomeRunner_file_formatting_functions2.R` - Version 2 of the above functions that includes proper odds ratios handling.
 
+* `gfAnnot.R` - semi-manual way of creating annotation RData object
+
 * `utils.R` - Functions used by main scripts. Main function plotting tme majority of the results.
 
 * `utils1.R` - Version 1 of the main function that treats the results from same cell-factor experiments from different institutions as replicates, and plots the most significant results. 
