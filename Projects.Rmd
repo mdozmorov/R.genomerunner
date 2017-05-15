@@ -1,0 +1,51 @@
+---
+  bibliography: references.bib
+csl: styles.ref/genomebiology.csl
+output:
+  word_document:
+  reference_docx: styles.doc/NSF_grant_style.docx
+html_document: default
+---
+
+# Project 1. 3D Epigenomics project
+
+## Big picture
+
+- When comparing 3D genomic structures, regions that are highly stable, or unstable, can be defined. 
+- The question is, which epigenomic features are enriched in those regions
+
+## Goal
+
+- In epigenomic enrichment analysis (https://www.ncbi.nlm.nih.gov/pubmed/27153607), a set of genomic regions is tested for enrichment in a set of epigenomic regions. 
+- The resolution of 3D data is relatively coarse, so the 3D regions are large. Thus, they cannot be tested for enrichment in much smaller epigenomic regions
+- Need to reverse the enrichment analysis - test whether a set of epigenomic regions is enriched in a set of 3D regions. `Lola` will work, just need to organize data and code, and run the analyses.
+
+
+
+# Project 2. Organizing epigenomic data.
+
+## Big picture
+
+- GenomeRunner (http://integrativegenomics.org/, https://github.com/mdozmorov/genome_runner/tree/shiny) is an enrichment analysis tool (https://www.ncbi.nlm.nih.gov/pubmed/27153607)
+- It uses data from the ENCODE and Roadmap Epigenomics project
+- The data are acquired, reformatted and organized into hierarchical folder structure using `dbcreator*` scripts (https://mdozmorov.github.io/grdocs/dbcreator/dbcreator.html)
+
+## Goal
+
+- The data is outdated. Need to update the database using the current implementation of `dbcreator*` scripts.
+- The annotations for the data are currently organized semi-manually into an RData object (`gfAnnot.R` file in https://github.com/mdozmorov/R.genomerunner/tree/shiny). These annotations are critical for an understanding of the results. Need to develop a systematic method of obtaining the data using `dbcreator*` scripts AND creating the annotation for it. Need to make it flexible enough to allow an addition of other BED data files, listed in the https://github.com/mdozmorov/R.genomerunner/blob/shiny/GenomeRunner.xlsx, and their annotations.
+
+
+
+# Project 3. 3D, or spatial enrichment analysis
+
+## Big picture
+
+- Genome form loops and recent technologies allow detecting interacting regions. Genes, even distant, can be in close proximity because they are co-regulated. 
+- The data of how genomic regions interact with one another (think adjacency matrix) can be considered as a reference model
+- Given a list of genes (or any genomic regions), how can we detect whether they fall within regions interacting more (or less) frequently that can be expected by chance?
+
+## Goal
+
+- Learn the method of 3D co-localization enrichment analysis developed as a part of HiBrowse (https://www.ncbi.nlm.nih.gov/pubmed/24511080)
+- To be discussed, implement a 3D enrichment analysis of user-provided genomic regions in 3D chromatin interaction data.
