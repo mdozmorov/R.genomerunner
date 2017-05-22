@@ -20,6 +20,17 @@ html_document: default
 - The resolution of 3D data is relatively coarse, so the 3D regions are large. Thus, they cannot be tested for enrichment in much smaller epigenomic regions
 - Need to reverse the enrichment analysis - test whether a set of epigenomic regions is enriched in a set of 3D regions. `Lola` will work, just need to organize data and code, and run the analyses.
 
+## Data
+
+- Stable/unstable regions - Dropbox/genes_analysis/gm12878_gm12878
+    - gm12878_gm12878_rep_diff.bed
+    - gm12878_gm12878_rep_stable.bed
+    - whole_genome.bed
+
+- Epigenomic data - GenomeRunner web server
+
+- Tool to consider: Stereogene, https://github.com/favorov/stereogene, http://biorxiv.org/content/early/2016/09/21/059584
+
 
 
 # Project 2. Organizing epigenomic data.
