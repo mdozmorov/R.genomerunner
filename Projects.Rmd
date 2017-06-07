@@ -12,13 +12,15 @@ html_document: default
 ## Big picture
 
 - When comparing 3D genomic structures, regions that are highly stable, or unstable, can be defined. 
-- The question is, which epigenomic features are enriched in those regions
+- The question is, which epigenomic features are _differentially associated with_ those regions
 
 ## Goal
 
-- In epigenomic enrichment analysis (https://www.ncbi.nlm.nih.gov/pubmed/27153607), a set of genomic regions is tested for enrichment in a set of epigenomic regions. 
-- The resolution of 3D data is relatively coarse, so the 3D regions are large. Thus, they cannot be tested for enrichment in much smaller epigenomic regions
-- Need to reverse the enrichment analysis - test whether a set of epigenomic regions is enriched in a set of 3D regions. `Lola` will work, just need to organize data and code, and run the analyses.
+- Find/develop a method for testing associations of stable/unstable regions with biologically meaningful epigenomic regions. The significance, or strength, of the associations should be compared, and epigenomic features _differentially associated with_ the stable/unstable regions should be defined.
+- Association as _enrichment_: In epigenomic enrichment analysis (https://www.ncbi.nlm.nih.gov/pubmed/27153607), a set of genomic regions is tested for enrichment in a set of epigenomic regions. 
+    - Note: The resolution of 3D data is relatively coarse, so the 3D regions are large. Thus, they cannot be tested for enrichment in much smaller epigenomic regions. Investigate the length distribution of each set of regions
+    - Tentative idea: Need to reverse the enrichment analysis - test whether a set of epigenomic regions is enriched in a set of 3D regions. `Lola` will work, just need to organize data and code, and run the analyses.
+- Association as _proximity_ analysis: GenometriCorr, Stereogene
 
 ## Data
 
@@ -27,10 +29,15 @@ html_document: default
     - gm12878_gm12878_rep_stable.bed
     - whole_genome.bed
 
-- Epigenomic data - GenomeRunner web server
+- Epigenomic data - GenomeRunner web server. LOLA data - Merlot, /home/sequencing/data/ExtData/LOLA
 
-- Tool to consider: Stereogene, https://github.com/favorov/stereogene, http://biorxiv.org/content/early/2016/09/21/059584
+## Timeline
 
+- 20 work hours/week
+- Meetings twice a week (tentatively, Tuesday/Friday 1pm). Prepare a 2-3 slides PPT presentation of the results and plans for next steps
+- July 23. PowerPoing with a full set of results for a 50-min presentation
+- August 1. Results are added to the manuscript draft
+- August 15. Manuscript submission
 
 
 # Project 2. Organizing epigenomic data.
