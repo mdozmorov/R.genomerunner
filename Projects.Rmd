@@ -24,12 +24,34 @@ html_document: default
 
 ## Data
 
-- Stable/unstable regions - Dropbox/genes_analysis/gm12878_gm12878
+- Stable/unstable regions 
+  - Dropbox/genes_analysis/gm12878_gm12878
     - gm12878_gm12878_rep_diff.bed
     - gm12878_gm12878_rep_stable.bed
     - whole_genome.bed
+  - Dropbox/genes_analysis/k562
+    - k562_diff_regions.bed
+    - k562_stable_regions.bed
+    - k562_whole_genome.bed
 
 - Epigenomic data - GenomeRunner web server. LOLA data - Merlot, /home/sequencing/data/ExtData/LOLA
+  - Stereogene
+    - Subcompartments
+    - Chrom states
+  
+## ToDo
+
+- Stereogene
+  - When the results are "0" or "nan", investigate why
+  - What happens when no overlap?
+  - Organize into barplots, sorted by the largest difference btw. stable/diff region
+
+- Chromosome enrichment
+  - Columns: Chr, p-val for Stable, p-val for Diff
+  
+- GenometriCorr
+  - Organize projection results into barplots
+  - Start on Absolute/relative distance tests 
 
 ## Timeline
 
