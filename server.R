@@ -5,16 +5,18 @@ library(ggvis)
 library(tidyr)
 #shiny::runApp(host='0.0.0.0',port=4494)
 
-#results.dir <- "/home/lukas/db_2.00_06.14.2016/results/"
 # Mikhail paths
 #results.dir <- "/home/lukas/db_2.00_06.14.2016/results/gr_ADME_rdmHistone_bPk-processed/"
 # results.dir <- "/Users/mikhail/Documents/tmp/results/diseases_vs_rdmHistone_gPk-imputed/"
-results.dir <- "/Users/mdozmorov/Documents/Work/VCU_work/Kellie/data.gr/gr_cpg_rdmHistone_bPk-processed/"
+results.dir <- "/Users/mdozmorov/Documents/Work/VCU_work/Fuemmeler/NEST_cord_blood_450K/R.genomerunner/data.gr/gr_3D_encchromStates/"
 # 
-# results.dir <- "/home/mdozmorov/db_5.00_07-22-2015/results/"
 genomerunner.mode <- F
 coloring.num = 50
 num.char <- 30
+# Subset to certain features
+row.subset <- "none" # Do not subset
+row.subset <- "Gm12878"
+
 
 shinyServer(function(input, output,session) {
 
@@ -34,7 +36,7 @@ get.matrix <- reactive({
   # populate the enrichment table combobox
   file.names.enrichment <- tools::file_path_sans_ext(
     list.files(paste(get.results.dir(), "enrichment/", sep = "")))
-  mtx <- gr_load_data(paste(get.results.dir(), input$cmbMatrix, sep = ""))
+  mtx <- gr_load_data(paste(get.results.dir(), input$cmbMatrix, sep = ""), row.subset = row.subset)
 })
   
 
@@ -206,7 +208,7 @@ outputOptions(output, "downloadEnrichTable", suspendWhenHidden = FALSE)
 get.barplot.matrix <- reactive({
   # populate the enrichment table combobox
   file.names.enrichment <- tools::file_path_sans_ext(list.files(paste(get.results.dir(), "enrichment/", sep = "")))
-  mtx <- gr_load_data(paste(get.results.dir(), input$cmbMatrix, sep = ""))
+  mtx <- gr_load_data(paste(get.results.dir(), input$cmbMatrix, sep = ""), row.subset = row.subset)
 })
 
 axis_text_scaling = 9;
@@ -332,7 +334,7 @@ output$pltEnrichDown_ui <- renderUI({
 # episimilarity
 # ---------------------------------------------------------------
 get.corr.matrix <- reactive({
-  mtx <- gr_load_data(paste(get.results.dir(), input$cmbMatrix, sep = ""), p2z = TRUE)
+  mtx <- gr_load_data(paste(get.results.dir(), input$cmbMatrix, sep = ""), row.subset = row.subset, p2z = TRUE)
   # If there are columns with SD=0, add jitter to it. Needed for
   # pair-wise column correlation analysis (regulatory similarity
   # analysis). Only valid if there's more than 1 row
@@ -410,7 +412,7 @@ calculate.clust <- reactive({
   hcut <- dendextend::heights_per_k.dendrogram(dend)[cl_num]  # extract the height to cut based on # of groups
   # get the cluster labels
   mtx.clust <- dend %>% gr_clusters(height = hcut, minmembers = 3)
-  mtx = gr_load_data(paste(get.results.dir(), input$cmbMatrix, sep = ""), p2z = FALSE)  # load the original matrix
+  mtx = gr_load_data(paste(get.results.dir(), input$cmbMatrix, sep = ""), row.subset = row.subset, p2z = FALSE)  # load the original matrix
   is.OR = T
   if (input$cmbMatrix == "matrix_PVAL.txt") {
     is.OR = F
@@ -518,7 +520,7 @@ output$pltDend <- renderPlot({
 
 get.gr_cellspecific <- reactive({
   withProgress({
-    mtx <- gr_load_data(paste(get.results.dir(), "matrix_PVAL.txt", sep = ""))
+    mtx <- gr_load_data(paste(get.results.dir(), "matrix_PVAL.txt", sep = ""), row.subset = row.subset)
     cellspec_path = paste(get.results.dir(), "cellspecific.rds", sep = "") # this file save the results so we only have to calculate cellspec one time
     if (file.exists(cellspec_path)[1] == F){
       mtx.CTE <-  gr_cellspecific(mtx, cutoff.pval = 0.05)
@@ -533,7 +535,7 @@ get.gr_cellspecific <- reactive({
 
 output$tblCTEnrichment <- renderDataTable({
   inputtmp <- input$cmbFOI
-  mtx <- gr_load_data(paste(get.results.dir(), "matrix_PVAL.txt", sep = ""))
+  mtx <- gr_load_data(paste(get.results.dir(), "matrix_PVAL.txt", sep = ""), row.subset = row.subset)
   validate(need(nrow(mtx) > 5, "Insufficient data for performing cell type-specific enrichment analysis"))
   # running function
   mtx.CTE <- get.gr_cellspecific()
@@ -558,7 +560,7 @@ output$downloadCTEnrichment <- downloadHandler(filename = function() {
   return("EnrichmentCT_table.txt")
 }, content = function(file) {
   selectedCor <- input$cmbFOI
-  mtx <- gr_load_data(paste(get.results.dir(), "matrix_PVAL.txt", sep = ""))
+  mtx <- gr_load_data(paste(get.results.dir(), "matrix_PVAL.txt", sep = ""), row.subset = row.subset)
   validate(need(nrow(mtx) > 5, "Insufficient data for performing cell type-specific enrichment analysis"))
   # running function
   mtx.CTE <- gr_cellspecific(mtx)
@@ -693,7 +695,7 @@ output$downloadZIP <- downloadHandler(filename = function() {
   # Create a different UI depending if there are multiple GF in the results
   output$mainpage <-renderUI({
     # manually load matrix since controls are not loaded yet
-    validate(need(try(mtx <- gr_load_data(paste(get.results.dir(), "matrix_PVAL.txt",sep=""))),"Error loading files. Either no significant results are available, or data files are corrupted. Please, re-run the analysis using larger number of genome annotation datasets."))
+    validate(need(try(mtx <- gr_load_data(paste(get.results.dir(), "matrix_PVAL.txt",sep=""), row.subset = row.subset)),"Error loading files. Either no significant results are available, or data files are corrupted. Please, re-run the analysis using larger number of genome annotation datasets."))
     file.names.annotation <- list.files(paste(get.results.dir(),"annotations/",sep=""))
     single.feature = TRUE;
     if (ncol(mtx)>1 & nrow(mtx)>1){single.feature = FALSE}
@@ -820,7 +822,7 @@ output$downloadZIP <- downloadHandler(filename = function() {
   })
   output$sidebar <- renderUI({
     # manually load matrix since controls are not loaded yet
-    validate(need(try(mtx <- gr_load_data(paste(get.results.dir(), "matrix_PVAL.txt",sep=""))),""))
+    validate(need(try(mtx <- gr_load_data(paste(get.results.dir(), "matrix_PVAL.txt",sep=""), row.subset = row.subset)),""))
     mtx.col.names <- colnames(data.frame(mtx)) # R converts '-' to '.' in data frames
     file.names.annotation <- list.files(paste(get.results.dir(),"annotations/",sep=""))
     single.feature = TRUE
